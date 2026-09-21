@@ -1,0 +1,63 @@
+// Prisma schema for AI Job Board
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model JobOffer {
+  id           String     @id @default(uuid())
+  title        String
+  description  String     @db.Text
+  aiLabName    String
+  salaryMin    Int?
+  salaryMax    Int?
+  currency     String     @default("USD")
+  tags         Json
+  affiliateUrl String     @map("affiliate_url")
+
+  platform   AIPlatform @relation(fields: [platformId], references: [id])
+  platformId String     @map("platform_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([platformId])
+  @@map("job_offers")
+}
+
+model AIPlatform {
+  id         String     @id @default(uuid())
+  name       String
+  slug       String     @unique
+  websiteUrl String?    @map("website_url")
+  description String?   @db.Text
+
+  jobOffers JobOffer[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_platforms")
+}
+
+model Expert {
+  id          String   @id @default(uuid())
+  name        String
+  title       String?  // e.g. "Ex-OpenAI Research Scientist"
+  bio         String?  @db.Text
+  skills      Json
+  email       String?  @unique
+  twitterUrl  String?  @map("twitter_url")
+  linkedinUrl String?  @map("linkedin_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("experts")
+}

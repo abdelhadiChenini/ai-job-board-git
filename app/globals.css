@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Design tokens (logical, direction-agnostic) */
+  --color-navy: #0b1528;
+  --color-paper: #ffffff;
+  --radius-card: 1rem;
+
+  /* RTL-ready spacing aliases mapped to logical properties */
+  --space-inline-start: 0px;
+  --space-inline-end: 0px;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-navy);
+  color: var(--color-paper);
+  min-height: 100vh;
+}
+
+/*
+ * Site shell: constrains content width and pads it using LOGICAL
+ * properties so the layout mirrors automatically when [dir="rtl"]
+ * is applied for future localization (Arabic, Hebrew, etc.).
+ */
+.site-shell {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto; /* auto-margin resolves to left/right per dir */
+  padding-inline: 1.5rem; /* physical 'padding-left/right' equivalent */
+  padding-block: 2rem;
+}
+
+/*
+ * Content card: stark white, rounded corners.
+ * start/end border radius inherits direction automatically.
+ * Also defines explicit RTL params below.
+ */
+.site-card {
+  background-color: var(--color-paper);
+  color: #111827;
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  max-inline-size: 100%; /* prevents overflow in both LTR & RTL */
+}
+
+/*
+ * FUTURE RTL SUPPORT
+ * Set <html dir="rtl"> (or per-locale) and toggle this block,
+ * or rely on the logical properties above. Both work together.
+ */
+[dir="rtl"] {
+  --space-inline-start: 0px;
+  --space-inline-end: 0px;
+  text-align: right;
+}
+
+[dir="rtl"] .site-card {
+  border-start-start-radius: var(--radius-card);
+  border-start-end-radius: calc(var(--radius-card) * 0.35);
+  border-end-start-radius: var(--radius-card);
+  border-end-end-radius: calc(var(--radius-card) * 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-shell {
+    padding-inline: 1rem;
+  }
+  .site-card {
+    padding: 1.25rem;
+  }
+}
