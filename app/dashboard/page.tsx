@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardSidebar from "./DashboardSidebar";
 import ProfileAvailability from "./ProfileAvailability";
+import RecommendedForYou from "./RecommendedForYou";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -145,6 +146,10 @@ export default async function DashboardPage() {
 
         <div className="mt-6">
           <ProfileAvailability />
+        </div>
+
+        <div className="mt-6">
+          <RecommendedForYou skills={skills} />
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
