@@ -154,6 +154,22 @@ model SiteSetting {
   @@map("site_settings")
 }
 
+model SeoSetting {
+  id              String   @id @default("global")
+  siteTitle       String?  @map("site_title")
+  metaDescription String?  @db.Text @map("meta_description")
+  keywords        String?  @db.Text
+  logoUrl         String?  @map("logo_url")
+  headerInjection String?  @db.Text @map("header_injection")
+  bodyInjection   String?  @db.Text @map("body_injection")
+  footerInjection String?  @db.Text @map("footer_injection")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("seo_settings")
+}
+
 model Page {
   id      String @id @default(uuid())
   slug    String @unique

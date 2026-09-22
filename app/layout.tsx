@@ -3,31 +3,75 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import Footer from "@/app/components/Footer";
 import Providers from "./Providers";
+import { prisma } from "@/lib/prisma";
 
-export const metadata: Metadata = {
-  title: {
-    default: "AI Job Board",
-    template: "%s | AI Job Board",
-  },
-  description:
-    "Curated job listings from the world's leading AI labs and platforms.",
-};
+const DEFAULT_TITLE = "AI Job Board";
+const DEFAULT_DESCRIPTION =
+  "Curated job listings from the world's leading AI labs and platforms.";
 
 const fonts = `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
   Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji"`;
 
-export default function RootLayout({
+async function getSeo() {
+  return prisma.seoSetting.findUnique({ where: { id: "global" } });
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeo();
+
+  return {
+    title: {
+      default: seo?.siteTitle || DEFAULT_TITLE,
+      template: `%s | ${seo?.siteTitle || DEFAULT_TITLE}`,
+    },
+    description: seo?.metaDescription || DEFAULT_DESCRIPTION,
+    keywords: seo?.keywords
+      ? seo.keywords
+          .split(",")
+          .map((keyword) => keyword.trim())
+          .filter(Boolean)
+      : undefined,
+    icons: seo?.logoUrl
+      ? { icon: seo.logoUrl, apple: seo.logoUrl }
+      : undefined,
+    openGraph: {
+      siteName: seo?.siteTitle || DEFAULT_TITLE,
+      description: seo?.metaDescription || DEFAULT_DESCRIPTION,
+      ...(seo?.logoUrl ? { images: [{ url: seo.logoUrl }] } : {}),
+    },
+  };
+}
+
+export const dynamic = "force-dynamic";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
+  const seo = await getSeo();
+
   return (
     <html lang="en" dir="ltr">
-      <body style={{ fontFamily: fonts }} className="min-h-screen bg-navy text-white antialiased">
+      {seo?.headerInjection && (
+        <head>
+          <div dangerouslySetInnerHTML={{ __html: seo.headerInjection }} />
+        </head>
+      )}
+      <body
+        style={{ fontFamily: fonts }}
+        className="min-h-screen bg-navy text-white antialiased"
+      >
+        {seo?.bodyInjection && (
+          <div dangerouslySetInnerHTML={{ __html: seo.bodyInjection }} />
+        )}
         <div className="site-shell">
           <Providers>{children}</Providers>
         </div>
         <Footer />
+        {seo?.footerInjection && (
+          <div dangerouslySetInnerHTML={{ __html: seo.footerInjection }} />
+        )}
       </body>
     </html>
   );

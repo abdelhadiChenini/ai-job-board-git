@@ -11,6 +11,7 @@ const manageLinks = [
   { href: "/admin/blogs", label: "Blog Posts" },
   { href: "/admin/settings", label: "Site Settings" },
   { href: "/admin/settings#faq-page", label: "FAQ Content" },
+  { href: "/admin/seo", label: "SEO Settings" },
 ];
 
 export function AdminSidebar() {
