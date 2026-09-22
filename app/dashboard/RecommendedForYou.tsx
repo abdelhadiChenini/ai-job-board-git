@@ -36,39 +36,51 @@ function platformInitials(name: string): string {
 }
 
 export async function RecommendedForYou({ skills }: { skills: string[] }) {
-  const cleanSkills = (skills ?? [])
-    .map((skill) => skill.trim())
-    .filter(Boolean);
+  const validSkills = Array.isArray(skills)
+    ? skills.filter(
+        (skill): skill is string =>
+          typeof skill === "string" && skill.trim() !== "",
+      )
+    : [];
 
-  const jobs = await prisma.jobOffer.findMany({
-    where: cleanSkills.length > 0
-      ? {
-          OR: cleanSkills.map((skill) => ({
-            OR: [
-              { tags: { array_contains: skill } },
-              { category: { contains: skill, mode: "insensitive" } },
-            ],
-          })),
-        }
-      : undefined,
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      aiLabName: true,
-      category: true,
-      salaryMin: true,
-      salaryMax: true,
-      currency: true,
-      tags: true,
-      affiliateUrl: true,
-      platform: {
-        select: { name: true, logoUrl: true, websiteUrl: true },
-      },
+  const select = {
+    id: true,
+    slug: true,
+    title: true,
+    aiLabName: true,
+    category: true,
+    salaryMin: true,
+    salaryMax: true,
+    currency: true,
+    tags: true,
+    affiliateUrl: true,
+    platform: {
+      select: { name: true, logoUrl: true, websiteUrl: true },
     },
-    orderBy: { createdAt: "desc" },
-    take: 4,
-  });
+  } as const;
+
+  let jobs;
+  if (validSkills.length === 0) {
+    jobs = await prisma.jobOffer.findMany({
+      select,
+      orderBy: { createdAt: "desc" },
+      take: 4,
+    });
+  } else {
+    jobs = await prisma.jobOffer.findMany({
+      where: {
+        OR: validSkills.map((skill) => ({
+          OR: [
+            { tags: { array_contains: skill } },
+            { category: { contains: skill, mode: "insensitive" } },
+          ],
+        })),
+      },
+      select,
+      orderBy: { createdAt: "desc" },
+      take: 4,
+    });
+  }
 
   if (jobs.length === 0) {
     return null;
@@ -80,7 +92,7 @@ export async function RecommendedForYou({ skills }: { skills: string[] }) {
         Recommended for You
       </h2>
       <p className="mt-1 text-sm text-slate-400">
-        {cleanSkills.length > 0
+        {validSkills.length > 0
           ? "Matched to the skills on your profile."
           : "Popular opportunities trending right now."}
       </p>
