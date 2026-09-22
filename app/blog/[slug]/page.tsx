@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     openGraph: {
       title: post.title,
       description: post.metaDescription || post.excerpt || undefined,
+      images: post.featuredImage ? [post.featuredImage] : undefined,
     },
   };
 }
@@ -44,10 +45,6 @@ export default async function BlogPostPage({ params }: Params) {
   }
 
   const authorName = post.author.expertProfile?.fullName ?? post.author.email;
-  const paragraphs = post.content
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -73,6 +70,14 @@ export default async function BlogPostPage({ params }: Params) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      {post.featuredImage && (
+        <img
+          src={post.featuredImage}
+          alt=""
+          className="w-full rounded-card border border-white/10 object-cover"
+        />
+      )}
+
       <section className="rounded-card border border-white/10 bg-slate-800 p-6 sm:p-8">
         <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
           {post.title}
@@ -90,15 +95,10 @@ export default async function BlogPostPage({ params }: Params) {
       </section>
 
       <section className="rounded-card bg-white p-6 shadow-2xl sm:p-8">
-        <div className="prose prose-slate prose-sm max-w-none">
-          {paragraphs.length > 0 ? (
-            paragraphs.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))
-          ) : (
-            <p>{post.content}</p>
-          )}
-        </div>
+        <div
+          className="prose prose-slate prose-sm max-w-none"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
       </section>
     </article>
   );
