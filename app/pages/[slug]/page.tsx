@@ -42,9 +42,10 @@ export default async function PublicPage({ params }: Params) {
         </p>
       </header>
 
-      <div className="prose prose-invert prose-lg max-w-none whitespace-pre-line leading-relaxed text-slate-300">
-        {page.content}
-      </div>
+      <div
+        className="prose prose-invert prose-lg max-w-none leading-relaxed text-slate-300"
+        dangerouslySetInnerHTML={{ __html: page.content }}
+      />
     </article>
   );
 }

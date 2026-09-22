@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Modal from "../Modal";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
+import RichTextEditor from "./RichTextEditor";
 
 type ApiPage = {
   id: string;
@@ -270,12 +271,9 @@ export function PagesTable() {
 
           <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
             Content
-            <textarea
-              rows={14}
+            <RichTextEditor
               value={form.content}
-              onChange={setField("content")}
-              placeholder="Page content — paragraphs separated by blank lines…"
-              className={`${inputClass} font-mono`}
+              onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
             />
           </label>
 
