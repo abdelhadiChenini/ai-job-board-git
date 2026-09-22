@@ -12,12 +12,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const statuses = [
-  { label: "APPLICATIONS", value: "0" },
-  { label: "IN PROGRESS", value: "0" },
-  { label: "SHORTLISTED / HIRED", value: "0" },
-];
-
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
@@ -38,6 +32,20 @@ export default async function DashboardPage() {
     ? (profile.skills as string[])
     : [];
   const photo = profile?.profilePicture ?? null;
+
+  const completenessFields = [
+    Boolean(profile?.bio),
+    skills.length > 0,
+    Boolean(profile?.hourlyRate),
+    Boolean(profile?.country || profile?.stateRegion),
+  ];
+  const completeness = Math.round(
+    (completenessFields.filter(Boolean).length / completenessFields.length) *
+      100,
+  );
+
+  const verified = profile?.verificationStatus === "VERIFIED";
+  const publicProfileUrl = profile ? `/experts/${profile.id}` : null;
   const initials = fullName
     .split(/\s+/)
     .filter(Boolean)
@@ -82,19 +90,56 @@ export default async function DashboardPage() {
         </section>
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {statuses.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-card border border-white/10 bg-slate-800 p-5"
+          <div className="rounded-card border border-white/10 bg-slate-800 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Verification Status
+            </p>
+            <span
+              className={`mt-3 inline-flex items-center rounded-full px-3.5 py-1.5 text-sm font-semibold ${
+                verified
+                  ? "bg-emerald-500/15 text-emerald-400"
+                  : "bg-amber-500/15 text-amber-400"
+              }`}
             >
-              <p className="text-3xl font-bold tracking-tight text-white">
-                {stat.value}
+              {verified ? "Verified Expert" : "Pending Review"}
+            </span>
+          </div>
+
+          <div className="rounded-card border border-white/10 bg-slate-800 p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Profile Completeness
               </p>
-              <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                {stat.label}
-              </p>
+              <p className="text-sm font-bold text-white">{completeness}%</p>
             </div>
-          ))}
+            <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-blue-500"
+                style={{ width: `${completeness}%` }}
+              />
+            </div>
+            <p className="mt-3 text-xs text-slate-500">
+              Bio, skills, hourly rate and location
+            </p>
+          </div>
+
+          <div className="rounded-card border border-white/10 bg-slate-800 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Public Profile
+            </p>
+            {publicProfileUrl ? (
+              <Link
+                href={publicProfileUrl}
+                className="mt-3 inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+              >
+                View Profile
+              </Link>
+            ) : (
+              <p className="mt-3 text-xs text-slate-500">
+                Complete and publish your profile to get a public link.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">

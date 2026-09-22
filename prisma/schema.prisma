@@ -73,6 +73,11 @@ enum UserRole {
   EXPERT
 }
 
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+}
+
 model User {
   id             String   @id @default(uuid())
   email          String   @unique
@@ -89,13 +94,14 @@ model User {
 }
 
 model ExpertProfile {
-  id                String   @id @default(uuid())
-  fullName          String   @map("full_name")
-  profilePicture    String?  @db.LongText @map("profile_picture")
+  id                String             @id @default(uuid())
+  fullName          String             @map("full_name")
+  profilePicture    String?            @db.LongText @map("profile_picture")
   headline          String?
   country           String?
-  skills            Json     @default("[]")
-  isPublic          Boolean  @default(false) @map("is_public")
+  skills            Json               @default("[]")
+  isPublic          Boolean            @default(false) @map("is_public")
+  verificationStatus VerificationStatus @default(PENDING) @map("verification_status")
   bio               String?  @db.Text
   stateRegion       String?  @map("state_region")
   areasOfExpertise  String?  @map("areas_of_expertise")
