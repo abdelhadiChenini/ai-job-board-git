@@ -14,6 +14,8 @@ type ApiOpportunity = {
   currency: string;
   tags: unknown;
   affiliateUrl: string;
+  category: string | null;
+  region: string | null;
   platformId: string;
   platform: { id: string; name: string; slug: string };
   createdAt: string;
@@ -32,6 +34,8 @@ type FormState = {
   salaryMax: string;
   platformId: string;
   tags: string;
+  category: string;
+  region: string;
 };
 
 function toForm(
@@ -47,6 +51,8 @@ function toForm(
     salaryMax: values.salaryMax ?? "",
     platformId: values.platformId,
     tags: values.tags ?? "",
+    category: values.category ?? "",
+    region: values.region ?? "",
   };
 }
 
@@ -143,6 +149,8 @@ export function OpportunityTable() {
         salaryMax: record.salaryMax?.toString() ?? "",
         platformId: record.platformId,
         tags: tagsLabel(record.tags),
+        category: record.category ?? "",
+        region: record.region ?? "",
       }),
     );
     setFormError(null);
@@ -170,6 +178,8 @@ export function OpportunityTable() {
       salaryMax: form.salaryMax === "" ? null : Number(form.salaryMax),
       platformId: form.platformId,
       tags: parseTags(form.tags),
+      category: form.category.trim(),
+      region: form.region.trim(),
     };
     if (editing) payload.id = editing.id;
 
@@ -374,6 +384,28 @@ export function OpportunityTable() {
                 value={form.affiliateUrl}
                 onChange={setField("affiliateUrl")}
                 placeholder="https://…"
+                className={inputClass}
+              />
+            </label>
+
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
+              Category
+              <input
+                type="text"
+                value={form.category}
+                onChange={setField("category")}
+                placeholder="AI Training & Evaluation"
+                className={inputClass}
+              />
+            </label>
+
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
+              Region
+              <input
+                type="text"
+                value={form.region}
+                onChange={setField("region")}
+                placeholder="Remote / Global"
                 className={inputClass}
               />
             </label>

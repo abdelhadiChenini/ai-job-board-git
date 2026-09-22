@@ -81,6 +81,8 @@ export async function POST(request: NextRequest) {
   const salaryMin = typeof body.salaryMin === "number" ? body.salaryMin : null;
   const salaryMax = typeof body.salaryMax === "number" ? body.salaryMax : null;
   const tags = normalizeTags(body.tags);
+  const category = typeof body.category === "string" ? body.category : "";
+  const region = typeof body.region === "string" ? body.region : "";
 
   if (tags === null) {
     return NextResponse.json(
@@ -131,6 +133,8 @@ export async function POST(request: NextRequest) {
         typeof body.jobLocationType === "string" && body.jobLocationType.trim()
           ? body.jobLocationType.trim()
           : "Remote",
+      category,
+      region,
     },
     include: {
       platform: { select: { id: true, name: true, slug: true } },
@@ -220,6 +224,8 @@ export async function PUT(request: NextRequest) {
   if (typeof body.jobLocationType === "string" && body.jobLocationType.trim()) {
     data.jobLocationType = body.jobLocationType.trim();
   }
+  if (typeof body.category === "string") data.category = body.category;
+  if (typeof body.region === "string") data.region = body.region;
 
   const jobOffer = await prisma.jobOffer.update({
     where: { id },

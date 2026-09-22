@@ -23,6 +23,8 @@ model JobOffer {
   affiliateUrl    String     @map("affiliate_url")
   datePosted      DateTime?  @map("date_posted")
   jobLocationType String     @default("Remote") @map("job_location_type")
+  category        String?
+  region          String?
 
   platform   AIPlatform @relation(fields: [platformId], references: [id])
   platformId String     @map("platform_id")
