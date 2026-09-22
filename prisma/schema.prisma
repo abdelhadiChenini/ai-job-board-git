@@ -61,3 +61,43 @@ model Expert {
 
   @@map("experts")
 }
+
+enum UserRole {
+  ADMIN
+  EXPERT
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  hashedPassword String   @map("hashed_password")
+  role           UserRole @default(EXPERT)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model SiteSetting {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model Page {
+  id      String @id @default(uuid())
+  slug    String @unique
+  title   String
+  content String @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("pages")
+}
