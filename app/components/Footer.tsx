@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 const SETTING_KEYS = [
   "site_title",
   "site_description",
-  "contact_email",
   "twitter_url",
   "linkedin_url",
   "github_url",
@@ -15,7 +14,6 @@ const FALLBACKS: Record<string, string> = {
   site_title: "AI Job Board",
   site_description:
     "Connecting AI labs and platforms with vetted experts for model evaluation, data annotation and quality work.",
-  contact_email: "hello@aijobboard.com",
 };
 
 type Column = { title: string; links: { label: string; href: string }[] };
@@ -39,7 +37,6 @@ export async function Footer() {
   const siteTitle = get("site_title") ?? FALLBACKS.site_title;
   const siteDescription =
     get("site_description") ?? FALLBACKS.site_description;
-  const contactEmail = get("contact_email") ?? FALLBACKS.contact_email;
 
   const socialLinks = (
     [
@@ -76,7 +73,7 @@ export async function Footer() {
         { label: "Post a Job", href: "/" },
         { label: "Hire Experts", href: "/" },
         { label: "Pricing", href: "/" },
-        { label: "Contact Us", href: `mailto:${contactEmail}` },
+        { label: "Contact Us", href: "/contact" },
       ],
     },
     {
