@@ -11,15 +11,18 @@ datasource db {
 }
 
 model JobOffer {
-  id           String     @id @default(uuid())
-  title        String
-  description  String     @db.Text
-  aiLabName    String
-  salaryMin    Int?
-  salaryMax    Int?
-  currency     String     @default("USD")
-  tags         Json
-  affiliateUrl String     @map("affiliate_url")
+  id              String     @id @default(uuid())
+  slug            String?    @unique
+  title           String
+  description     String     @db.Text
+  aiLabName       String
+  salaryMin       Int?
+  salaryMax       Int?
+  currency        String     @default("USD")
+  tags            Json
+  affiliateUrl    String     @map("affiliate_url")
+  datePosted      DateTime?  @map("date_posted")
+  jobLocationType String     @default("Remote") @map("job_location_type")
 
   platform   AIPlatform @relation(fields: [platformId], references: [id])
   platformId String     @map("platform_id")

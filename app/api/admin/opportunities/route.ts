@@ -14,6 +14,25 @@ function normalizeTags(tags: unknown): unknown[] | null {
   return null;
 }
 
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 80);
+}
+
+async function uniqueSlug(title: string): Promise<string> {
+  const base = slugify(title) || "opportunity";
+  let slug = base;
+  let suffix = 1;
+  while (await prisma.jobOffer.findUnique({ where: { slug } })) {
+    slug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  return slug;
+}
+
 export async function GET(request: NextRequest) {
   if (!(await getAdminSession())) {
     return UNAUTHORIZED;
@@ -95,6 +114,7 @@ export async function POST(request: NextRequest) {
   const jobOffer = await prisma.jobOffer.create({
     data: {
       title,
+      slug: await uniqueSlug(title),
       platformId,
       aiLabName,
       description,
@@ -103,6 +123,14 @@ export async function POST(request: NextRequest) {
       salaryMin,
       salaryMax,
       tags: tags as Prisma.InputJsonValue,
+      datePosted:
+        typeof body.datePosted === "string" && body.datePosted
+          ? new Date(body.datePosted)
+          : new Date(),
+      jobLocationType:
+        typeof body.jobLocationType === "string" && body.jobLocationType.trim()
+          ? body.jobLocationType.trim()
+          : "Remote",
     },
     include: {
       platform: { select: { id: true, name: true, slug: true } },
@@ -175,6 +203,23 @@ export async function PUT(request: NextRequest) {
     data.salaryMax = body.salaryMax;
   }
   if (tags !== undefined) data.tags = tags as Prisma.InputJsonValue;
+  if (typeof body.slug === "string" && body.slug.trim()) {
+    const slug = slugify(body.slug);
+    const taken = await prisma.jobOffer.findUnique({ where: { slug } });
+    if (taken && taken.id !== id) {
+      return NextResponse.json(
+        { error: "An opportunity with this slug already exists." },
+        { status: 409 },
+      );
+    }
+    data.slug = slug;
+  }
+  if (typeof body.datePosted === "string" && body.datePosted) {
+    data.datePosted = new Date(body.datePosted);
+  }
+  if (typeof body.jobLocationType === "string" && body.jobLocationType.trim()) {
+    data.jobLocationType = body.jobLocationType.trim();
+  }
 
   const jobOffer = await prisma.jobOffer.update({
     where: { id },
