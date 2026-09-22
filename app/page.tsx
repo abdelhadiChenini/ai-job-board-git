@@ -1,4 +1,3 @@
-import Link from "next/link";
 import TopNav from "@/app/components/TopNav";
 import Hero from "@/app/components/Hero";
 import JobCard from "@/app/components/JobCard";
@@ -62,16 +61,6 @@ export default async function HomePage() {
           </div>
         )}
       </section>
-
-      <footer className="mt-10 text-center text-xs text-slate-500">
-        <Link href="/" className="hover:text-slate-300">
-          About
-        </Link>
-        {" · "}
-        <Link href="/" className="hover:text-slate-300">
-          Contact
-        </Link>
-      </footer>
     </>
   );
 }

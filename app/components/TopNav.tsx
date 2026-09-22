@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const navItems = [
   { label: "Opportunities", href: "/" },
-  { label: "AI Platforms", href: "/#ai-platforms" },
+  { label: "AI Platforms", href: "/platforms" },
   { label: "Experts", href: "/experts" },
   { label: "For Companies", href: "/#for-companies" },
 ];

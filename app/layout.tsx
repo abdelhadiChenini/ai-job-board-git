@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import Footer from "@/app/components/Footer";
 
 export const metadata: Metadata = {
   title: {
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="en" dir="ltr">
       <body style={{ fontFamily: fonts }} className="min-h-screen bg-navy text-white antialiased">
         <div className="site-shell">{children}</div>
+        <Footer />
       </body>
     </html>
   );
