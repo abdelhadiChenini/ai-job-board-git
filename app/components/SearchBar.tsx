@@ -2,7 +2,34 @@
 
 import { useState } from "react";
 
-const pillFilters = ["All Opportunities", "New", "Trending"];
+const starIcon = (
+  <svg
+    className="h-3.5 w-3.5"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" />
+  </svg>
+);
+
+const pillFilters = [
+  {
+    label: "All Opportunities",
+    className: "bg-blue-600 text-white hover:bg-blue-500",
+  },
+  {
+    label: "New",
+    className:
+      "border border-white/15 bg-slate-800 text-white hover:bg-slate-700",
+    icon: starIcon,
+  },
+  {
+    label: "Trending",
+    className:
+      "border border-white/25 text-slate-200 hover:bg-white/10 hover:text-white",
+  },
+];
 
 const chevron = (
   <svg
@@ -33,8 +60,8 @@ export function SearchBar() {
         <input
           type="text"
           name="q"
-          placeholder="Search jobs, skills..."
-          aria-label="Search jobs, skills"
+          placeholder="Search jobs, skills or keywords..."
+          aria-label="Search jobs, skills or keywords"
           className="w-full rounded-xl bg-transparent px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none lg:h-full"
         />
 
@@ -82,20 +109,19 @@ export function SearchBar() {
         </button>
       </form>
 
-      <div className="flex flex-wrap items-center justify-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {pillFilters.map((filter) => (
           <button
-            key={filter}
+            key={filter.label}
             type="button"
-            aria-pressed={activePill === filter}
-            onClick={() => setActivePill(filter)}
-            className={
-              activePill === filter
-                ? "rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
-                : "rounded-full border border-white/25 px-5 py-2 text-sm font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
-            }
+            aria-pressed={activePill === filter.label}
+            onClick={() => setActivePill(filter.label)}
+            className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400 ${
+              activePill === filter.label ? "opacity-100" : "opacity-70"
+            } ${filter.className}`}
           >
-            {filter}
+            {filter.icon}
+            {filter.label}
           </button>
         ))}
       </div>
