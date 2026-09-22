@@ -2,8 +2,7 @@ import TopNav from "@/app/components/TopNav";
 import Hero from "@/app/components/Hero";
 import JobCard from "@/app/components/JobCard";
 import { prisma } from "@/lib/prisma";
-
-export const revalidate = 60;
+import type { Prisma } from "@prisma/client";
 
 function toTagList(tags: unknown): string[] {
   if (!Array.isArray(tags)) {
@@ -12,7 +11,40 @@ function toTagList(tags: unknown): string[] {
   return tags.filter((tag): tag is string => typeof tag === "string");
 }
 
-export default async function HomePage() {
+type SearchParams = {
+  q?: string;
+  category?: string;
+  company?: string;
+  location?: string;
+};
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const q = searchParams.q?.trim();
+  const category = searchParams.category?.trim();
+  const company = searchParams.company?.trim();
+  const location = searchParams.location?.trim();
+
+  const where: Prisma.JobOfferWhereInput = {};
+  if (q) {
+    where.OR = [
+      { title: { contains: q } },
+      { description: { contains: q } },
+    ];
+  }
+  if (company) {
+    where.platform = { name: company };
+  }
+  if (category) {
+    where.tags = { array_contains: category };
+  }
+  if (location) {
+    where.jobLocationType = location;
+  }
+
   const jobs = await prisma.jobOffer.findMany({
     select: {
       id: true,
@@ -20,6 +52,7 @@ export default async function HomePage() {
       aiLabName: true,
       tags: true,
     },
+    where,
     orderBy: { createdAt: "desc" },
     take: 50,
   });

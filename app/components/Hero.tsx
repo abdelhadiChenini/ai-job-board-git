@@ -1,6 +1,34 @@
-import SearchBar from "@/app/components/SearchBar";
+import SearchBar from "@/components/SearchBar";
+import { prisma } from "@/lib/prisma";
 
-export function Hero() {
+export async function Hero() {
+  const [platforms, jobs] = await Promise.all([
+    prisma.aIPlatform.findMany({
+      select: { name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.jobOffer.findMany({
+      select: { tags: true, jobLocationType: true },
+    }),
+  ]);
+
+  const companies = platforms.map((platform) => platform.name).sort();
+
+  const categorySet = new Set<string>();
+  for (const job of jobs) {
+    if (!Array.isArray(job.tags)) continue;
+    for (const tag of job.tags) {
+      if (typeof tag === "string" && tag.trim()) {
+        categorySet.add(tag);
+      }
+    }
+  }
+  const categories = Array.from(categorySet).sort();
+
+  const locations = Array.from(
+    new Set(jobs.map((job) => job.jobLocationType).filter(Boolean)),
+  ).sort();
+
   return (
     <section className="bg-navy">
       <div className="flex flex-col items-start gap-6 pt-8 sm:pt-12">
@@ -22,7 +50,11 @@ export function Hero() {
           scale, whenever you need it.
         </p>
 
-        <SearchBar />
+        <SearchBar
+          companies={companies}
+          categories={categories}
+          locations={locations}
+        />
       </div>
     </section>
   );
