@@ -49,11 +49,53 @@ export default async function DashboardPage() {
     redirect("/login?callbackUrl=/dashboard");
   }
 
-  const profile = session.user.id
-    ? await prisma.expertProfile.findUnique({
+  let profile: Awaited<
+    ReturnType<typeof prisma.expertProfile.findUnique>
+  > | null = null;
+
+  if (session.user.id) {
+    try {
+      profile = await prisma.expertProfile.findUnique({
         where: { userId: session.user.id },
-      })
-    : null;
+      });
+    } catch (error) {
+      console.error("Failed to load expert profile:", error);
+      profile = {
+        id: "",
+        fullName: session.user.email ?? "Expert",
+        profilePicture: null,
+        headline: null,
+        country: null,
+        skills: [],
+        savedJobs: [],
+        appliedJobs: [],
+        isPublic: false,
+        verificationStatus: "PENDING",
+        bio: null,
+        stateRegion: null,
+        areasOfExpertise: null,
+        languages: null,
+        yearsOfExperience: null,
+        availability: null,
+        workPreference: null,
+        hourlyRate: null,
+        education: null,
+        certifications: null,
+        linkedin: null,
+        xUrl: null,
+        github: null,
+        youtube: null,
+        website: null,
+        phoneNumber: null,
+        showEmail: false,
+        showPhone: false,
+        emailUpdates: true,
+        userId: session.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
+  }
 
   const fullName = profile?.fullName ?? session.user.email ?? "Expert";
   const headline = profile?.headline ?? "";
