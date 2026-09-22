@@ -15,6 +15,33 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+type CompletenessProfile = {
+  bio?: string | null;
+  skills?: unknown;
+  hourlyRate?: string | null;
+  country?: string | null;
+  stateRegion?: string | null;
+  languages?: string | null;
+  education?: string | null;
+};
+
+function calculateCompleteness(
+  profile: CompletenessProfile | null | undefined,
+): number {
+  if (!profile) return 0;
+
+  const fields: boolean[] = [
+    Boolean(profile.bio?.trim()),
+    Array.isArray(profile.skills) && profile.skills.length > 0,
+    Boolean(profile.hourlyRate?.trim()),
+    Boolean(profile.country?.trim() || profile.stateRegion?.trim()),
+    Boolean(profile.languages?.trim()),
+    Boolean(profile.education?.trim()),
+  ];
+
+  return Math.round((fields.filter(Boolean).length / fields.length) * 100);
+}
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
@@ -36,16 +63,7 @@ export default async function DashboardPage() {
     : [];
   const photo = profile?.profilePicture ?? null;
 
-  const completenessFields = [
-    Boolean(profile?.bio),
-    skills.length > 0,
-    Boolean(profile?.hourlyRate),
-    Boolean(profile?.country || profile?.stateRegion),
-  ];
-  const completeness = Math.round(
-    (completenessFields.filter(Boolean).length / completenessFields.length) *
-      100,
-  );
+  const completeness = calculateCompleteness(profile);
 
   const verified = profile?.verificationStatus === "VERIFIED";
   const publicProfileUrl = profile ? `/experts/${profile.id}` : null;
@@ -145,21 +163,26 @@ export default async function DashboardPage() {
           </div>
 
           <div className="rounded-card border border-white/10 bg-slate-800 p-5">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Profile Completeness
-              </p>
-              <p className="text-sm font-bold text-white">{completeness}%</p>
-            </div>
-            <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Profile Completeness
+            </p>
+            <p className="mt-3 text-4xl font-bold tracking-tight text-white">
+              {completeness}%
+            </p>
+            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-800 ring-1 ring-white/10">
               <div
-                className="h-full rounded-full bg-blue-500"
+                className="h-2 rounded-full bg-blue-600"
                 style={{ width: `${completeness}%` }}
               />
             </div>
-            <p className="mt-3 text-xs text-slate-500">
-              Bio, skills, hourly rate and location
-            </p>
+            {completeness < 100 && (
+              <Link
+                href="/dashboard/edit"
+                className="mt-4 inline-block text-xs font-semibold text-blue-400 transition-colors hover:text-blue-300"
+              >
+                Complete your profile to unlock more opportunities
+              </Link>
+            )}
           </div>
 
           <div className="rounded-card border border-white/10 bg-slate-800 p-5">
