@@ -62,6 +62,8 @@ export async function POST(request: NextRequest) {
   const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const content = typeof body.content === "string" ? body.content : "";
+  const featuredImage =
+    typeof body.featuredImage === "string" ? body.featuredImage : null;
   const authorId = typeof body.authorId === "string" ? body.authorId : "";
   const metaDescription =
     typeof body.metaDescription === "string" ? body.metaDescription : "";
@@ -100,6 +102,7 @@ export async function POST(request: NextRequest) {
       slug,
       title,
       content,
+      featuredImage,
       authorId,
       metaDescription,
       excerpt,
@@ -170,6 +173,9 @@ export async function PUT(request: NextRequest) {
     data.title = body.title.trim();
   }
   if (typeof body.content === "string") data.content = body.content;
+  if (typeof body.featuredImage === "string") {
+    data.featuredImage = body.featuredImage;
+  }
   if (typeof body.metaDescription === "string") {
     data.metaDescription = body.metaDescription;
   }

@@ -131,6 +131,7 @@ model BlogPost {
   slug            String   @unique
   title           String
   content         String   @db.Text
+  featuredImage   String?  @db.LongText @map("featured_image")
   metaDescription String   @map("meta_description")
   excerpt         String   @db.Text
   published       Boolean  @default(false)
