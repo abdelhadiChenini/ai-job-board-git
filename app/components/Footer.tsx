@@ -27,6 +27,12 @@ export async function Footer() {
     where: { key: { in: [...SETTING_KEYS] } },
   });
 
+  const pages = await prisma.page.findMany({
+    select: { slug: true },
+    orderBy: { slug: "asc" },
+  });
+  const pageSlugs = new Set(pages.map((page) => page.slug));
+
   const get = (key: string) =>
     settings.find((setting) => setting.key === key)?.value ?? null;
 
@@ -79,16 +85,27 @@ export async function Footer() {
         { label: "Log in", href: "/login" },
         { label: "Create Free Account", href: "/signup" },
         { label: "Settings", href: "/" },
-        { label: "Privacy Policy", href: "/" },
+        {
+          label: "Privacy Policy",
+          href: pageSlugs.has("privacy-policy")
+            ? "/pages/privacy-policy"
+            : "/",
+        },
       ],
     },
   ];
 
   const footerLinks = [
     { label: "About", href: "/" },
-    { label: "Contact", href: `mailto:${contactEmail}` },
-    { label: "Terms", href: "/" },
-    { label: "Privacy", href: "/" },
+    { label: "Contact", href: "/contact" },
+    {
+      label: "Terms",
+      href: pageSlugs.has("terms") ? "/pages/terms" : "/",
+    },
+    {
+      label: "Privacy",
+      href: pageSlugs.has("privacy-policy") ? "/pages/privacy-policy" : "/",
+    },
   ];
 
   return (

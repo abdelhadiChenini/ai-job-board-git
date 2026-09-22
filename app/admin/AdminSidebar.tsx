@@ -8,8 +8,12 @@ const manageLinks = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/opportunities", label: "Opportunities" },
   { href: "/admin/platforms", label: "Platforms" },
+  { href: "/admin/categories", label: "Categories" },
+  { href: "/admin/regions", label: "Regions" },
   { href: "/admin/blogs", label: "Blog Posts" },
+  { href: "/admin/pages", label: "Pages" },
   { href: "/admin/settings", label: "Site Settings" },
+  { href: "/admin/messages", label: "Inbox" },
   { href: "/admin/settings#faq-page", label: "FAQ Content" },
   { href: "/admin/seo", label: "SEO Settings" },
 ];
