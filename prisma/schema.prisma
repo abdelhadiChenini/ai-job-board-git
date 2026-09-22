@@ -40,6 +40,7 @@ model AIPlatform {
   slug       String     @unique
   websiteUrl String?    @map("website_url")
   description String?   @db.Text
+  logoUrl    String?    @db.LongText @map("logo_url")
 
   jobOffers JobOffer[]
 
@@ -159,7 +160,7 @@ model SeoSetting {
   siteTitle       String?  @map("site_title")
   metaDescription String?  @db.Text @map("meta_description")
   keywords        String?  @db.Text
-  logoUrl         String?  @map("logo_url")
+  logoUrl         String?  @db.LongText @map("logo_url")
   headerInjection String?  @db.Text @map("header_injection")
   bodyInjection   String?  @db.Text @map("body_injection")
   footerInjection String?  @db.Text @map("footer_injection")

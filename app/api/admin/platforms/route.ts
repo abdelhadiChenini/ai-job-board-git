@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
   const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
   const websiteUrl = typeof body.websiteUrl === "string" ? body.websiteUrl : "";
   const description = typeof body.description === "string" ? body.description : "";
+  const logoUrl = typeof body.logoUrl === "string" ? body.logoUrl : "";
 
   if (!name) {
     return NextResponse.json(
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
   }
 
   const platform = await prisma.aIPlatform.create({
-    data: { name, slug, websiteUrl, description },
+    data: { name, slug, websiteUrl, description, logoUrl },
   });
 
   return NextResponse.json(platform, { status: 201 });
@@ -134,6 +135,7 @@ export async function PUT(request: NextRequest) {
   if (slug) data.slug = slug;
   if (typeof body.websiteUrl === "string") data.websiteUrl = body.websiteUrl;
   if (typeof body.description === "string") data.description = body.description;
+  if (typeof body.logoUrl === "string") data.logoUrl = body.logoUrl;
 
   const platform = await prisma.aIPlatform.update({ where: { id }, data });
 

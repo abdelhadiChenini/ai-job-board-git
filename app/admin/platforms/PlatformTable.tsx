@@ -12,6 +12,7 @@ type ApiPlatform = {
   description: string | null;
   createdAt: string;
   updatedAt: string;
+  logoUrl: string | null;
   _count: { jobOffers: number };
 };
 
@@ -20,6 +21,7 @@ type FormState = {
   slug: string;
   websiteUrl: string;
   description: string;
+  logoUrl: string;
 };
 
 const emptyForm: FormState = {
@@ -27,6 +29,7 @@ const emptyForm: FormState = {
   slug: "",
   websiteUrl: "",
   description: "",
+  logoUrl: "",
 };
 
 export function PlatformTable() {
@@ -71,6 +74,22 @@ export function PlatformTable() {
     setForm((prev) => ({ ...prev, [field]: event.currentTarget.value }));
   };
 
+  const handleImageUpload = (file: File | null) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((prev) => ({
+        ...prev,
+        logoUrl: typeof reader.result === "string" ? reader.result : "",
+      }));
+    };
+    reader.onerror = () => {
+      setForm((prev) => ({ ...prev, logoUrl: "" }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
@@ -85,6 +104,7 @@ export function PlatformTable() {
       slug: record.slug,
       websiteUrl: record.websiteUrl ?? "",
       description: record.description ?? "",
+      logoUrl: record.logoUrl ?? "",
     });
     setFormError(null);
     setModalOpen(true);
@@ -106,6 +126,7 @@ export function PlatformTable() {
       slug: form.slug.trim().toLowerCase(),
       websiteUrl: form.websiteUrl.trim(),
       description: form.description,
+      logoUrl: form.logoUrl,
     };
     if (editing) payload.id = editing.id;
 
@@ -286,13 +307,21 @@ export function PlatformTable() {
             </label>
 
             <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
-              Website URL
+              Logo
+              {form.logoUrl && (
+                <img
+                  src={form.logoUrl}
+                  alt="Logo preview"
+                  className="h-16 w-fit rounded-xl border border-slate-700 bg-slate-900/60 object-contain p-1.5"
+                />
+              )}
               <input
-                type="url"
-                value={form.websiteUrl}
-                onChange={setField("websiteUrl")}
-                placeholder="https://scale.com"
-                className={inputClass}
+                type="file"
+                accept="image/*"
+                onChange={(event) =>
+                  handleImageUpload(event.target.files?.[0] ?? null)
+                }
+                className={`${inputClass} file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white`}
               />
             </label>
           </div>

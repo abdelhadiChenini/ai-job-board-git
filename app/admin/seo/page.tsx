@@ -48,6 +48,19 @@ export default function AdminSeoPage() {
   const update = (key: keyof SeoFormData, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  const handleImageUpload = (file: File | null) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      update("logoUrl", typeof reader.result === "string" ? reader.result : "");
+    };
+    reader.onerror = () => {
+      update("logoUrl", "");
+    };
+    reader.readAsDataURL(file);
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -235,13 +248,21 @@ export default function AdminSeoPage() {
               </label>
 
               <label className={labelClass}>
-                Logo URL
+                Logo
+                {form.logoUrl && (
+                  <img
+                    src={form.logoUrl}
+                    alt="Logo preview"
+                    className="h-20 w-fit rounded-xl border border-slate-700 bg-slate-900/60 object-contain p-2"
+                  />
+                )}
                 <input
-                  type="url"
-                  value={form.logoUrl}
-                  onChange={(event) => update("logoUrl", event.target.value)}
-                  placeholder="https://example.com/logo.png"
-                  className={inputClass}
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) =>
+                    handleImageUpload(event.target.files?.[0] ?? null)
+                  }
+                  className={`${inputClass} file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white`}
                 />
               </label>
             </div>
