@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image";
 
 const toolbarBtn =
   "rounded-md px-2.5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-40";
@@ -16,8 +18,24 @@ export function RichTextEditor({
   value: string;
   onChange: (html: string) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (file: File | null) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const src = typeof reader.result === "string" ? reader.result : "";
+      if (src) editor?.chain().focus().setImage({ src }).run();
+    };
+    reader.onerror = () => {
+      editor?.chain().focus().run();
+    };
+    reader.readAsDataURL(file);
+  };
+
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, Image],
     content: value || "",
     immediatelyRender: false,
     editorProps: {
@@ -142,6 +160,28 @@ export function RichTextEditor({
           className={toolbarBtn}
         >
           — Line
+        </button>
+
+        <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden="true" />
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(event) => {
+            handleImageUpload(event.target.files?.[0] ?? null);
+            event.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          aria-label="Insert image"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => fileInputRef.current?.click()}
+          className={toolbarBtn}
+        >
+          🖼
         </button>
 
         <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden="true" />

@@ -3,12 +3,14 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Modal from "../Modal";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
+import { RichTextEditor } from "../pages/RichTextEditor";
 
 type ApiPost = {
   id: string;
   slug: string;
   title: string;
   content: string;
+  featuredImage: string | null;
   metaDescription: string;
   excerpt: string;
   published: boolean;
@@ -25,6 +27,7 @@ type FormState = {
   slug: string;
   title: string;
   content: string;
+  featuredImage: string;
   metaDescription: string;
   excerpt: string;
   published: boolean;
@@ -47,6 +50,7 @@ function toForm(post: Partial<ApiPost> & { authorId: string }): FormState {
     slug: post.slug ?? "",
     title: post.title ?? "",
     content: post.content ?? "",
+    featuredImage: post.featuredImage ?? "",
     metaDescription: post.metaDescription ?? "",
     excerpt: post.excerpt ?? "",
     published: post.published ?? false,
@@ -120,6 +124,22 @@ export function BlogTable() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleImageUpload = (file: File | null) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((prev) => ({
+        ...prev,
+        featuredImage: typeof reader.result === "string" ? reader.result : "",
+      }));
+    };
+    reader.onerror = () => {
+      setForm((prev) => ({ ...prev, featuredImage: "" }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const openCreate = () => {
     setEditing(null);
     setForm(toForm({ authorId: users[0]?.id ?? "" }));
@@ -134,6 +154,7 @@ export function BlogTable() {
         slug: post.slug,
         title: post.title,
         content: post.content,
+        featuredImage: post.featuredImage,
         metaDescription: post.metaDescription,
         excerpt: post.excerpt,
         published: post.published,
@@ -160,6 +181,7 @@ export function BlogTable() {
       slug: form.slug.trim().toLowerCase(),
       title: form.title.trim(),
       content: form.content,
+      featuredImage: form.featuredImage,
       metaDescription: form.metaDescription.trim(),
       excerpt: form.excerpt.trim(),
       published: form.published,
@@ -400,14 +422,29 @@ export function BlogTable() {
           </div>
 
           <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
+            Featured Image
+            {form.featuredImage && (
+              <img
+                src={form.featuredImage}
+                alt="Featured image preview"
+                className="h-32 w-full rounded-xl border border-slate-700 bg-slate-900/60 object-cover p-1.5"
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) =>
+                handleImageUpload(event.target.files?.[0] ?? null)
+              }
+              className={`${inputClass} file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white`}
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
             Content
-            <textarea
-              rows={12}
-              required
+            <RichTextEditor
               value={form.content}
-              onChange={setField("content")}
-              placeholder="Write the full post here…"
-              className={`${inputClass} font-mono`}
+              onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
             />
           </label>
 
