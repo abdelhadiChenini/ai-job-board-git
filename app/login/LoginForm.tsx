@@ -21,6 +21,7 @@ export function LoginForm() {
       const result = await signIn("credentials", {
         email,
         password,
+        callbackUrl: "/admin/users",
         redirect: false,
       });
 
@@ -29,7 +30,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push(searchParams.get("callbackUrl") ?? "/");
+      router.push(searchParams.get("callbackUrl") ?? result?.url ?? "/admin/users");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
