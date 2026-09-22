@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 
 const inputClass =
   "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
@@ -14,44 +14,18 @@ type ProfileState = {
   availability: string;
 };
 
-export function ProfileAvailability() {
-  const [form, setForm] = useState<ProfileState>({
-    hourlyRate: "",
-    skills: [],
-    bio: "",
-    availability: "Not Looking",
-  });
-  const [skillsText, setSkillsText] = useState("");
-  const [loading, setLoading] = useState(true);
+export function ProfileAvailability({
+  initialProfile,
+}: {
+  initialProfile: ProfileState;
+}) {
+  const [form, setForm] = useState<ProfileState>(initialProfile);
+  const [skillsText, setSkillsText] = useState(
+    initialProfile.skills.join(", "),
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const response = await fetch("/api/experts/profile");
-      const data: unknown = await response.json();
-      if (!response.ok) {
-        throw new Error("Could not load your profile.");
-      }
-      const profile = (data as { profile?: ProfileState }).profile;
-      setForm(
-        profile ?? { hourlyRate: "", skills: [], bio: "", availability: "Not Looking" },
-      );
-      setSkillsText(profile?.skills?.join(", ") ?? "");
-    } catch {
-      setLoadError("Could not load your profile.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const update = <K extends keyof ProfileState>(key: K, value: ProfileState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -73,7 +47,7 @@ export function ProfileAvailability() {
           availability: form.availability,
         }),
       });
-      const data: unknown = await response.json();
+      const data: unknown = await response.json().catch(() => null);
 
       if (!response.ok) {
         setFormError(
@@ -107,14 +81,7 @@ export function ProfileAvailability() {
         )}
       </div>
 
-      {loading ? (
-        <div className="animate-pulse py-6">
-          <p className="text-sm text-slate-400">Loading your details…</p>
-        </div>
-      ) : loadError ? (
-        <p className="mt-4 text-sm text-red-400">{loadError}</p>
-      ) : (
-        <form onSubmit={handleSubmit} className="mt-5">
+      <form onSubmit={handleSubmit} className="mt-5">
           {formError && (
             <p
               role="alert"
@@ -231,7 +198,6 @@ export function ProfileAvailability() {
             </button>
           </div>
         </form>
-      )}
     </section>
   );
 }

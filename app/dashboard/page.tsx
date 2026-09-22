@@ -205,7 +205,14 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-6">
-          <ProfileAvailability />
+          <ProfileAvailability
+            initialProfile={{
+              hourlyRate: profile?.hourlyRate ?? "",
+              skills,
+              bio: profile?.bio ?? "",
+              availability: profile?.availability ?? "Not Looking",
+            }}
+          />
         </div>
 
         <div className="mt-6">
