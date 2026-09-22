@@ -55,7 +55,8 @@ export function UserTable() {
   const setField = (field: keyof FormState) => (
     event: FormEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    setForm((prev) => ({ ...prev, [field]: event.currentTarget.value }));
+    const value = event.currentTarget.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const openCreate = () => {

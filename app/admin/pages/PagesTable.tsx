@@ -62,7 +62,8 @@ export function PagesTable() {
   const setField = (field: keyof FormState) => (
     event: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setForm((prev) => ({ ...prev, [field]: event.currentTarget.value }));
+    const value = event.currentTarget.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const openCreate = () => {
