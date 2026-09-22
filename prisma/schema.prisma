@@ -83,13 +83,32 @@ model User {
 }
 
 model ExpertProfile {
-  id             String   @id @default(uuid())
-  fullName       String   @map("full_name")
-  profilePicture String?  @db.LongText @map("profile_picture")
-  headline       String?
-  country        String?
-  skills         Json     @default("[]")
-  isPublic       Boolean  @default(false) @map("is_public")
+  id                String   @id @default(uuid())
+  fullName          String   @map("full_name")
+  profilePicture    String?  @db.LongText @map("profile_picture")
+  headline          String?
+  country           String?
+  skills            Json     @default("[]")
+  isPublic          Boolean  @default(false) @map("is_public")
+  bio               String?  @db.Text
+  stateRegion       String?  @map("state_region")
+  areasOfExpertise  String?  @map("areas_of_expertise")
+  languages         String?
+  yearsOfExperience String?  @map("years_of_experience")
+  availability      String?
+  workPreference    String?  @map("work_preference")
+  hourlyRate        String?  @map("hourly_rate")
+  education         String?  @db.Text
+  certifications    String?  @db.Text
+  linkedin          String?
+  xUrl              String?  @map("x_url")
+  github            String?
+  youtube           String?
+  website           String?
+  phoneNumber       String?  @map("phone_number")
+  showEmail         Boolean  @default(false) @map("show_email")
+  showPhone         Boolean  @default(false) @map("show_phone")
+  emailUpdates      Boolean  @default(true) @map("email_updates")
 
   user   User   @relation(fields: [userId], references: [id])
   userId String @unique @map("user_id")

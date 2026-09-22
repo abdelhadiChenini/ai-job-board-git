@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import Footer from "@/app/components/Footer";
+import Providers from "./Providers";
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" dir="ltr">
       <body style={{ fontFamily: fonts }} className="min-h-screen bg-navy text-white antialiased">
-        <div className="site-shell">{children}</div>
+        <div className="site-shell">
+          <Providers>{children}</Providers>
+        </div>
         <Footer />
       </body>
     </html>

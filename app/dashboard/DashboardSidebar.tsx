@@ -2,16 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/edit", label: "Edit Profile" },
-  { href: "/dashboard/public", label: "View Public Profile" },
 ];
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  const links = [
+    ...navLinks,
+    {
+      href: session?.user?.id ? `/experts/${session.user.id}` : "/dashboard/public",
+      label: "View Public Profile",
+    },
+  ];
 
   const linkClass = (active: boolean) =>
     active
@@ -33,7 +41,7 @@ export function DashboardSidebar() {
           My account
         </p>
 
-        {navLinks.map((link) => (
+        {links.map((link) => (
           <Link
             key={link.href}
             href={link.href}
