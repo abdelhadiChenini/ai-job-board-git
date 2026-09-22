@@ -100,6 +100,8 @@ model ExpertProfile {
   headline          String?
   country           String?
   skills            Json               @default("[]")
+  savedJobs         Json               @default("[]") @map("saved_jobs")
+  appliedJobs       Json               @default("[]") @map("applied_jobs")
   isPublic          Boolean            @default(false) @map("is_public")
   verificationStatus VerificationStatus @default(PENDING) @map("verification_status")
   bio               String?  @db.Text

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import DashboardSidebar from "./DashboardSidebar";
 import ProfileAvailability from "./ProfileAvailability";
 import RecommendedForYou from "./RecommendedForYou";
+import Activity from "./Activity";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -48,6 +49,42 @@ export default async function DashboardPage() {
 
   const verified = profile?.verificationStatus === "VERIFIED";
   const publicProfileUrl = profile ? `/experts/${profile.id}` : null;
+
+  const savedJobIds = Array.isArray(profile?.savedJobs)
+    ? (profile.savedJobs as string[])
+    : [];
+  const appliedJobIds = Array.isArray(profile?.appliedJobs)
+    ? (profile.appliedJobs as string[])
+    : [];
+
+  const activityWhere = {
+    OR: [
+      { id: { in: savedJobIds } },
+      { id: { in: appliedJobIds } },
+    ],
+  };
+
+  const activityJobs =
+    savedJobIds.length > 0 || appliedJobIds.length > 0
+      ? await prisma.jobOffer.findMany({
+          where: activityWhere,
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            aiLabName: true,
+            salaryMin: true,
+            salaryMax: true,
+            currency: true,
+            tags: true,
+            affiliateUrl: true,
+            platform: {
+              select: { name: true, logoUrl: true },
+            },
+          },
+        })
+      : [];
+
   const initials = fullName
     .split(/\s+/)
     .filter(Boolean)
@@ -152,7 +189,15 @@ export default async function DashboardPage() {
           <RecommendedForYou skills={skills} />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="mt-6">
+          <Activity
+            jobs={activityJobs}
+            savedJobIds={savedJobIds}
+            appliedJobIds={appliedJobIds}
+          />
+        </div>
+
+        <div className="mt-6">
           <section className="rounded-card border border-white/10 bg-slate-800 p-6">
             <h2 className="text-lg font-bold tracking-tight text-white">
               Profile Overview
@@ -196,22 +241,6 @@ export default async function DashboardPage() {
                 AI labs and platforms.
               </p>
             )}
-          </section>
-
-          <section className="rounded-card border border-dashed border-white/15 bg-slate-800/60 p-6">
-            <h2 className="text-lg font-bold tracking-tight text-white">
-              My Applications
-            </h2>
-            <p className="mt-3 text-sm text-slate-400">
-              You haven&rsquo;t applied to any opportunities yet. Start
-              exploring curated AI roles and tracking them here.
-            </p>
-            <Link
-              href="/"
-              className="mt-5 inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-            >
-              Browse opportunities
-            </Link>
           </section>
         </div>
       </div>
