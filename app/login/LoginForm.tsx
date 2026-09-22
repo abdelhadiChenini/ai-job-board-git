@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 
 export function LoginForm() {
   const router = useRouter();
@@ -21,7 +21,6 @@ export function LoginForm() {
       const result = await signIn("credentials", {
         email,
         password,
-        callbackUrl: "/admin/users",
         redirect: false,
       });
 
@@ -30,7 +29,18 @@ export function LoginForm() {
         return;
       }
 
-      router.push(searchParams.get("callbackUrl") ?? result?.url ?? "/admin/users");
+      const callbackUrl = searchParams.get("callbackUrl");
+      if (callbackUrl?.startsWith("/")) {
+        router.push(callbackUrl);
+        router.refresh();
+        return;
+      }
+
+      const session = await getSession();
+      const destination =
+        session?.user?.role === "ADMIN" ? "/admin/users" : "/dashboard";
+
+      router.push(destination);
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
