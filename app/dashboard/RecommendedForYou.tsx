@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 function toTagList(tags: unknown): string[] {
@@ -37,20 +36,21 @@ function platformInitials(name: string): string {
 }
 
 export async function RecommendedForYou({ skills }: { skills: string[] }) {
-  const where: Prisma.JobOfferWhereInput = {};
-  const cleanSkills = skills.map((skill) => skill.trim()).filter(Boolean);
-
-  if (cleanSkills.length > 0) {
-    where.OR = cleanSkills.map((skill) => ({
-      OR: [
-        { tags: { array_contains: skill } },
-        { category: { contains: skill, mode: "insensitive" } },
-      ],
-    }));
-  }
+  const cleanSkills = (skills ?? [])
+    .map((skill) => skill.trim())
+    .filter(Boolean);
 
   const jobs = await prisma.jobOffer.findMany({
-    where,
+    where: cleanSkills.length > 0
+      ? {
+          OR: cleanSkills.map((skill) => ({
+            OR: [
+              { tags: { array_contains: skill } },
+              { category: { contains: skill, mode: "insensitive" } },
+            ],
+          })),
+        }
+      : undefined,
     select: {
       id: true,
       slug: true,
