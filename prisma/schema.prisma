@@ -73,10 +73,32 @@ model User {
   hashedPassword String   @map("hashed_password")
   role           UserRole @default(EXPERT)
 
+  blogPosts BlogPost[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model BlogPost {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  title           String
+  content         String   @db.Text
+  metaDescription String   @map("meta_description")
+  excerpt         String   @db.Text
+  published       Boolean  @default(false)
+  publishedAt     DateTime? @map("published_at")
+
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId String @map("author_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([authorId])
+  @@map("blog_posts")
 }
 
 model SiteSetting {

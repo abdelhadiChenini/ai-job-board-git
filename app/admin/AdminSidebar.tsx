@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 const manageLinks = [
+  { href: "/admin/users", label: "Users" },
+  { href: "/admin/opportunities", label: "Opportunities" },
+  { href: "/admin/platforms", label: "Platforms" },
+  { href: "/admin/blogs", label: "Blog Posts" },
   { href: "/admin/settings", label: "Site Settings" },
   { href: "/admin/settings#faq-page", label: "FAQ Content" },
 ];
