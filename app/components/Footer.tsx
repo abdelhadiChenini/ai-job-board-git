@@ -1,52 +1,96 @@
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
+import { prisma } from "@/lib/prisma";
 
-const columns: { title: string; links: { label: string; href: string }[] }[] = [
-  {
-    title: "Discover",
-    links: [
-      { label: "Opportunities", href: "/" },
-      { label: "AI Platforms", href: "/#ai-platforms" },
-      { label: "Experts", href: "/experts" },
-      { label: "Latest Jobs", href: "/#latest" },
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      { label: "Blog", href: "/" },
-      { label: "Guides", href: "/" },
-      { label: "FAQ", href: "/" },
-      { label: "Support", href: "/" },
-    ],
-  },
-  {
-    title: "For Companies",
-    links: [
-      { label: "Post a Job", href: "/" },
-      { label: "Hire Experts", href: "/" },
-      { label: "Pricing", href: "/" },
-      { label: "Contact Us", href: "/" },
-    ],
-  },
-  {
-    title: "Account",
-    links: [
-      { label: "Log in", href: "/login" },
-      { label: "Create Free Account", href: "/signup" },
-      { label: "Settings", href: "/" },
-      { label: "Privacy Policy", href: "/" },
-    ],
-  },
-];
+const SETTING_KEYS = [
+  "site_title",
+  "site_description",
+  "contact_email",
+  "twitter_url",
+  "linkedin_url",
+  "github_url",
+] as const;
 
-const footerLinks = [
-  { label: "About", href: "/" },
-  { label: "Contact", href: "/" },
-  { label: "Terms", href: "/" },
-  { label: "Privacy", href: "/" },
-];
+const FALLBACKS: Record<string, string> = {
+  site_title: "AI Job Board",
+  site_description:
+    "Connecting AI labs and platforms with vetted experts for model evaluation, data annotation and quality work.",
+  contact_email: "hello@aijobboard.com",
+};
 
-export function Footer() {
+type Column = { title: string; links: { label: string; href: string }[] };
+
+export async function Footer() {
+  noStore();
+
+  const settings = await prisma.siteSetting.findMany({
+    where: { key: { in: [...SETTING_KEYS] } },
+  });
+
+  const get = (key: string) =>
+    settings.find((setting) => setting.key === key)?.value ?? null;
+
+  const siteTitle = get("site_title") ?? FALLBACKS.site_title;
+  const siteDescription =
+    get("site_description") ?? FALLBACKS.site_description;
+  const contactEmail = get("contact_email") ?? FALLBACKS.contact_email;
+
+  const socialLinks = (
+    [
+      { label: "Twitter", href: get("twitter_url") },
+      { label: "LinkedIn", href: get("linkedin_url") },
+      { label: "GitHub", href: get("github_url") },
+    ] as { label: string; href: string | null }[]
+  )
+    .filter((link) => link.href !== null)
+    .map((link) => ({ label: link.label, href: link.href as string }));
+
+  const columns: Column[] = [
+    {
+      title: "Discover",
+      links: [
+        { label: "Opportunities", href: "/" },
+        { label: "AI Platforms", href: "/#ai-platforms" },
+        { label: "Experts", href: "/experts" },
+        { label: "Latest Jobs", href: "/#latest" },
+      ],
+    },
+    {
+      title: "Resources",
+      links: [
+        { label: "Blog", href: "/" },
+        { label: "Guides", href: "/" },
+        { label: "FAQ", href: "/" },
+        { label: "Support", href: "/" },
+      ],
+    },
+    {
+      title: "For Companies",
+      links: [
+        { label: "Post a Job", href: "/" },
+        { label: "Hire Experts", href: "/" },
+        { label: "Pricing", href: "/" },
+        { label: "Contact Us", href: `mailto:${contactEmail}` },
+      ],
+    },
+    {
+      title: "Account",
+      links: [
+        { label: "Log in", href: "/login" },
+        { label: "Create Free Account", href: "/signup" },
+        { label: "Settings", href: "/" },
+        { label: "Privacy Policy", href: "/" },
+      ],
+    },
+  ];
+
+  const footerLinks = [
+    { label: "About", href: "/" },
+    { label: "Contact", href: `mailto:${contactEmail}` },
+    { label: "Terms", href: "/" },
+    { label: "Privacy", href: "/" },
+  ];
+
   return (
     <footer className="border-t border-white/10 bg-navy" aria-label="Footer">
       <div className="site-shell">
@@ -72,11 +116,10 @@ export function Footer() {
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
                 AI
               </span>
-              <span className="text-lg tracking-tight">Job Board</span>
+              <span className="text-lg tracking-tight">{siteTitle}</span>
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-slate-400">
-              Connecting AI labs and platforms with vetted experts for model
-              evaluation, data annotation and quality work.
+              {siteDescription}
             </p>
           </div>
 
@@ -103,9 +146,18 @@ export function Footer() {
 
         <div className="mt-16 flex flex-col items-start justify-between gap-4 border-t border-white/10 py-6 sm:flex-row sm:items-center">
           <p className="text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} AI Job Board. All rights reserved.
+            &copy; {new Date().getFullYear()} {siteTitle}. All rights reserved.
           </p>
           <div className="flex flex-wrap gap-4">
+            {socialLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-xs text-slate-500 transition-colors hover:text-slate-300"
+              >
+                {link.label}
+              </Link>
+            ))}
             {footerLinks.map((link) => (
               <Link
                 key={link.label}
