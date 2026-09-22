@@ -73,12 +73,32 @@ model User {
   hashedPassword String   @map("hashed_password")
   role           UserRole @default(EXPERT)
 
-  blogPosts BlogPost[]
+  blogPosts    BlogPost[]
+  expertProfile ExpertProfile?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model ExpertProfile {
+  id             String   @id @default(uuid())
+  fullName       String   @map("full_name")
+  profilePicture String?  @db.LongText @map("profile_picture")
+  headline       String?
+  country        String?
+  skills         Json     @default("[]")
+  isPublic       Boolean  @default(false) @map("is_public")
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([isPublic])
+  @@map("expert_profiles")
 }
 
 model BlogPost {

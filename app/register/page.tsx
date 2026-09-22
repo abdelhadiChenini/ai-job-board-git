@@ -8,14 +8,14 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <div className="flex flex-col items-center py-12">
-      <section className="w-full max-w-md rounded-card border border-white/10 bg-slate-800 p-8">
-        <span className="inline-flex items-center gap-2 rounded-full bg-blue-600/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-400">
+      <section className="w-full max-w-lg rounded-card bg-white p-8 shadow-2xl sm:p-10">
+        <span className="inline-flex items-center gap-2 rounded-full bg-blue-600/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-600">
           Expert Sign-up
         </span>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-white">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900">
           Join as an AI Expert
         </h1>
-        <p className="mt-2 text-sm text-slate-400">
+        <p className="mt-2 text-sm text-slate-500">
           Create your account to showcase your skills and get matched with AI
           work.
         </p>
