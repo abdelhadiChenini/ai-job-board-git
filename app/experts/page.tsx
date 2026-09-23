@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import ExpertCard from "@/app/components/ExpertCard";
+import FilterSidebar from "@/components/FilterSidebar";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -12,7 +14,8 @@ export const revalidate = 60;
 
 type SearchParams = {
   q?: string;
-  skill?: string;
+  availability?: string;
+  specialty?: string | string[];
 };
 
 function toSkillList(skills: unknown): string[] {
@@ -22,82 +25,59 @@ function toSkillList(skills: unknown): string[] {
   return skills.filter((skill): skill is string => typeof skill === "string");
 }
 
-function profileUrlFor(expert: {
-  linkedinUrl: string | null;
-  twitterUrl: string | null;
-  email: string | null;
-}): string {
-  return (
-    expert.linkedinUrl ??
-    expert.twitterUrl ??
-    (expert.email ? `mailto:${expert.email}` : "#")
-  );
-}
-
-function buildHref(searchParams: SearchParams, value: string | null): string {
-  const params = new URLSearchParams();
-  if (searchParams.q) params.set("q", searchParams.q);
-  if (value) {
-    params.set("skill", value);
-  } else {
-    params.delete("skill");
-  }
-  const query = params.toString();
-  return query ? `/experts?${query}` : "/experts";
-}
-
-const idlePill =
-  "rounded-full border border-white/10 px-4 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:border-accent/50 hover:text-white";
-const activePill =
-  "rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-slate-950";
-
 export default async function ExpertsPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
   const q = searchParams.q?.trim();
-  const skill = searchParams.skill?.trim();
+  const availability = searchParams.availability;
+  const specialties = Array.isArray(searchParams.specialty)
+    ? searchParams.specialty
+    : searchParams.specialty
+      ? [searchParams.specialty]
+      : [];
 
-  const where: Prisma.ExpertWhereInput = {};
+  const filters: Prisma.ExpertProfileWhereInput[] = [
+    { isPublic: true },
+  ];
+
+  if (availability) {
+    filters.push({
+      availability:
+        availability === "Available" ? "Available for Work" : "Not Looking",
+    });
+  }
+
+  if (specialties.length > 0) {
+    filters.push({
+      OR: specialties.map((specialty) => ({
+        skills: { array_contains: specialty },
+      })),
+    });
+  }
+
+  const where: Prisma.ExpertProfileWhereInput = { AND: filters };
   if (q) {
     where.OR = [
-      { name: { contains: q } },
-      { title: { contains: q } },
+      { fullName: { contains: q } },
+      { headline: { contains: q } },
       { skills: { array_contains: q } },
     ];
   }
-  if (skill) {
-    where.skills = { array_contains: skill };
-  }
 
-  const select = {
-    name: true,
-    title: true,
-    skills: true,
-    email: true,
-    twitterUrl: true,
-    linkedinUrl: true,
-  } as const;
+  const experts = await prisma.expertProfile.findMany({
+    where,
+    select: {
+      id: true,
+      fullName: true,
+      headline: true,
+      skills: true,
+    },
+    orderBy: { fullName: "asc" },
+  });
 
-  const [experts, allExperts] = await Promise.all([
-    prisma.expert.findMany({
-      where,
-      select,
-      orderBy: { name: "asc" },
-    }),
-    prisma.expert.findMany({ select }),
-  ]);
-
-  const skillSet = new Set<string>();
-  for (const expert of allExperts) {
-    for (const value of toSkillList(expert.skills)) {
-      if (value.trim()) skillSet.add(value.trim());
-    }
-  }
-  const skillOptions = Array.from(skillSet).sort();
-
-  const hasFilters = Boolean(q || skill);
+  const hasFilters = Boolean(q || availability || specialties.length > 0);
 
   return (
     <>
@@ -163,43 +143,9 @@ export default async function ExpertsPage({
 
       <div className="grid grid-cols-1 gap-8 pb-20 lg:grid-cols-4">
         <aside className="min-w-0 lg:col-span-1">
-          <div className="sticky top-24 flex flex-col gap-7 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white">Filters</h2>
-              {hasFilters && (
-                <Link
-                  href="/experts"
-                  className="text-xs font-semibold text-accent transition-colors hover:text-blue-200"
-                >
-                  Clear all
-                </Link>
-              )}
-            </div>
-
-            {skillOptions.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Skills
-                </p>
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {skillOptions.map((option) => {
-                    const isActive = skill === option;
-                    return (
-                      <li key={option}>
-                        <Link
-                          href={buildHref(searchParams, isActive ? null : option)}
-                          className={isActive ? activePill : idlePill}
-                          aria-pressed={isActive}
-                        >
-                          {option}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </div>
+          <Suspense fallback={<div className="rounded-2xl border border-slate-800 bg-slate-900 p-6" />}>
+            <FilterSidebar />
+          </Suspense>
         </aside>
 
         <div className="min-w-0 lg:col-span-3">
@@ -235,11 +181,11 @@ export default async function ExpertsPage({
             <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
               {experts.map((expert) => (
                 <ExpertCard
-                  key={expert.email ?? expert.name}
-                  name={expert.name}
-                  title={expert.title}
+                  key={expert.id}
+                  name={expert.fullName}
+                  title={expert.headline}
                   skills={toSkillList(expert.skills)}
-                  profileUrl={profileUrlFor(expert)}
+                  profileUrl={`/experts/${expert.id}`}
                 />
               ))}
             </div>
