@@ -73,6 +73,7 @@ export default async function ExpertsPage({
       fullName: true,
       headline: true,
       skills: true,
+      profilePicture: true,
     },
     orderBy: { fullName: "asc" },
   });
@@ -185,6 +186,7 @@ export default async function ExpertsPage({
                   name={expert.fullName}
                   title={expert.headline}
                   skills={toSkillList(expert.skills)}
+                  imageUrl={expert.profilePicture}
                   profileUrl={`/experts/${expert.id}`}
                 />
               ))}

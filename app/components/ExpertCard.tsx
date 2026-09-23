@@ -5,6 +5,7 @@ type ExpertCardProps = {
   title: string | null;
   skills: string[];
   profileUrl: string;
+  imageUrl?: string | null;
   maxSkills?: number;
 };
 
@@ -50,15 +51,25 @@ export function ExpertCard({
   title,
   skills,
   profileUrl,
+  imageUrl,
   maxSkills = 3,
 }: ExpertCardProps) {
   const isMailLink = profileUrl.startsWith("mailto:");
 
   return (
     <article className="flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-emerald-500 text-2xl font-bold text-white">
-        {profileInitials(name) || "AI"}
-      </div>
+      {typeof imageUrl === "string" ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageUrl}
+          alt={name}
+          className="h-16 w-16 rounded-full object-cover ring-2 ring-blue-500/40"
+        />
+      ) : (
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-emerald-500 text-2xl font-bold text-white">
+          {profileInitials(name) || "AI"}
+        </div>
+      )}
 
       <header className="flex flex-col gap-1">
         <h3 className="text-lg font-semibold leading-snug text-slate-900">
