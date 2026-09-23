@@ -72,7 +72,7 @@ export async function RecommendedForYou({ skills }: { skills: string[] }) {
         OR: validSkills.map((skill) => ({
           OR: [
             { tags: { array_contains: skill } },
-            { category: { contains: skill, mode: "insensitive" } },
+            { category: { contains: skill } },
           ],
         })),
       },
