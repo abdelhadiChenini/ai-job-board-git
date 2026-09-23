@@ -42,16 +42,29 @@ export default async function PlatformsPage() {
 
   return (
     <>
-      <section className="bg-navy">
-        <div className="flex flex-col items-center gap-6 pt-4 text-center sm:pt-6">
-          <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
+      <section className="relative overflow-hidden bg-slate-950 py-16 sm:py-20">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+          style={{
+            backgroundImage:
+              "radial-gradient(800px 420px at 50% -10%, rgba(56,189,248,0.14), transparent 60%)",
+          }}
+        />
+        <div className="relative mx-auto flex w-full max-w-4xl flex-col items-center gap-6 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-slate-200">
+            <span
+              className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"
+              aria-hidden="true"
+            />
+            AI Work Platforms
+          </span>
+
+          <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
             Discover platforms built around AI work.
           </h1>
-          <p className="max-w-xl text-slate-400">
-            Browse the lab and vendor partners hiring across model evaluations,
-            data annotation and AI quality work.
-          </p>
-          <div className="relative w-full max-w-2xl">
+
+          <div className="relative mt-4 w-full max-w-2xl">
             <svg
               className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
               viewBox="0 0 20 20"
@@ -68,25 +81,25 @@ export default async function PlatformsPage() {
               type="search"
               placeholder="Search AI platforms and services..."
               aria-label="Search AI platforms"
-              className="w-full rounded-full border border-white/20 bg-white/10 py-4 pl-12 pr-5 text-sm text-white placeholder:text-slate-400 backdrop-blur-sm focus:outline-2 focus:outline-blue-400"
+              className="w-full rounded-full border border-white/15 bg-slate-900/70 py-4 pl-12 pr-5 text-sm text-white placeholder:text-slate-400 backdrop-blur-sm focus:outline-2 focus:outline-accent"
             />
           </div>
         </div>
       </section>
 
-      <section className="-mx-4 my-8 bg-paper px-4 py-16 sm:-mx-6 sm:px-6">
+      <section className="-mx-4 border-t border-slate-800 bg-slate-50/95 px-4 py-12 sm:-mx-6 sm:px-6 md:py-16 lg:px-8">
         <div className="flex flex-col gap-2">
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-            Partner platforms
+            Explore AI Work Platforms
           </h2>
           <p className="max-w-2xl text-slate-600">
-            Explore the platforms hiring for AI-focused work and see what
-            opportunities they currently list.
+            Compare platforms, understand what they focus on, and visit the
+            ones that fit your skills.
           </p>
         </div>
 
         {platforms.length === 0 ? (
-          <div className="mt-10 rounded-card border border-slate-200 bg-white p-6">
+          <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
             <h3 className="text-lg font-semibold text-slate-900">
               No platforms listed yet
             </h3>
@@ -95,14 +108,15 @@ export default async function PlatformsPage() {
             </p>
           </div>
         ) : (
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {platforms.map((platform) => (
+          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {platforms.map((platform, index) => (
               <PlatformCard
                 key={platform.id}
                 name={platform.name}
                 description={platform.description}
                 tags={collectTags(platform.jobOffers)}
                 websiteUrl={platform.websiteUrl}
+                featured={index === 0}
               />
             ))}
           </div>
