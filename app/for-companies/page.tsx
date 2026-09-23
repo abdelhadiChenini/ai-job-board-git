@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "For Companies",
   description:
-    "Reach multidisciplinary talent for AI evaluation, annotation, data collection, multilingual benchmarking, and domain-specialist projects.",
+    "Access a curated network of domain experts, regional language specialists, and top-tier evaluators to build, train, and refine your AI pipelines.",
 };
 
 function CheckIcon() {
@@ -25,8 +25,8 @@ function CheckIcon() {
 
 const mockupItems = [
   {
-    title: "Reach relevant contributors",
-    description: "Put your opportunity in front of active specialists.",
+    title: "Target exact skillsets",
+    description: "Surface opportunities exclusively to qualified specialists.",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -38,107 +38,109 @@ const mockupItems = [
         aria-hidden="true"
         className="h-5 w-5 shrink-0 text-accent"
       >
-        <path d="M14 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM16 21l-1.5-7.5L18 15l6-2M7 21v-6l-2-1 1.5-4L4 9M14 12l1.5 4.5L18 21M4 9l-1.5 1.5L7 13" />
-      </svg>
-    ),
-  },
-  {
-    title: "Collect candidate interest",
-    description: "Centralize applications tailored to your pipeline.",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-        className="h-5 w-5 shrink-0 text-accent"
-      >
-        <path d="M3 11l9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
-        <path d="M9 22V12h6v10" />
-      </svg>
-    ),
-  },
-  {
-    title: "Source against specific requirements",
-    description:
-      "Precise screening by language dialect, degree, or technical domain.",
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-        className="h-5 w-5 shrink-0 text-accent"
-      >
-        <circle cx="10" cy="10" r="7" />
+        <circle cx="11" cy="11" r="8" />
         <path d="m21 21-4.3-4.3" />
+        <path d="M15 11s1-1 1-2.5S14.5 6.5 14.5 6.5" />
+      </svg>
+    ),
+  },
+  {
+    title: "Streamline candidate influx",
+    description:
+      "Consolidate applications into a clean, reviewable pipeline.",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="h-5 w-5 shrink-0 text-accent"
+      >
+        <path d="M3 13h4l2 3 4-8 2 5h6" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2Z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Screen for deep accuracy",
+    description:
+      "Filter by specific coding languages, dialects, or STEM degrees.",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="h-5 w-5 shrink-0 text-accent"
+      >
+        <path d="M9 3v18M3 5v14M15 7v10M21 9v6" />
       </svg>
     ),
   },
 ];
 
 const quickCapabilities = [
-  "AI Evaluation",
+  "Prompt Evaluation",
   "Data Annotation",
-  "Multilingual AI",
-  "Domain Experts",
-  "Data Collection",
+  "Regional Linguistics",
+  "Subject Matter Experts",
+  "Multimodal Collection",
 ];
 
 const models = [
   {
     number: "01",
-    title: "Direct applicant referral",
+    title: "Direct Pipeline Integration",
     description:
-      "Instant distribution to relevant talent directly to your application portal. Best for teams with existing pipelines.",
+      "Seamlessly route high-intent specialists straight to your existing ATS or onboarding portal. Ideal for established workflows.",
   },
   {
     number: "02",
-    title: "Application collection",
+    title: "Managed Application Hub",
     description:
-      "Centralized collection and screening through our platform before review. Best for custom project cohorts.",
+      "Utilize our platform to collect and centralize candidate interest before your team begins the review phase. Ideal for custom project cohorts.",
   },
   {
     number: "03",
-    title: "Sourcing & shortlisting",
+    title: "Premium Shortlisting",
     description:
-      "Dedicated screening against stringent benchmarks and languages before handoff. Best for high-complexity SME & RLHF roles.",
+      "Rely on our team to screen candidates against rigorous linguistic or technical benchmarks prior to handoff. Ideal for complex SME roles.",
   },
 ];
 
 const processSteps = [
   {
-    title: "Share your talent brief",
+    title: "Submit your project brief",
     description:
-      "Outline roles, volumes, language requirements, and domain nuances.",
+      "Define roles, dialect and technical requirements, and volume targets.",
   },
   {
-    title: "Choose the sourcing model",
+    title: "Select your pipeline model",
     description:
-      "Pick referral, collection, or managed sourcing to fit your workflow.",
+      "Choose the sourcing flow that fits your review bandwidth.",
   },
   {
-    title: "Match verified talent",
+    title: "Connect with elite talent",
     description:
-      "Our network is screened for relevance before anything reaches you.",
+      "Match with specialists pre-screened against your exact criteria.",
   },
   {
-    title: "Move candidates into your workflow",
+    title: "Integrate and scale",
     description:
-      "Deliver vetted candidates straight into your interviewing pipeline.",
+      "Move vetted candidates into your workflow and scale as demand grows.",
   },
 ];
 
 const coverage = [
   {
-    title: "AI trainers & evaluators",
-    description: "RLHF, model feedback, grading",
+    title: "AI Evaluators",
+    description: "RLHF, prompt grading, model alignment",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -156,8 +158,8 @@ const coverage = [
     ),
   },
   {
-    title: "Annotators & labelers",
-    description: "Computer vision, text classification, audio",
+    title: "Data Annotators",
+    description: "Text classification, bounding boxes, QA",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -169,13 +171,16 @@ const coverage = [
         aria-hidden="true"
         className="h-5 w-5"
       >
-        <path d="M20.6 13.4 12 22l-8.6-8.6A5 5 0 1 1 10.6 4l1.4 1.4L13.4 4a5 5 0 1 1 7.2 9.4Z" />
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
     ),
   },
   {
-    title: "Language specialists",
-    description: "Dialect adaptation, translation, localization",
+    title: "Regional Linguists",
+    description: "Dialect adaptation, nuanced translation",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -193,8 +198,8 @@ const coverage = [
     ),
   },
   {
-    title: "Technical talent",
-    description: "Code generation, Python, system benchmarking",
+    title: "Code Reviewers",
+    description: "Algorithm optimization, logic verification",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -211,8 +216,8 @@ const coverage = [
     ),
   },
   {
-    title: "STEM experts",
-    description: "Mathematics, physics, organic chemistry",
+    title: "STEM Experts",
+    description: "Advanced mathematics, chemistry, physics",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -229,8 +234,8 @@ const coverage = [
     ),
   },
   {
-    title: "Professional experts",
-    description: "Legal analysis, finance, medical SMEs",
+    title: "Professional Analysts",
+    description: "Legal, financial, and medical logic",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -248,8 +253,8 @@ const coverage = [
     ),
   },
   {
-    title: "Writers & content experts",
-    description: "Creative synthesis, fact-checking, editorial",
+    title: "Creative Specialists",
+    description: "Fact-checking, creative writing synthesis",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -266,8 +271,8 @@ const coverage = [
     ),
   },
   {
-    title: "Data contributors",
-    description: "Speech recording, image collection, native dialect capture",
+    title: "Multimodal Collectors",
+    description: "Audio recording, dialect capture, video",
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -305,17 +310,17 @@ export default function ForCompaniesPage() {
                   className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400"
                   aria-hidden="true"
                 />
-                For AI Labs &amp; Enterprises
+                Enterprise AI Talent
               </span>
 
               <h1 className="text-4xl font-bold leading-tight tracking-tight text-white lg:text-5xl">
-                Human expertise for the teams building AI.
+                Fuel your AI models with vetted human intelligence.
               </h1>
 
               <p className="max-w-xl text-lg leading-relaxed text-slate-400">
-                Reach multidisciplinary talent for AI evaluation, annotation,
-                data collection, multilingual benchmarking, and
-                domain-specialist projects.
+                Access a curated network of domain experts, regional language
+                specialists, and top-tier evaluators to build, train, and
+                refine your AI pipelines.
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -329,29 +334,29 @@ export default function ForCompaniesPage() {
                   href="#process"
                   className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-6 py-3 font-medium text-slate-300 transition-colors hover:bg-slate-800"
                 >
-                  See How It Works
+                  Explore Capabilities
                 </a>
               </div>
 
               <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-slate-300">
                 <li className="flex items-center gap-2">
                   <CheckIcon />
-                  Multidisciplinary talent
+                  Verified specialists
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckIcon />
-                  Flexible sourcing models
+                  Scalable teams
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckIcon />
-                  Global coverage
+                  Global dialects &amp; domains
                 </li>
               </ul>
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
               <h2 className="text-lg font-bold tracking-tight text-white">
-                Built around your hiring &amp; project workflow
+                Aligned with your data pipeline
               </h2>
               <ul className="mt-6 flex flex-col gap-5">
                 {mockupItems.map((item) => (
@@ -394,14 +399,14 @@ export default function ForCompaniesPage() {
                 className="h-1.5 w-1.5 rounded-full bg-accent"
                 aria-hidden="true"
               />
-              Flexible Engagement
+              Scalable Workflows
             </span>
             <h2 className="max-w-2xl bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent lg:text-4xl">
-              Work at the level your team needs.
+              Engagement that fits your operational cadence.
             </h2>
             <p className="max-w-2xl text-lg text-slate-400">
-              Choose the sourcing model that integrates directly into your
-              team&rsquo;s workflow.
+              Adopt the sourcing strategy that maps directly to your internal
+              review bandwidth.
             </p>
           </div>
 
@@ -438,14 +443,14 @@ export default function ForCompaniesPage() {
                   className="h-1.5 w-1.5 rounded-full bg-emerald-400"
                   aria-hidden="true"
                 />
-                A Focused Process
+                Precision Scoping
               </span>
               <h2 className="bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent lg:text-4xl">
-                Start with requirements, not a generic job post.
+                Define the mission, we deliver the minds.
               </h2>
               <p className="max-w-xl text-lg leading-relaxed text-slate-400">
-                Specify dialect nuances, technical frameworks, volume targets,
-                and reviewer seniority. That brief dictates the sourcing flow.
+                Outline your dialect requirements, technical frameworks, and
+                volume constraints. We handle the targeting.
               </p>
             </div>
 
@@ -477,11 +482,11 @@ export default function ForCompaniesPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-3">
             <h2 className="bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent lg:text-4xl">
-              One network. Different kinds of expertise.
+              Multidimensional talent for complex model training.
             </h2>
             <p className="max-w-2xl text-lg text-slate-400">
-              AI projects demand diverse specialist profiles across the entire
-              model lifecycle.
+              Frontier AI requires diverse human feedback across the entire
+              development lifecycle.
             </p>
           </div>
 
@@ -514,14 +519,15 @@ export default function ForCompaniesPage() {
                 className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400"
                 aria-hidden="true"
               />
-              Start a Conversation
+              Initiate a Project
             </span>
             <h2 className="text-3xl font-bold tracking-tight text-white">
-              Tell us what your team needs.
+              Ready to scale your human feedback?
             </h2>
             <p className="max-w-xl text-slate-400">
-              Whether you need rapid contributor scaling or niche linguistic
-              SMEs, submit a brief and we will match the right talent.
+              Whether you need high-volume annotation or a handful of niche
+              technical reviewers, outline your needs and we will assemble the
+              team.
             </p>
           </div>
 
@@ -536,7 +542,7 @@ export default function ForCompaniesPage() {
               href="/contact"
               className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-6 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800"
             >
-              Contact Us
+              Contact Sales
             </a>
           </div>
         </div>
