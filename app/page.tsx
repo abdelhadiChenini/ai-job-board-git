@@ -48,12 +48,8 @@ export default async function HomePage({
 
   const [trendingJobs, platforms] = await Promise.all([
     prisma.jobOffer.findMany({
-      select: {
-        id: true,
-        title: true,
-        aiLabName: true,
-        tags: true,
-        platform: { select: { logoUrl: true } },
+      include: {
+        platform: { select: { name: true, slug: true, logoUrl: true } },
       },
       where,
       orderBy: { createdAt: "desc" },
