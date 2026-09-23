@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 const inputClass =
-  "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+  "w-full rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all";
 
-const labelClass = "flex flex-col gap-1.5 text-sm font-medium text-slate-700";
+const labelClass = "flex flex-col gap-1.5 text-sm font-medium text-slate-300";
 
 const primaryBtn =
-  "inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-60";
 
 const secondaryBtn =
-  "inline-flex items-center justify-center rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100";
+  "inline-flex items-center justify-center rounded-xl border border-slate-700 px-6 py-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-800 hover:text-white";
 
 function parseSkills(value: string): string[] {
   return value
@@ -150,14 +150,14 @@ export function RegisterForm() {
   const stepIndicator = (number: number, label: string) => (
     <li
       className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wide ${
-        step >= number ? "text-blue-600" : "text-slate-400"
+        step >= number ? "text-blue-400" : "text-slate-500"
       }`}
     >
       <span
         className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] ${
           step >= number
             ? "bg-blue-600 text-white"
-            : "border border-slate-300 text-slate-400"
+            : "border border-slate-600 text-slate-400"
         }`}
       >
         {number}
@@ -238,10 +238,10 @@ export function RegisterForm() {
               <img
                 src={photo}
                 alt="Profile preview"
-                className="h-16 w-16 rounded-full border border-slate-200 object-cover"
+                className="h-16 w-16 rounded-full border border-slate-700 object-cover"
               />
             ) : (
-              <span className="flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-slate-300 text-xs font-semibold text-slate-400">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-slate-600 text-xs font-semibold text-slate-400">
                 Photo
               </span>
             )}
@@ -249,7 +249,7 @@ export function RegisterForm() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                className="inline-flex items-center justify-center rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
               >
                 Upload Photo
               </button>
@@ -308,7 +308,7 @@ export function RegisterForm() {
             </span>
           </label>
 
-          <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+          <label className="flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-sm font-medium text-slate-300">
             <input
               type="checkbox"
               checked={isPublic}
@@ -335,32 +335,32 @@ export function RegisterForm() {
 
       {step === 3 && (
         <div className="flex flex-col gap-5">
-          <dl className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+          <dl className="flex flex-col gap-3 rounded-xl border border-slate-700 bg-slate-950/50 p-4 text-sm">
             <div className="flex gap-3">
               <dt className="w-28 shrink-0 font-semibold text-slate-500">
                 Name
               </dt>
-              <dd className="text-slate-900">{fullName}</dd>
+              <dd className="text-slate-200">{fullName}</dd>
             </div>
             <div className="flex gap-3">
               <dt className="w-28 shrink-0 font-semibold text-slate-500">
                 Email
               </dt>
-              <dd className="text-slate-900">{email}</dd>
+              <dd className="text-slate-200">{email}</dd>
             </div>
             {headline && (
               <div className="flex gap-3">
                 <dt className="w-28 shrink-0 font-semibold text-slate-500">
                   Headline
                 </dt>
-                <dd className="text-slate-900">{headline}</dd>
+                <dd className="text-slate-200">{headline}</dd>
               </div>
             )}
             <div className="flex gap-3">
               <dt className="w-28 shrink-0 font-semibold text-slate-500">
                 Country
               </dt>
-              <dd className="text-slate-900">{country}</dd>
+              <dd className="text-slate-200">{country}</dd>
             </div>
             <div className="flex gap-3">
               <dt className="w-28 shrink-0 font-semibold text-slate-500">
@@ -374,7 +374,7 @@ export function RegisterForm() {
                     {skills.map((skill) => (
                       <span
                         key={skill}
-                        className="rounded-full bg-blue-600/10 px-2.5 py-1 text-xs font-semibold text-blue-700"
+                        className="rounded-full bg-blue-600/20 px-2.5 py-1 text-xs font-semibold text-blue-300"
                       >
                         {skill}
                       </span>
@@ -387,7 +387,7 @@ export function RegisterForm() {
               <dt className="w-28 shrink-0 font-semibold text-slate-500">
                 Directory
               </dt>
-              <dd className="text-slate-900">
+              <dd className="text-slate-200">
                 {isPublic
                   ? "Visible in Expert Directory"
                   : "Hidden from Expert Directory"}
@@ -401,7 +401,7 @@ export function RegisterForm() {
           </p>
 
           {error && (
-            <p role="alert" className="text-sm font-medium text-red-600">
+            <p role="alert" className="text-sm font-medium text-red-400">
               {error}
             </p>
           )}
@@ -427,7 +427,7 @@ export function RegisterForm() {
       )}
 
       {step !== 3 && error && (
-        <p role="alert" className="text-sm font-medium text-red-600">
+        <p role="alert" className="text-sm font-medium text-red-400">
           {error}
         </p>
       )}
