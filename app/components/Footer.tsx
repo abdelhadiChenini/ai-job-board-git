@@ -25,12 +25,6 @@ export async function Footer() {
     where: { key: { in: [...SETTING_KEYS] } },
   });
 
-  const pages = await prisma.page.findMany({
-    select: { slug: true },
-    orderBy: { slug: "asc" },
-  });
-  const pageSlugs = new Set(pages.map((page) => page.slug));
-
   const get = (key: string) =>
     settings.find((setting) => setting.key === key)?.value ?? null;
 
@@ -52,57 +46,46 @@ export async function Footer() {
     {
       title: "Discover",
       links: [
-        { label: "Opportunities", href: "/" },
-        { label: "AI Platforms", href: "/#ai-platforms" },
+        { label: "Opportunities", href: "/opportunities" },
+        { label: "AI Platforms", href: "/platforms" },
         { label: "Experts", href: "/experts" },
-        { label: "Latest Jobs", href: "/#latest" },
+        { label: "Latest Jobs", href: "/opportunities" },
       ],
     },
     {
       title: "Resources",
       links: [
-        { label: "Blog", href: "/" },
-        { label: "Guides", href: "/" },
-        { label: "FAQ", href: "/" },
-        { label: "Support", href: "/" },
+        { label: "Blog", href: "/blog" },
+        { label: "Guides", href: "/guides" },
+        { label: "FAQ", href: "/faq" },
+        { label: "Support", href: "mailto:support@aijobboard.com" },
       ],
     },
     {
       title: "For Companies",
       links: [
-        { label: "Post a Job", href: "/" },
-        { label: "Hire Experts", href: "/" },
-        { label: "Pricing", href: "/" },
-        { label: "Contact Us", href: "/contact" },
+        { label: "Post a Job", href: "/for-companies" },
+        { label: "Hire Experts", href: "/for-companies" },
+        { label: "Pricing", href: "/for-companies" },
+        { label: "Contact Us", href: "mailto:contact@aijobboard.com" },
       ],
     },
     {
       title: "Account",
       links: [
         { label: "Log in", href: "/login" },
-        { label: "Create Free Account", href: "/register" },
-        { label: "Settings", href: "/" },
-        {
-          label: "Privacy Policy",
-          href: pageSlugs.has("privacy-policy")
-            ? "/pages/privacy-policy"
-            : "/",
-        },
+        { label: "Create Free Account", href: "/signup" },
+        { label: "Settings", href: "/dashboard" },
+        { label: "Privacy Policy", href: "/privacy" },
       ],
     },
   ];
 
   const footerLinks = [
-    { label: "About", href: "/" },
-    { label: "Contact", href: "/contact" },
-    {
-      label: "Terms",
-      href: pageSlugs.has("terms") ? "/pages/terms" : "/",
-    },
-    {
-      label: "Privacy",
-      href: pageSlugs.has("privacy-policy") ? "/pages/privacy-policy" : "/",
-    },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "mailto:contact@aijobboard.com" },
+    { label: "Terms", href: "/terms" },
+    { label: "Privacy", href: "/privacy" },
   ];
 
   return (
@@ -113,7 +96,7 @@ export async function Footer() {
             Find AI work. Or find the talent to get it done.
           </h2>
           <Link
-            href="/register"
+            href="/signup"
             className="inline-flex items-center justify-center rounded-full bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:bg-blue-700"
           >
             Create Free Account
