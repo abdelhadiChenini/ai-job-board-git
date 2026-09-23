@@ -1,40 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { removeSavedJob } from "./actions";
 
 type ActivityJob = {
   id: string;
   slug: string | null;
   title: string;
   aiLabName: string;
-  salaryMin: number | null;
-  salaryMax: number | null;
-  currency: string;
-  tags: unknown;
   affiliateUrl: string;
   platform: { name: string; logoUrl: string | null };
 };
 
-function formatRate(job: {
-  salaryMin: number | null;
-  salaryMax: number | null;
-  currency: string;
-}): string {
-  const currency = job.currency || "USD";
-  if (job.salaryMin !== null && job.salaryMax !== null) {
-    return `$${job.salaryMin} – $${job.salaryMax} ${currency}`;
-  }
-  if (job.salaryMin !== null) {
-    return `From $${job.salaryMin} ${currency}`;
-  }
-  if (job.salaryMax !== null) {
-    return `Up to $${job.salaryMax} ${currency}`;
-  }
-  return "Rate on request";
-}
-
-function companyInitials(name: string): string {
+function platformInitials(name: string): string {
   return name
     .split(" ")
     .filter(Boolean)
@@ -46,19 +25,15 @@ function companyInitials(name: string): string {
 type Tab = "saved" | "applied";
 
 export function Activity({
-  jobs,
-  savedJobIds,
-  appliedJobIds,
+  savedJobs,
+  appliedJobs,
 }: {
-  jobs: ActivityJob[];
-  savedJobIds: string[];
-  appliedJobIds: string[];
+  savedJobs: ActivityJob[];
+  appliedJobs: ActivityJob[];
 }) {
   const [tab, setTab] = useState<Tab>("saved");
-
-  const savedJobs = jobs.filter((job) => savedJobIds.includes(job.id));
-  const appliedJobs = jobs.filter((job) => appliedJobIds.includes(job.id));
-  const isApplied = (id: string) => appliedJobIds.includes(id);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: "saved", label: "Saved", count: savedJobs.length },
@@ -67,74 +42,67 @@ export function Activity({
 
   const activeJobs = tab === "saved" ? savedJobs : appliedJobs;
 
+  const handleRemove = (jobId: string) => {
+    setRemovingId(jobId);
+    startTransition(async () => {
+      try {
+        await removeSavedJob(jobId);
+      } finally {
+        setRemovingId(null);
+      }
+    });
+  };
+
   const renderJob = (job: ActivityJob) => {
-    const applied = isApplied(job.id);
-    const primaryTag = Array.isArray(job.tags) && typeof job.tags[0] === "string"
-      ? job.tags[0]
-      : null;
+    const removing = removingId === job.id;
 
     return (
       <li
         key={job.id}
-        className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/60 p-4"
+        className="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3"
       >
-        <div className="flex items-center gap-3">
-          {job.platform.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={job.platform.logoUrl}
-              alt={`${job.platform.name} logo`}
-              className="h-8 w-8 rounded-lg border border-white/10 bg-slate-950 object-contain p-0.5"
-            />
-          ) : (
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/15 text-xs font-bold text-blue-400">
-              {companyInitials(job.platform.name)}
-            </span>
-          )}
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            {job.aiLabName}
+        {job.platform.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={job.platform.logoUrl}
+            alt={`${job.platform.name} logo`}
+            className="h-8 w-8 shrink-0 rounded-lg border border-white/10 bg-slate-950 object-contain p-0.5"
+          />
+        ) : (
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600/15 text-xs font-bold text-blue-400">
+            {platformInitials(job.platform.name)}
+          </span>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-white">
+            {job.title}
+          </p>
+          <p className="truncate text-xs text-slate-400">
+            {job.platform.name}
           </p>
         </div>
 
-        <h3 className="text-sm font-bold leading-snug text-white">
-          {job.title}
-        </h3>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-            {formatRate(job)}
-          </span>
-          {applied && (
-            <span className="rounded-full bg-blue-500/15 px-2.5 py-1 text-xs font-semibold text-blue-400">
-              Applied
-            </span>
-          )}
-          {primaryTag && (
-            <span className="rounded-full bg-sky-500/15 px-2.5 py-1 text-xs font-medium text-sky-400">
-              {primaryTag}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-1 flex items-center justify-between gap-3">
-          {job.slug ? (
-            <Link
-              href={`/opportunities/${job.slug}`}
-              className="text-sm font-semibold text-blue-400 transition-colors hover:text-blue-300"
-            >
-              View details
-            </Link>
-          ) : (
-            <span className="text-sm text-slate-500">No details page</span>
-          )}
+        <div className="flex shrink-0 items-center gap-2">
           <a
             href={job.affiliateUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            className="text-xs font-semibold text-blue-400 transition-colors hover:text-blue-300"
           >
-            {applied ? "Apply again" : "Apply"}
+            View posting
           </a>
+
+          {tab === "saved" && (
+            <button
+              type="button"
+              onClick={() => handleRemove(job.id)}
+              disabled={isPending}
+              className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-slate-300 transition-colors hover:border-red-500/40 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {removing ? "Removing…" : "Remove"}
+            </button>
+          )}
         </div>
       </li>
     );
@@ -166,7 +134,7 @@ export function Activity({
       </div>
 
       {activeJobs.length > 0 ? (
-        <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <ul className="mt-5 flex flex-col gap-2">
           {activeJobs.map(renderJob)}
         </ul>
       ) : (

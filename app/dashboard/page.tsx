@@ -117,31 +117,32 @@ export default async function DashboardPage() {
     ? (profile.appliedJobs as string[])
     : [];
 
-  const activityWhere = {
-    OR: [
-      { id: { in: savedJobIds } },
-      { id: { in: appliedJobIds } },
-    ],
-  };
+  const activitySelect = {
+    id: true,
+    slug: true,
+    title: true,
+    aiLabName: true,
+    affiliateUrl: true,
+    platform: {
+      select: { name: true, logoUrl: true },
+    },
+  } as const;
 
-  const activityJobs =
-    savedJobIds.length > 0 || appliedJobIds.length > 0
+  const savedJobs =
+    savedJobIds.length > 0
       ? await prisma.jobOffer.findMany({
-          where: activityWhere,
-          select: {
-            id: true,
-            slug: true,
-            title: true,
-            aiLabName: true,
-            salaryMin: true,
-            salaryMax: true,
-            currency: true,
-            tags: true,
-            affiliateUrl: true,
-            platform: {
-              select: { name: true, logoUrl: true },
-            },
-          },
+          where: { id: { in: savedJobIds } },
+          select: activitySelect,
+          orderBy: { createdAt: "desc" },
+        })
+      : [];
+
+  const appliedJobs =
+    appliedJobIds.length > 0
+      ? await prisma.jobOffer.findMany({
+          where: { id: { in: appliedJobIds } },
+          select: activitySelect,
+          orderBy: { createdAt: "desc" },
         })
       : [];
 
@@ -262,11 +263,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-6">
-          <Activity
-            jobs={activityJobs}
-            savedJobIds={savedJobIds}
-            appliedJobIds={appliedJobIds}
-          />
+          <Activity savedJobs={savedJobs} appliedJobs={appliedJobs} />
         </div>
 
         <div className="mt-6">
