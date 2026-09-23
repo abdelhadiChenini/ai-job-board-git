@@ -21,6 +21,7 @@
     "@tiptap/extension-image": "^3.31.3",
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
+    "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "next": "^14.2.18",
     "next-auth": "^4.24.15",

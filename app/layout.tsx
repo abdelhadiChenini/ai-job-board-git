@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import Footer from "@/app/components/Footer";
 import Providers from "./Providers";
@@ -72,6 +73,7 @@ export default async function RootLayout({
         {seo?.footerInjection && (
           <div dangerouslySetInnerHTML={{ __html: seo.footerInjection }} />
         )}
+        <Analytics />
       </body>
     </html>
   );
