@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import Footer from "@/app/components/Footer";
+import TopNav from "@/app/components/TopNav";
 import Providers from "./Providers";
 import { prisma } from "@/lib/prisma";
 
@@ -66,6 +67,7 @@ export default async function RootLayout({
         {seo?.bodyInjection && (
           <div dangerouslySetInnerHTML={{ __html: seo.bodyInjection }} />
         )}
+        <TopNav />
         <div className="site-shell">
           <Providers>{children}</Providers>
         </div>

@@ -1,4 +1,3 @@
-import TopNav from "@/app/components/TopNav";
 import Hero from "@/app/components/Hero";
 import TrendingCarousel from "@/components/TrendingCarousel";
 import { prisma } from "@/lib/prisma";
@@ -73,8 +72,6 @@ export default async function HomePage({
 
   return (
     <>
-      <TopNav />
-
       <Hero />
 
       <div
