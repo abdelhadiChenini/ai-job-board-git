@@ -5,6 +5,7 @@ import JobCard from "@/app/components/JobCard";
 
 export type TrendingJobOffer = {
   id: string;
+  slug?: string | null;
   title: string;
   aiLabName: string;
   tags: unknown;
@@ -110,6 +111,7 @@ export function TrendingCarousel({ jobs }: { jobs: TrendingJobOffer[] }) {
                 labName={job.platform?.name ?? job.aiLabName}
                 tags={toTagList(job.tags)}
                 logoUrl={job.platform?.logoUrl}
+                slug={job.slug}
                 url={`/api/redirect?id=${job.id}`}
               />
             </div>

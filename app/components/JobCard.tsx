@@ -1,8 +1,11 @@
+import Link from "next/link";
+
 type JobCardProps = {
   title: string;
   labName: string;
   tags: string[];
   url: string;
+  slug?: string | null;
   location?: string;
   maxTags?: number;
   logoUrl?: string | null;
@@ -22,6 +25,7 @@ export function JobCard({
   labName,
   tags,
   url,
+  slug,
   location = "💻 Remote 📍 Global",
   maxTags = 3,
   logoUrl,
@@ -82,14 +86,12 @@ export function JobCard({
         )}
       </div>
 
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href={slug ? `/opportunities/${slug}` : url}
         className="z-10 before:absolute before:inset-0 mt-auto text-sm font-medium text-blue-400 transition-colors group-hover:text-blue-300 hover:text-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
       >
         View opportunity →
-      </a>
+      </Link>
     </article>
   );
 }

@@ -304,6 +304,7 @@ export default async function OpportunitiesPage({
                       .join(" · ") || undefined
                   }
                   url={`/api/redirect?id=${job.id}`}
+                  slug={job.slug}
                 />
               ))}
             </div>
