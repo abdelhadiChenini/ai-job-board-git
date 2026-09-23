@@ -11,11 +11,20 @@ function parseSkills(value: unknown):
   | null
   | undefined {
   if (value === undefined) return undefined;
-  if (typeof value !== "string") return null;
-  const skills = value
-    .split(/[,]+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+
+  const skills = Array.isArray(value)
+    ? value
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : typeof value === "string"
+      ? value
+          .split(/[,]+/)
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : null;
+
+  if (skills === null) return null;
   return skills as unknown as Prisma.InputJsonValue;
 }
 
@@ -102,7 +111,7 @@ export async function PUT(request: Request) {
     const skills = parseSkills(b.skills);
     if (skills === null) {
       return NextResponse.json(
-        { error: "skills must be a comma-separated string." },
+        { error: "skills must be an array of strings or a comma-separated string." },
         { status: 400 },
       );
     }

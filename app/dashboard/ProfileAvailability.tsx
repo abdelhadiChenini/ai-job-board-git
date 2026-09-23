@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { PREDEFINED_SKILLS } from "@/lib/constants";
 
 const inputClass =
   "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
@@ -20,15 +21,20 @@ export function ProfileAvailability({
   initialProfile: ProfileState;
 }) {
   const [form, setForm] = useState<ProfileState>(initialProfile);
-  const [skillsText, setSkillsText] = useState(
-    initialProfile.skills.join(", "),
-  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const update = <K extends keyof ProfileState>(key: K, value: ProfileState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const toggleSkill = (skill: string) =>
+    setForm((prev) => ({
+      ...prev,
+      skills: prev.skills.includes(skill)
+        ? prev.skills.filter((item) => item !== skill)
+        : [...prev.skills, skill],
+    }));
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -42,7 +48,7 @@ export function ProfileAvailability({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           hourlyRate: form.hourlyRate,
-          skills: skillsText,
+          skills: form.skills,
           bio: form.bio,
           availability: form.availability,
         }),
@@ -111,15 +117,28 @@ export function ProfileAvailability({
 
                 <label className={labelClass}>
                   Primary Skills
-                  <input
-                    type="text"
-                    value={skillsText}
-                    onChange={(event) => setSkillsText(event.target.value)}
-                    placeholder="python, LLMs, data annotation"
-                    className={inputClass}
-                  />
+                  <div className="flex flex-wrap gap-2">
+                    {PREDEFINED_SKILLS.map((skill) => {
+                      const isActive = form.skills.includes(skill);
+                      return (
+                        <button
+                          key={skill}
+                          type="button"
+                          onClick={() => toggleSkill(skill)}
+                          aria-pressed={isActive}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            isActive
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200"
+                          }`}
+                        >
+                          {skill}
+                        </button>
+                      );
+                    })}
+                  </div>
                   <span className="text-xs text-slate-500">
-                    Separate tags with commas.
+                    Select the skills you offer.
                   </span>
                 </label>
               </div>

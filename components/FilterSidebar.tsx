@@ -2,17 +2,11 @@
 
 import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { PREDEFINED_SKILLS } from "@/lib/constants";
 
 const AVAILABILITY_OPTIONS = ["Available", "Not Looking"];
 
-const SPECIALTY_OPTIONS = [
-  "Data Annotation",
-  "LLM Evaluation",
-  "Translation",
-  "Arabic",
-  "French",
-  "Python",
-];
+const SPECIALTY_OPTIONS = PREDEFINED_SKILLS;
 
 const activePill =
   "rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 px-3 py-1 text-sm font-semibold text-white transition-colors";
