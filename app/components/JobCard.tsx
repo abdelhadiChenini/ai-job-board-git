@@ -4,6 +4,7 @@ type JobCardProps = {
   tags: string[];
   url: string;
   location?: string;
+  maxTags?: number;
 };
 
 function companyInitials(name: string): string {
@@ -21,11 +22,13 @@ export function JobCard({
   tags,
   url,
   location = "💻 Remote 📍 Global",
+  maxTags = 3,
 }: JobCardProps) {
-  const primaryTag = tags[0] ?? "AI Training";
+  const visibleTags = tags.slice(0, maxTags);
+  const extraCount = tags.length - visibleTags.length;
 
   return (
-    <article className="flex flex-col gap-4 rounded-card border border-slate-200 bg-white p-6 shadow-md shadow-slate-200/60">
+    <article className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       <header className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-500">
@@ -46,9 +49,29 @@ export function JobCard({
 
       <p className="text-sm text-slate-500">{location}</p>
 
-      <span className="inline-flex w-fit items-center gap-1 rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700">
-        🏷️ {primaryTag}
-      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {visibleTags.length > 0 ? (
+          <>
+            {visibleTags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800"
+              >
+                {tag}
+              </span>
+            ))}
+            {extraCount > 0 && (
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800">
+                +{extraCount}
+              </span>
+            )}
+          </>
+        ) : (
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800">
+            AI Training
+          </span>
+        )}
+      </div>
 
       <a
         href={url}

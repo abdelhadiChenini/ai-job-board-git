@@ -23,6 +23,16 @@ const config: Config = {
       borderRadius: {
         card: "1rem",
       },
+      animation: {
+        float: "float 7s ease-in-out infinite",
+        "float-delayed": "float 7s ease-in-out 2.5s infinite",
+      },
+      keyframes: {
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-12px)" },
+        },
+      },
     },
   },
   plugins: [require("@tailwindcss/typography")],
