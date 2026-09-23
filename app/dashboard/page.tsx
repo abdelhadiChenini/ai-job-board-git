@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { calculateCompleteness } from "@/lib/completeness";
 import DashboardSidebar from "./DashboardSidebar";
 import ProfileAvailability from "./ProfileAvailability";
 import RecommendedForYou from "./RecommendedForYou";
@@ -14,33 +15,6 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
-
-type CompletenessProfile = {
-  bio?: string | null;
-  skills?: unknown;
-  hourlyRate?: string | null;
-  country?: string | null;
-  stateRegion?: string | null;
-  languages?: string | null;
-  education?: string | null;
-};
-
-function calculateCompleteness(
-  profile: CompletenessProfile | null | undefined,
-): number {
-  if (!profile) return 0;
-
-  const fields: boolean[] = [
-    Boolean(profile.bio?.trim()),
-    Array.isArray(profile.skills) && profile.skills.length > 0,
-    Boolean(profile.hourlyRate?.trim()),
-    Boolean(profile.country?.trim() || profile.stateRegion?.trim()),
-    Boolean(profile.languages?.trim()),
-    Boolean(profile.education?.trim()),
-  ];
-
-  return Math.round((fields.filter(Boolean).length / fields.length) * 100);
-}
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);

@@ -21,6 +21,7 @@ model JobOffer {
   currency        String     @default("USD")
   tags            Json
   affiliateUrl    String     @map("affiliate_url")
+  clickCount      Int        @default(0) @map("click_count")
   datePosted      DateTime?  @map("date_posted")
   jobLocationType String     @default("Remote") @map("job_location_type")
   category        String?
