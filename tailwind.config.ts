@@ -9,9 +9,14 @@ const config: Config = {
     extend: {
       colors: {
         navy: {
-          DEFAULT: "#0B1528",
-          light: "#13213E",
-          lighter: "#1B2E55",
+          DEFAULT: "#020617",
+          light: "#0f172a",
+          lighter: "#1e293b",
+        },
+        accent: {
+          DEFAULT: "#38bdf8",
+          dim: "#0ea5e9",
+          deep: "#0284c7",
         },
         paper: "#FFFFFF",
       },

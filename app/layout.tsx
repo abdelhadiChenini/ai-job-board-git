@@ -61,7 +61,7 @@ export default async function RootLayout({
       )}
       <body
         style={{ fontFamily: fonts }}
-        className="min-h-screen bg-navy text-white antialiased"
+        className="min-h-screen overflow-x-hidden bg-slate-950 text-slate-300 antialiased"
       >
         {seo?.bodyInjection && (
           <div dangerouslySetInnerHTML={{ __html: seo.bodyInjection }} />

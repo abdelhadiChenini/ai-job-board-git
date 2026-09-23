@@ -4,8 +4,9 @@
 
 :root {
   /* Design tokens (logical, direction-agnostic) */
-  --color-navy: #0b1528;
+  --color-navy: #020617;
   --color-paper: #ffffff;
+  --color-accent: #38bdf8;
   --radius-card: 1rem;
 
   /* RTL-ready spacing aliases mapped to logical properties */
@@ -28,8 +29,15 @@ html {
 body {
   margin: 0;
   background-color: var(--color-navy);
-  color: var(--color-paper);
+  color: #cbd5e1;
   min-height: 100vh;
+  background-image:
+    radial-gradient(
+      1200px 600px at 50% -10%,
+      rgba(56, 189, 248, 0.08),
+      transparent 60%
+    );
+  background-repeat: no-repeat;
 }
 
 /*
