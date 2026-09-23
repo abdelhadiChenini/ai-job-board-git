@@ -54,6 +54,15 @@ body {
 }
 
 /*
+ * Full-bleed: breaks a section out of the centered .site-shell so its
+ * background stretches edge-to-edge across the viewport.
+ */
+.full-bleed {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+/*
  * Content card: stark white, rounded corners.
  * start/end border radius inherits direction automatically.
  * Also defines explicit RTL params below.
