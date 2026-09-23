@@ -33,7 +33,7 @@ export function JobCard({
     "rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-xs font-medium text-slate-300";
 
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+    <article className="group relative flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
       <header className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-800 bg-slate-950">
@@ -86,7 +86,7 @@ export function JobCard({
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto text-sm font-medium text-blue-400 transition-colors hover:text-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
+        className="z-10 before:absolute before:inset-0 mt-auto text-sm font-medium text-blue-400 transition-colors group-hover:text-blue-300 hover:text-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
       >
         View opportunity →
       </a>
