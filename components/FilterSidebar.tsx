@@ -64,7 +64,7 @@ export function FilterSidebar() {
   const hasFilters = Boolean(availability) || specialties.length > 0;
 
   return (
-    <div className="sticky top-24 flex flex-col gap-7 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+    <div className="sticky top-24 flex max-h-[calc(100vh-8rem)] flex-col gap-7 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold text-white">Filters</h2>
         {hasFilters && (

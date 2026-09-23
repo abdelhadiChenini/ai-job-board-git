@@ -143,42 +143,6 @@ export default async function HomePage({
           </div>
         )}
       </section>
-
-      <section className="pb-20">
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 px-6 py-16 text-center sm:px-16">
-          <div
-            className="pointer-events-none absolute inset-0"
-            aria-hidden="true"
-            style={{
-              backgroundImage:
-                "radial-gradient(600px 320px at 50% -20%, rgba(56,189,248,0.18), transparent 60%), radial-gradient(500px 300px at 90% 120%, rgba(16,185,129,0.14), transparent 60%)",
-            }}
-          />
-          <div className="relative flex flex-col items-center gap-6">
-            <h2 className="max-w-3xl bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-4xl font-extrabold leading-tight tracking-tight text-transparent sm:text-5xl">
-              Find AI work. Or find the talent to get it done.
-            </h2>
-            <p className="max-w-xl text-lg text-slate-400">
-              Join a growing community of vetted AI experts and the platforms
-              that need them.
-            </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <a
-                href="/register"
-                className="rounded-full bg-accent px-7 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-accent/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
-                Create Free Account
-              </a>
-              <a
-                href="/login"
-                className="rounded-full border border-white/15 px-7 py-3 text-sm font-semibold text-white transition-colors hover:border-accent/60 hover:text-accent"
-              >
-                Log In
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
     </>
   );
 }
