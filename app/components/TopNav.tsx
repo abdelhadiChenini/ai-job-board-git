@@ -4,7 +4,7 @@ const navItems = [
   { label: "Opportunities", href: "/" },
   { label: "AI Platforms", href: "/platforms" },
   { label: "Experts", href: "/experts" },
-  { label: "For Companies", href: "/#for-companies" },
+  { label: "For Companies", href: "/for-companies" },
 ];
 
 export function TopNav() {
