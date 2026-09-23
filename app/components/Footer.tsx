@@ -80,7 +80,7 @@ export async function Footer() {
       title: "Account",
       links: [
         { label: "Log in", href: "/login" },
-        { label: "Create Free Account", href: "/signup" },
+        { label: "Create Free Account", href: "/register" },
         { label: "Settings", href: "/" },
         {
           label: "Privacy Policy",
@@ -113,7 +113,7 @@ export async function Footer() {
             Find AI work. Or find the talent to get it done.
           </h2>
           <Link
-            href="/signup"
+            href="/register"
             className="inline-flex items-center justify-center rounded-full bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:bg-blue-700"
           >
             Create Free Account
