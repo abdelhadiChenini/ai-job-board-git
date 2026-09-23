@@ -32,13 +32,13 @@ function Skills({ skills, maxSkills }: { skills: string[]; maxSkills: number }):
       {visible.map((skill) => (
         <li
           key={skill}
-          className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800"
+          className="rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-xs font-medium text-slate-300"
         >
           {skill}
         </li>
       ))}
       {extra > 0 && (
-        <li className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800">
+        <li className="rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-xs font-medium text-slate-300">
           +{extra}
         </li>
       )}
@@ -57,7 +57,7 @@ export function ExpertCard({
   const isMailLink = profileUrl.startsWith("mailto:");
 
   return (
-    <article className="flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <article className="flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
       {typeof imageUrl === "string" ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -72,11 +72,11 @@ export function ExpertCard({
       )}
 
       <header className="flex flex-col gap-1">
-        <h3 className="text-lg font-semibold leading-snug text-slate-900">
+        <h3 className="text-lg font-semibold leading-snug text-slate-100">
           {name}
         </h3>
         {title && (
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
             {title}
           </p>
         )}

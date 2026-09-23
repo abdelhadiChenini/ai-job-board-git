@@ -87,24 +87,24 @@ export default async function PlatformsPage() {
         </div>
       </section>
 
-      <section className="full-bleed w-full border-t border-slate-800 bg-slate-50 py-16">
+      <section className="full-bleed w-full border-t border-slate-800 bg-slate-950 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-2">
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+            <h2 className="bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
               Explore AI Work Platforms
             </h2>
-            <p className="max-w-2xl text-slate-600">
+            <p className="max-w-2xl text-slate-400">
               Compare platforms, understand what they focus on, and visit the
               ones that fit your skills.
             </p>
           </div>
 
           {platforms.length === 0 ? (
-            <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
-              <h3 className="text-lg font-semibold text-slate-900">
+            <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+              <h3 className="text-lg font-semibold text-slate-100">
                 No platforms listed yet
               </h3>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-slate-400">
                 New AI platforms will appear here soon.
               </p>
             </div>

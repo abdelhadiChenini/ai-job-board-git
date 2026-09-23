@@ -111,11 +111,11 @@ export default async function HomePage({
         </header>
 
         {platforms.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6">
-            <h3 className="text-lg font-semibold text-slate-900">
+          <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+            <h3 className="text-lg font-semibold text-slate-100">
               No platforms listed yet
             </h3>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-slate-400">
               New AI platforms will appear here soon.
             </p>
           </div>
@@ -127,15 +127,15 @@ export default async function HomePage({
                 href={platform.websiteUrl ?? "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 text-slate-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-5 text-slate-200 transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600/10 text-sm font-bold text-blue-700">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 p-2 text-sm font-bold text-slate-300">
                   {platformInitials(platform.name)}
                 </span>
-                <h3 className="text-sm font-bold leading-snug">
+                <h3 className="text-sm font-semibold leading-snug text-slate-100">
                   {platform.name}
                 </h3>
-                <p className="line-clamp-2 text-xs leading-relaxed text-slate-600">
+                <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">
                   {platform.description ?? "Partner AI platform."}
                 </p>
               </a>
