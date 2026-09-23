@@ -67,6 +67,19 @@ body {
 }
 
 /*
+ * Hide scrollbars while keeping horizontal scroll functional
+ * for the hero and trending rails.
+ */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/*
  * FUTURE RTL SUPPORT
  * Set <html dir="rtl"> (or per-locale) and toggle this block,
  * or rely on the logical properties above. Both work together.
