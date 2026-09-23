@@ -1,15 +1,8 @@
 import TopNav from "@/app/components/TopNav";
 import Hero from "@/app/components/Hero";
-import JobCard from "@/app/components/JobCard";
+import TrendingCarousel from "@/components/TrendingCarousel";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
-
-function toTagList(tags: unknown): string[] {
-  if (!Array.isArray(tags)) {
-    return [];
-  }
-  return tags.filter((tag): tag is string => typeof tag === "string");
-}
 
 function platformInitials(name: string): string {
   return name
@@ -54,7 +47,7 @@ export default async function HomePage({
     where.jobLocationType = location;
   }
 
-  const [jobs, platforms] = await Promise.all([
+  const [trendingJobs, platforms] = await Promise.all([
     prisma.jobOffer.findMany({
       select: {
         id: true,
@@ -107,44 +100,7 @@ export default async function HomePage({
         </p>
       </div>
 
-      <section className="py-20">
-        <header className="flex flex-wrap items-center gap-3">
-          <h2 className="bg-gradient-to-r from-white to-accent bg-clip-text text-3xl font-bold tracking-tight text-transparent">
-            Trending Opportunities
-          </h2>
-          <span className="rounded-full bg-white/10 px-3 py-0.5 text-sm font-semibold text-slate-300">
-            {jobs.length}
-          </span>
-        </header>
-        <p className="mt-3 text-slate-400">
-          Hand-picked roles from the world&apos;s leading AI labs and
-          platforms.
-        </p>
-
-        {jobs.length === 0 ? (
-          <div className="mt-12 rounded-2xl border border-slate-200 bg-white p-6">
-            <h3 className="text-lg font-semibold text-slate-900">
-              No open roles right now
-            </h3>
-            <p className="mt-1 text-sm text-slate-600">
-              New AI positions are posted regularly — check back soon.
-            </p>
-          </div>
-        ) : (
-          <div className="hide-scrollbar mt-12 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2">
-            {jobs.map((job) => (
-              <div key={job.id} className="w-80 shrink-0 snap-center">
-                <JobCard
-                  title={job.title}
-                  labName={job.aiLabName}
-                  tags={toTagList(job.tags)}
-                  url={`/api/redirect?id=${job.id}`}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      <TrendingCarousel jobs={trendingJobs} />
 
       <section className="py-16">
         <header>
