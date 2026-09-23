@@ -53,6 +53,7 @@ export default async function HomePage({
         title: true,
         aiLabName: true,
         tags: true,
+        platform: { select: { logoUrl: true } },
       },
       where,
       orderBy: { createdAt: "desc" },

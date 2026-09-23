@@ -308,7 +308,28 @@ export function PlatformTable() {
             </label>
 
             <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
+              Website
+              <input
+                type="url"
+                value={form.websiteUrl}
+                onChange={setField("websiteUrl")}
+                placeholder="https://..."
+                className={inputClass}
+              />
+            </label>
+
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
               Logo
+              <input
+                type="url"
+                value={form.logoUrl}
+                onChange={setField("logoUrl")}
+                placeholder="Logo Image URL"
+                className={inputClass}
+              />
+              <span className="text-xs text-slate-500">
+                Paste an image URL directly, or upload below.
+              </span>
               {form.logoUrl && (
                 <img
                   src={form.logoUrl}

@@ -131,6 +131,7 @@ export default async function OpportunitiesPage({
         tags: true,
         region: true,
         jobLocationType: true,
+        platform: { select: { logoUrl: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 60,
@@ -302,6 +303,7 @@ export default async function OpportunitiesPage({
                   title={job.title}
                   labName={job.aiLabName}
                   tags={toTagList(job.tags)}
+                  logoUrl={job.platform?.logoUrl}
                   location={
                     [job.region, job.jobLocationType]
                       .filter(Boolean)

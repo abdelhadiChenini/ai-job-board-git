@@ -5,6 +5,7 @@ type JobCardProps = {
   url: string;
   location?: string;
   maxTags?: number;
+  logoUrl?: string | null;
 };
 
 function companyInitials(name: string): string {
@@ -23,6 +24,7 @@ export function JobCard({
   url,
   location = "💻 Remote 📍 Global",
   maxTags = 3,
+  logoUrl,
 }: JobCardProps) {
   const visibleTags = tags.slice(0, maxTags);
   const extraCount = tags.length - visibleTags.length;
@@ -34,8 +36,19 @@ export function JobCard({
     <article className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
       <header className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-slate-800 bg-slate-950 text-sm font-bold text-slate-300">
-            {companyInitials(labName)}
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-800 bg-slate-950">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt={`${labName} logo`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span className="text-sm font-bold text-slate-300">
+                {companyInitials(labName)}
+              </span>
+            )}
           </div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
             {labName}

@@ -6,6 +6,7 @@ type PlatformCardProps = {
   tags: string[];
   websiteUrl: string | null;
   featured?: boolean;
+  logoUrl?: string | null;
 };
 
 function initials(name: string): string {
@@ -41,13 +42,25 @@ export function PlatformCard({
   tags,
   websiteUrl,
   featured = false,
+  logoUrl,
 }: PlatformCardProps) {
   return (
     <article className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
       <header className="flex min-w-0 items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 p-2 text-sm font-bold text-slate-300">
-            {initials(name)}
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-slate-950 p-2">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt={`${name} logo`}
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <span className="text-sm font-bold text-slate-300">
+                {initials(name)}
+              </span>
+            )}
           </div>
           <h3 className="truncate text-lg font-semibold leading-snug text-slate-100">
             {name}

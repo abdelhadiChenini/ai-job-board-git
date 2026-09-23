@@ -8,6 +8,7 @@ export type TrendingJobOffer = {
   title: string;
   aiLabName: string;
   tags: unknown;
+  logoUrl?: string | null;
 };
 
 function toTagList(tags: unknown): string[] {
@@ -104,6 +105,7 @@ export function TrendingCarousel({ jobs }: { jobs: TrendingJobOffer[] }) {
                 title={job.title}
                 labName={job.aiLabName}
                 tags={toTagList(job.tags)}
+                logoUrl={job.logoUrl}
                 url={`/api/redirect?id=${job.id}`}
               />
             </div>

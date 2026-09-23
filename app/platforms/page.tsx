@@ -35,6 +35,7 @@ export default async function PlatformsPage() {
       slug: true,
       websiteUrl: true,
       description: true,
+      logoUrl: true,
       jobOffers: { select: { tags: true } },
     },
     orderBy: { name: "asc" },
@@ -117,6 +118,7 @@ export default async function PlatformsPage() {
                   description={platform.description}
                   tags={collectTags(platform.jobOffers)}
                   websiteUrl={platform.websiteUrl}
+                  logoUrl={platform.logoUrl}
                   featured={index === 0}
                 />
               ))}
