@@ -67,6 +67,7 @@ export default async function ExpertProfilePage({ params }: Params) {
 
   const showEmail = Boolean(profile.showEmail || isOwner || isAdmin);
   const showPhone = Boolean(profile.showPhone || isOwner || isAdmin);
+  const available = profile.availability === "Available for Work";
 
   const firstName = profile.fullName.split(/\s+/)[0] ?? profile.fullName;
   const initials = profile.fullName
@@ -86,49 +87,62 @@ export default async function ExpertProfilePage({ params }: Params) {
 
   const workPreferences = [
     { label: "Years of experience", value: profile.yearsOfExperience },
-    { label: "Availability", value: profile.availability },
     { label: "Work preference", value: profile.workPreference },
-    { label: "Hourly rate", value: profile.hourlyRate },
   ].filter((row) => row.value);
+
+  const contactHref =
+    showEmail && profile.user.email
+      ? `mailto:${profile.user.email}`
+      : socialLinks.find((link) => link.label === "Website")?.url ??
+        socialLinks.find((link) => link.label === "LinkedIn")?.url ??
+        null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 py-10">
-      <section className="rounded-card border border-white/10 bg-slate-800 p-6 sm:p-8">
-        <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-blue-600/25 via-slate-900 to-emerald-500/15 p-6 sm:p-10">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+          style={{
+            backgroundImage:
+              "radial-gradient(500px 300px at 90% -10%, rgba(56,189,248,0.14), transparent 60%)",
+          }}
+        />
+        <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center">
           {profile.profilePicture ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.profilePicture}
               alt={profile.fullName}
-              className="h-24 w-24 rounded-full object-cover ring-2 ring-blue-500/40"
+              className="h-24 w-24 rounded-full object-cover ring-2 ring-accent/40"
             />
           ) : (
-            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">
+            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-accent to-emerald-400 text-2xl font-bold text-slate-950">
               {initials || "AI"}
             </span>
           )}
 
           <div className="min-w-0 flex-1">
-            <p className="inline-block rounded-full bg-blue-600/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-400">
+            <p className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent">
               AI Expert
             </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
+            <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               {profile.fullName}
             </h1>
             {profile.headline && (
-              <p className="mt-2 text-sm font-semibold uppercase tracking-wide text-blue-400">
+              <p className="mt-2 text-sm font-semibold uppercase tracking-wide text-accent">
                 {profile.headline}
               </p>
             )}
             {location && (
-              <p className="mt-2 text-sm text-slate-400">{location}</p>
+              <p className="mt-2 text-sm text-slate-300">{location}</p>
             )}
           </div>
 
           {isOwner && (
             <Link
               href="/dashboard/edit"
-              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+              className="inline-flex items-center justify-center rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-accent/80"
             >
               Edit Profile
             </Link>
@@ -139,19 +153,19 @@ export default async function ExpertProfilePage({ params }: Params) {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-8 lg:col-span-2">
           {profile.bio && (
-            <section className="rounded-card border border-white/10 bg-slate-800 p-6 sm:p-8">
-              <h2 className="text-lg font-bold tracking-tight text-white">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+              <h2 className="text-2xl font-bold tracking-tight text-white">
                 About
               </h2>
-              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-300">
+              <div className="prose prose-invert prose-sm mt-4 max-w-none whitespace-pre-line leading-relaxed text-slate-300">
                 {profile.bio}
-              </p>
+              </div>
             </section>
           )}
 
           {(skills.length > 0 || expertise.length > 0) && (
-            <section className="rounded-card border border-white/10 bg-slate-800 p-6 sm:p-8">
-              <h2 className="text-lg font-bold tracking-tight text-white">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+              <h2 className="text-2xl font-bold tracking-tight text-white">
                 Expertise
               </h2>
               {expertise.length > 0 && (
@@ -163,7 +177,7 @@ export default async function ExpertProfilePage({ params }: Params) {
                     {expertise.map((area) => (
                       <span
                         key={area}
-                        className="rounded-lg bg-white/5 px-2.5 py-1 text-sm text-slate-300"
+                        className="rounded-full bg-white/5 px-3 py-1 text-sm text-slate-300"
                       >
                         {area}
                       </span>
@@ -180,7 +194,7 @@ export default async function ExpertProfilePage({ params }: Params) {
                     {skills.map((skill) => (
                       <span
                         key={skill}
-                        className="rounded-full bg-blue-600/15 px-2.5 py-1 text-xs font-semibold text-blue-400"
+                        className="rounded-full bg-blue-600/15 px-3 py-1 text-xs font-semibold text-blue-400"
                       >
                         {skill}
                       </span>
@@ -192,8 +206,8 @@ export default async function ExpertProfilePage({ params }: Params) {
           )}
 
           {(profile.languages || profile.education || profile.certifications) && (
-            <section className="rounded-card border border-white/10 bg-slate-800 p-6 sm:p-8">
-              <h2 className="text-lg font-bold tracking-tight text-white">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+              <h2 className="text-2xl font-bold tracking-tight text-white">
                 Qualifications
               </h2>
               <div className="mt-4 flex flex-col gap-5">
@@ -232,9 +246,52 @@ export default async function ExpertProfilePage({ params }: Params) {
           )}
         </div>
 
-        <aside className="flex flex-col gap-8">
+        <aside className="flex min-w-0 flex-col gap-8">
+          <div className="sticky top-24 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Hourly rate
+                </p>
+                <p className="mt-1 text-lg font-bold text-white">
+                  {profile.hourlyRate || "On request"}
+                </p>
+              </div>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                  available
+                    ? "bg-emerald-500/15 text-emerald-400"
+                    : "bg-slate-500/15 text-slate-300"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    available ? "animate-pulse bg-emerald-400" : "bg-slate-400"
+                  }`}
+                  aria-hidden="true"
+                />
+                {available ? "Available for Work" : "Not Looking"}
+              </span>
+            </div>
+
+            <div className="mt-6 border-t border-slate-800 pt-5">
+              {contactHref ? (
+                <a
+                  href={contactHref}
+                  className="inline-flex w-full items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-accent/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  Contact {firstName}
+                </a>
+              ) : (
+                <p className="rounded-full border border-slate-800 px-6 py-3 text-center text-sm font-semibold text-slate-500">
+                  Contact details hidden
+                </p>
+              )}
+            </div>
+          </div>
+
           {workPreferences.length > 0 && (
-            <section className="rounded-card border border-white/10 bg-slate-800 p-6">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
               <h2 className="text-lg font-bold tracking-tight text-white">
                 Work Preferences
               </h2>
@@ -254,7 +311,7 @@ export default async function ExpertProfilePage({ params }: Params) {
           )}
 
           {socialLinks.length > 0 && (
-            <section className="rounded-card border border-white/10 bg-slate-800 p-6">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
               <h2 className="text-lg font-bold tracking-tight text-white">
                 Social Links
               </h2>
@@ -265,7 +322,7 @@ export default async function ExpertProfilePage({ params }: Params) {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3.5 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:border-blue-500/50 hover:text-white"
+                    className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3.5 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:border-accent/60 hover:text-white"
                   >
                     {link.label}
                     <span className="text-slate-500">↗</span>
@@ -276,7 +333,7 @@ export default async function ExpertProfilePage({ params }: Params) {
           )}
 
           {(showEmail || showPhone) && (
-            <section className="rounded-card border border-white/10 bg-slate-800 p-6">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
               <h2 className="text-lg font-bold tracking-tight text-white">
                 Contact
               </h2>
@@ -284,7 +341,7 @@ export default async function ExpertProfilePage({ params }: Params) {
                 {showEmail && profile.user.email && (
                   <a
                     href={`mailto:${profile.user.email}`}
-                    className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                    className="inline-flex items-center justify-center rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-accent/80"
                   >
                     Email {firstName}
                   </a>
@@ -292,7 +349,7 @@ export default async function ExpertProfilePage({ params }: Params) {
                 {showPhone && profile.phoneNumber && (
                   <a
                     href={`tel:${profile.phoneNumber.replace(/[^+\d]/g, "")}`}
-                    className="inline-flex items-center justify-center rounded-full border border-white/10 px-5 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:border-blue-500/50 hover:text-white"
+                    className="inline-flex items-center justify-center rounded-full border border-white/10 px-5 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:border-accent/60 hover:text-white"
                   >
                     Call {firstName}
                   </a>
