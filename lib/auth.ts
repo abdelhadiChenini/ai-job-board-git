@@ -3,8 +3,29 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+const isProduction = process.env.NODE_ENV === "production";
+const sessionMaxAge = 60 * 60 * 24 * 7;
+const sessionCookieName = isProduction
+  ? "__Secure-next-auth.session-token"
+  : "next-auth.session-token";
+
 export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: sessionMaxAge,
+  },
+  cookies: {
+    sessionToken: {
+      name: sessionCookieName,
+      options: {
+        path: "/",
+        maxAge: sessionMaxAge,
+        httpOnly: true,
+        sameSite: "lax",
+        secure: isProduction,
+      },
+    },
+  },
   pages: {
     signIn: "/login",
   },
