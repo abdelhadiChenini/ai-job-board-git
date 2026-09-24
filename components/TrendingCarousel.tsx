@@ -8,6 +8,7 @@ export type TrendingJobOffer = {
   slug?: string | null;
   title: string;
   aiLabName: string;
+  badge?: string | null;
   tags: unknown;
   platform?: {
     name: string;
@@ -111,6 +112,7 @@ export function TrendingCarousel({ jobs }: { jobs: TrendingJobOffer[] }) {
                 labName={job.platform?.name ?? job.aiLabName}
                 tags={toTagList(job.tags)}
                 logoUrl={job.platform?.logoUrl}
+                badge={job.badge}
                 slug={job.slug}
                 url={`/api/redirect?id=${job.id}`}
               />

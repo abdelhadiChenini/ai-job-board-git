@@ -298,6 +298,7 @@ export default async function OpportunitiesPage({
                   labName={job.aiLabName}
                   tags={toTagList(job.tags)}
                   logoUrl={job.platform?.logoUrl}
+                  badge={job.badge}
                   location={
                     [job.region, job.jobLocationType]
                       .filter(Boolean)

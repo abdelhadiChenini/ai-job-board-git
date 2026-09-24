@@ -35,6 +35,7 @@ type JobSeed = {
   salaryMin?: number;
   salaryMax?: number;
   currency?: string;
+  badge?: string;
   // Sample placeholders — swap in real affiliate links before launch.
   affiliateUrl: string;
 };
@@ -49,6 +50,7 @@ const jobSeeds: JobSeed[] = [
     tags: ["LLMs", "Evaluation", "Remote", "Prompting"],
     salaryMin: 25,
     salaryMax: 40,
+    badge: "New",
     affiliateUrl: "https://www.turing.com/careers/llm-evaluator?ref=ai-job-board",
   },
   {
@@ -94,6 +96,7 @@ const jobSeeds: JobSeed[] = [
     tags: ["Evaluation", "Agentic AI", "Remote"],
     salaryMin: 30,
     salaryMax: 50,
+    badge: "Trending",
     affiliateUrl: "https://scale.ai/join/genai-eval?ref=ai-job-board",
   },
 ];
@@ -123,6 +126,7 @@ async function main() {
         salaryMax: job.salaryMax,
         currency: job.currency ?? "USD",
         tags: job.tags,
+        badge: job.badge ?? null,
         affiliateUrl: job.affiliateUrl,
         platform: { connect: { slug: job.platformSlug } },
       },

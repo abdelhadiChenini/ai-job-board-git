@@ -16,6 +16,7 @@ model JobOffer {
   title           String
   description     String     @db.Text
   aiLabName       String
+  badge           String?
   salaryMin       Int?
   salaryMax       Int?
   currency        String     @default("USD")

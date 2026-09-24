@@ -17,6 +17,7 @@ type ApiOpportunity = {
   affiliateUrl: string;
   category: string | null;
   region: string | null;
+  badge: string | null;
   platformId: string;
   platform: { id: string; name: string; slug: string };
   createdAt: string;
@@ -37,6 +38,7 @@ type FormState = {
   tags: string;
   category: string;
   region: string;
+  badge: string;
 };
 
 function toForm(
@@ -54,6 +56,7 @@ function toForm(
     tags: values.tags ?? "",
     category: values.category ?? "",
     region: values.region ?? "",
+    badge: values.badge ?? "",
   };
 }
 
@@ -153,6 +156,7 @@ export function OpportunityTable() {
         tags: tagsLabel(record.tags),
         category: record.category ?? "",
         region: record.region ?? "",
+        badge: record.badge ?? "",
       }),
     );
     setFormError(null);
@@ -182,6 +186,7 @@ export function OpportunityTable() {
       tags: parseTags(form.tags),
       category: form.category.trim(),
       region: form.region.trim(),
+      badge: form.badge || null,
     };
     if (editing) payload.id = editing.id;
 
@@ -455,6 +460,15 @@ export function OpportunityTable() {
                 placeholder="Remote, Full-time, Data"
                 className={inputClass}
               />
+            </label>
+
+            <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300 sm:col-span-2">
+              Highlight Badge
+              <select value={form.badge} onChange={setField("badge")} className={inputClass}>
+                <option value="">None</option>
+                <option value="New">New</option>
+                <option value="Trending">Trending</option>
+              </select>
             </label>
           </div>
 

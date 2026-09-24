@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
   const tags = normalizeTags(body.tags);
   const category = typeof body.category === "string" ? body.category : "";
   const region = typeof body.region === "string" ? body.region : "";
+  const badge = typeof body.badge === "string" ? (body.badge || null) : null;
 
   if (tags === null) {
     return NextResponse.json(
@@ -135,6 +136,7 @@ export async function POST(request: NextRequest) {
           : "Remote",
       category,
       region,
+      badge,
     },
     include: {
       platform: { select: { id: true, name: true, slug: true } },
@@ -226,6 +228,9 @@ export async function PUT(request: NextRequest) {
   }
   if (typeof body.category === "string") data.category = body.category;
   if (typeof body.region === "string") data.region = body.region;
+  if (typeof body.badge === "string" || body.badge === null) {
+    data.badge = body.badge || null;
+  }
 
   const jobOffer = await prisma.jobOffer.update({
     where: { id },

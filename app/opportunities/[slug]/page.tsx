@@ -273,6 +273,7 @@ export default async function OpportunityPage({ params }: Params) {
                     slug={item.slug}
                     location={item.region ?? item.jobLocationType}
                     logoUrl={item.platform.logoUrl}
+                    badge={item.badge}
                   />
                 ))}
               </div>
@@ -293,6 +294,7 @@ export default async function OpportunityPage({ params }: Params) {
                     slug={item.slug}
                     location={item.region ?? item.jobLocationType}
                     logoUrl={item.platform.logoUrl}
+                    badge={item.badge}
                   />
                 ))}
               </div>

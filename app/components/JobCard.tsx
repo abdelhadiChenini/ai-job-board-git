@@ -9,6 +9,7 @@ type JobCardProps = {
   location?: string;
   maxTags?: number;
   logoUrl?: string | null;
+  badge?: string | null;
 };
 
 function companyInitials(name: string): string {
@@ -29,6 +30,7 @@ export function JobCard({
   location = "💻 Remote 📍 Global",
   maxTags = 3,
   logoUrl,
+  badge,
 }: JobCardProps) {
   const visibleTags = tags.slice(0, maxTags);
   const extraCount = tags.length - visibleTags.length;
@@ -58,9 +60,19 @@ export function JobCard({
             {labName}
           </p>
         </div>
-        <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-          ★ New
-        </span>
+        {badge && (
+          <span
+            className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${
+              badge === "New"
+                ? "bg-emerald-950/30 text-emerald-400 border-emerald-800"
+                : badge === "Trending"
+                  ? "bg-orange-950/30 text-orange-400 border-orange-800"
+                  : ""
+            }`}
+          >
+            {badge === "New" ? "★ New" : "🔥 Trending"}
+          </span>
+        )}
       </header>
 
       <h3 className="text-lg font-semibold leading-snug text-slate-100">
