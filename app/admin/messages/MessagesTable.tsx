@@ -3,6 +3,7 @@
 import { FormEvent, Fragment, useCallback, useEffect, useState } from "react";
 import Modal from "../Modal";
 import { cardClass, subtleBtn } from "../ui";
+import AIAssistantButton from "@/components/admin/AIAssistantButton";
 
 type ApiMessage = {
   id: string;
@@ -305,6 +306,12 @@ export function MessagesTable() {
               {replyTarget.subject}
             </p>
           </div>
+
+          <AIAssistantButton
+            contextType="email"
+            placeholder="e.g. Thank them for reaching out and answer their question about applying…"
+            onGenerate={(text) => setReplyBody(text)}
+          />
 
           <textarea
             rows={5}

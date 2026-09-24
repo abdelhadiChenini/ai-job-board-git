@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import Modal from "../Modal";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 import { RichTextEditor } from "../pages/RichTextEditor";
+import AIAssistantButton from "@/components/admin/AIAssistantButton";
 
 type ApiPost = {
   id: string;
@@ -442,6 +443,13 @@ export function BlogTable() {
 
           <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
             Content
+            <AIAssistantButton
+              contextType="blog"
+              placeholder="e.g. Write a blog post about how to land a remote AI training job"
+              onGenerate={(html) =>
+                setForm((prev) => ({ ...prev, content: html }))
+              }
+            />
             <RichTextEditor
               value={form.content}
               onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
