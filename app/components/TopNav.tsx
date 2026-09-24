@@ -5,6 +5,7 @@ const navItems = [
   { label: "AI Platforms", href: "/platforms" },
   { label: "Experts", href: "/experts" },
   { label: "For Companies", href: "/for-companies" },
+  { label: "Blog", href: "/blog" },
 ];
 
 export function TopNav() {
