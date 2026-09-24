@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Modal from "../Modal";
+import RichTextEditor from "../pages/RichTextEditor";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 
 type ApiOpportunity = {
@@ -459,12 +460,11 @@ export function OpportunityTable() {
 
           <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
             Description
-            <textarea
-              rows={4}
+            <RichTextEditor
               value={form.description}
-              onChange={setField("description")}
-              placeholder="Describe the role…"
-              className={inputClass}
+              onChange={(html) =>
+                setForm((prev) => ({ ...prev, description: html }))
+              }
             />
           </label>
 

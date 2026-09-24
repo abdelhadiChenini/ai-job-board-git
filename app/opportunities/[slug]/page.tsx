@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   return {
     title: job.title,
-    description: job.description.slice(0, 160),
-    openGraph: { title: job.title, description: job.description.slice(0, 160) },
+    description: excerpt(job.description),
+    openGraph: { title: job.title, description: excerpt(job.description) },
   };
 }
 
@@ -31,6 +31,18 @@ function formatDate(date: Date): string {
     month: "short",
     day: "numeric",
   });
+}
+
+function isHtml(value: string): boolean {
+  return /<\/?[a-z][\s\S]*>/i.test(value);
+}
+
+function plainText(value: string): string {
+  return value.replace(/<[^>]*>/g, "");
+}
+
+function excerpt(value: string): string {
+  return plainText(value).slice(0, 160);
 }
 
 function formatRate(job: {
@@ -70,7 +82,7 @@ function buildJsonLd(job: NonNullable<Awaited<ReturnType<typeof fetchJob>>>, url
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: job.title,
-    description: job.description,
+    description: plainText(job.description),
     datePosted: postedDate,
     hiringOrganization: {
       "@type": "Organization",
@@ -203,9 +215,16 @@ export default async function OpportunityPage({ params }: Params) {
 
           <section className="rounded-2xl border border-slate-800 bg-slate-900/30 p-8">
             <h2 className="mb-6 text-xl font-bold text-slate-100">About this opportunity</h2>
-            <div className="max-w-none space-y-6 whitespace-pre-line leading-relaxed text-slate-300 prose prose-invert">
-              {job.description || "This opportunity is hiring now — apply to learn more."}
-            </div>
+            {isHtml(job.description) ? (
+              <div
+                className="prose prose-invert max-w-none prose-headings:text-slate-100 prose-a:text-blue-400 prose-ul:list-disc prose-ul:pl-5"
+                dangerouslySetInnerHTML={{ __html: job.description }}
+              />
+            ) : (
+              <div className="max-w-none space-y-6 whitespace-pre-line leading-relaxed text-slate-300">
+                {job.description || "This opportunity is hiring now — apply to learn more."}
+              </div>
+            )}
           </section>
         </div>
 
