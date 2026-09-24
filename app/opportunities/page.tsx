@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import JobCard from "@/app/components/JobCard";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -158,6 +160,18 @@ export default async function OpportunitiesPage({
 
   const hasFilters = Boolean(q || category || region || platform);
 
+  const session = await getServerSession(authOptions);
+
+  let savedOpportunityIds: string[] = [];
+  if (session?.user?.id) {
+    const savedRows = await prisma.savedOpportunity.findMany({
+      where: { userId: session.user.id },
+      select: { opportunityId: true },
+    });
+    savedOpportunityIds = savedRows.map((row) => row.opportunityId);
+  }
+  const savedIds = new Set(savedOpportunityIds);
+
   return (
     <>
       <section className="relative overflow-hidden py-16 sm:py-20">
@@ -306,6 +320,8 @@ export default async function OpportunitiesPage({
                   }
                   url={`/api/redirect?id=${job.id}`}
                   slug={job.slug}
+                  jobId={job.id}
+                  saved={savedIds.has(job.id)}
                 />
               ))}
             </div>

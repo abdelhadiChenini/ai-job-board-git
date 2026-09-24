@@ -161,8 +161,9 @@ export default async function OpportunityPage({ params }: Params) {
 
   let saved = false;
   let applied = false;
+  let savedIds = new Set<string>();
   if (viewerId) {
-    const [savedRow, appliedRow] = await Promise.all([
+    const [savedRow, appliedRow, savedRows] = await Promise.all([
       prisma.savedOpportunity.findUnique({
         where: {
           userId_opportunityId: { userId: viewerId, opportunityId: job.id },
@@ -173,9 +174,14 @@ export default async function OpportunityPage({ params }: Params) {
           userId_opportunityId: { userId: viewerId, opportunityId: job.id },
         },
       }),
+      prisma.savedOpportunity.findMany({
+        where: { userId: viewerId },
+        select: { opportunityId: true },
+      }),
     ]);
     saved = Boolean(savedRow);
     applied = Boolean(appliedRow);
+    savedIds = new Set(savedRows.map((row) => row.opportunityId));
   }
 
   const loginHref = `/login?callbackUrl=${encodeURIComponent(
@@ -320,6 +326,8 @@ export default async function OpportunityPage({ params }: Params) {
                     location={item.region ?? item.jobLocationType}
                     logoUrl={item.platform.logoUrl}
                     badge={item.badge}
+                    jobId={item.id}
+                    saved={savedIds.has(item.id)}
                   />
                 ))}
               </div>
@@ -341,6 +349,8 @@ export default async function OpportunityPage({ params }: Params) {
                     location={item.region ?? item.jobLocationType}
                     logoUrl={item.platform.logoUrl}
                     badge={item.badge}
+                    jobId={item.id}
+                    saved={savedIds.has(item.id)}
                   />
                 ))}
               </div>

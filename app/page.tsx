@@ -1,5 +1,7 @@
 import Hero from "@/app/components/Hero";
 import TrendingCarousel from "@/components/TrendingCarousel";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -68,6 +70,17 @@ export default async function HomePage({
     }),
   ]);
 
+  const session = await getServerSession(authOptions);
+
+  let savedOpportunityIds: string[] = [];
+  if (session?.user?.id) {
+    const savedRows = await prisma.savedOpportunity.findMany({
+      where: { userId: session.user.id },
+      select: { opportunityId: true },
+    });
+    savedOpportunityIds = savedRows.map((row) => row.opportunityId);
+  }
+
   return (
     <>
       <Hero />
@@ -95,7 +108,10 @@ export default async function HomePage({
         </p>
       </div>
 
-      <TrendingCarousel jobs={trendingJobs} />
+      <TrendingCarousel
+        jobs={trendingJobs}
+        savedOpportunityIds={savedOpportunityIds}
+      />
 
       <section className="py-16">
         <header>

@@ -49,8 +49,15 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-export function TrendingCarousel({ jobs }: { jobs: TrendingJobOffer[] }) {
+export function TrendingCarousel({
+  jobs,
+  savedOpportunityIds = [],
+}: {
+  jobs: TrendingJobOffer[];
+  savedOpportunityIds?: string[];
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const savedIds = new Set(savedOpportunityIds);
 
   const scroll = (offset: number) => {
     containerRef.current?.scrollBy({ left: offset, behavior: "smooth" });
@@ -115,6 +122,8 @@ export function TrendingCarousel({ jobs }: { jobs: TrendingJobOffer[] }) {
                 badge={job.badge}
                 slug={job.slug}
                 url={`/api/redirect?id=${job.id}`}
+                jobId={job.id}
+                saved={savedIds.has(job.id)}
               />
             </div>
           ))}
