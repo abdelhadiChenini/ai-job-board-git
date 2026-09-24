@@ -188,6 +188,15 @@ model BlogPost {
   @@map("blog_posts")
 }
 
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
 model SiteSetting {
   id    String @id @default(uuid())
   key   String @unique

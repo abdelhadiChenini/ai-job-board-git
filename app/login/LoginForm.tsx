@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { getSession, signIn } from "next-auth/react";
 
 export function LoginForm() {
@@ -68,11 +69,22 @@ export function LoginForm() {
         />
       </label>
 
-      <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
-        Password
+      <div className="flex flex-col gap-1.5">
+        <div className="mb-1 flex items-center justify-between">
+          <label className="text-sm font-medium text-slate-300" htmlFor="password">
+            Password
+          </label>
+          <Link
+            className="text-sm text-blue-500 hover:text-blue-400 hover:underline"
+            href="/forgot-password"
+          >
+            Forgot password?
+          </Link>
+        </div>
         <input
           type="password"
           name="password"
+          id="password"
           required
           autoComplete="current-password"
           value={password}
@@ -80,7 +92,7 @@ export function LoginForm() {
           placeholder="Your password"
           className={inputClass}
         />
-      </label>
+      </div>
 
       {error && (
         <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
