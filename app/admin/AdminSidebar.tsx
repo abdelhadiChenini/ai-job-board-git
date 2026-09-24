@@ -19,6 +19,10 @@ const manageLinks = [
   { href: "/admin/seo", label: "SEO Settings" },
 ];
 
+const marketingLinks = [
+  { href: "/admin/newsletter", label: "Email Marketing" },
+];
+
 export function AdminSidebar() {
   const pathname = usePathname();
 
@@ -38,6 +42,21 @@ export function AdminSidebar() {
         </p>
 
         {manageLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            aria-current={pathname === link.href ? "page" : undefined}
+            className={linkClass(pathname === link.href)}
+          >
+            {link.label}
+          </Link>
+        ))}
+
+        <p className="hidden w-full px-4 pb-2 pt-4 text-xs font-semibold uppercase tracking-wide text-slate-500 lg:block">
+          Marketing
+        </p>
+
+        {marketingLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}

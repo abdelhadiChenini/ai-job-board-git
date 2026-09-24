@@ -5,11 +5,29 @@ import { FormEvent, useState } from "react";
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email.includes("@")) return;
-    setSubscribed(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(
+          (data as { error?: string } | null)?.error ??
+            "Could not subscribe. Try again.",
+        );
+        return;
+      }
+      setSubscribed(true);
+    } catch {
+      setError("Network error. Try again.");
+    }
   };
 
   return (
@@ -32,6 +50,7 @@ export function NewsletterForm() {
       >
         {subscribed ? "Subscribed" : "Subscribe"}
       </button>
+      {error && <p className="text-sm text-red-400">{error}</p>}
     </form>
   );
 }
