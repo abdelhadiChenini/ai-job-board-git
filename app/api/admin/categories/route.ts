@@ -7,6 +7,13 @@ const UNAUTHORIZED = NextResponse.json(
   { status: 401 },
 );
 
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export async function GET() {
   if (!(await getAdminSession())) {
     return UNAUTHORIZED;
@@ -49,7 +56,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const category = await prisma.category.create({ data: { name } });
+  const category = await prisma.category.create({
+    data: { name, slug: slugify(name) },
+  });
 
   return NextResponse.json(category, { status: 201 });
 }
