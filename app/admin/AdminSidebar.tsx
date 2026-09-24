@@ -14,6 +14,7 @@ const manageLinks = [
   { href: "/admin/blogs", label: "Blog Posts" },
   { href: "/admin/pages", label: "Pages" },
   { href: "/admin/settings", label: "Site Settings" },
+  { href: "/admin/settings/smtp", label: "SMTP Settings" },
   { href: "/admin/messages", label: "Inbox" },
   { href: "/admin/settings#faq-page", label: "FAQ Content" },
   { href: "/admin/seo", label: "SEO Settings" },

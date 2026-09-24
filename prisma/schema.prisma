@@ -218,6 +218,18 @@ model Subscriber {
   @@map("subscribers")
 }
 
+model SMTPSettings {
+  id        String  @id @default("default")
+  host      String
+  port      Int
+  user      String
+  pass      String
+  fromEmail String  @map("from_email")
+  fromName  String  @map("from_name")
+
+  @@map("smtp_settings")
+}
+
 model Category {
   id   String @id @default(cuid())
   name String @unique
