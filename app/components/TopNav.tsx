@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import AuthNav from "./AuthNav";
 
 const navItems = [
   { label: "Opportunities", href: "/opportunities" },
@@ -52,18 +53,7 @@ export async function TopNav() {
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-3 lg:ml-0">
-          <Link
-            href="/login"
-            className="rounded-full px-4 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-white"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-accent/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:bg-accent/60"
-          >
-            Join
-          </Link>
+          <AuthNav />
         </div>
       </div>
     </nav>

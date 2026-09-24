@@ -68,11 +68,11 @@ export default async function RootLayout({
         {seo?.bodyInjection && (
           <div dangerouslySetInnerHTML={{ __html: seo.bodyInjection }} />
         )}
-        <TopNav />
-        <div className="site-shell">
-          <Providers>{children}</Providers>
-        </div>
-        <Footer />
+        <Providers>
+          <TopNav />
+          <div className="site-shell">{children}</div>
+          <Footer />
+        </Providers>
         {seo?.footerInjection && (
           <div dangerouslySetInnerHTML={{ __html: seo.footerInjection }} />
         )}
