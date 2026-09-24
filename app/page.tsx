@@ -61,6 +61,7 @@ export default async function HomePage({
         name: true,
         websiteUrl: true,
         description: true,
+        logoUrl: true,
       },
       orderBy: { name: "asc" },
       take: 8,
@@ -126,8 +127,19 @@ export default async function HomePage({
                 rel="noopener noreferrer"
                 className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/50 p-5 text-slate-200 transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 p-2 text-sm font-bold text-slate-300">
-                  {platformInitials(platform.name)}
+                <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-slate-950 p-2">
+                  {platform.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={platform.logoUrl}
+                      alt={`${platform.name} logo`}
+                      className="h-full w-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    <span className="text-sm font-bold text-slate-300">
+                      {platformInitials(platform.name)}
+                    </span>
+                  )}
                 </span>
                 <h3 className="text-sm font-semibold leading-snug text-slate-100">
                   {platform.name}
