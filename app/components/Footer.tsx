@@ -146,10 +146,21 @@ export async function Footer() {
               className="flex shrink-0 items-center gap-2 font-bold text-white"
               aria-label="AI Job Board home"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
-                AI
-              </span>
-              <span className="text-lg tracking-tight">{siteTitle}</span>
+              {seoSettings?.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={seoSettings.logoUrl}
+                  alt="Site Logo"
+                  className="h-8 w-auto object-contain"
+                />
+              ) : (
+                <>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
+                    AI
+                  </span>
+                  <span className="text-lg tracking-tight">{siteTitle}</span>
+                </>
+              )}
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-slate-400">
               {siteDescription}

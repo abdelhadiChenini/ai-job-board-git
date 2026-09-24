@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
 const navItems = [
   { label: "Opportunities", href: "/opportunities" },
@@ -8,7 +9,9 @@ const navItems = [
   { label: "Blog", href: "/blog" },
 ];
 
-export function TopNav() {
+export async function TopNav() {
+  const seo = await prisma.seoSetting.findUnique({ where: { id: "global" } });
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/80 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-screen-2xl items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
@@ -17,12 +20,23 @@ export function TopNav() {
           className="flex shrink-0 items-center gap-2 font-extrabold tracking-tight"
           aria-label="AI Job Board home"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-accent to-emerald-400 text-sm font-bold text-slate-950">
-            AI
-          </span>
-          <span className="hidden bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-lg tracking-tight text-transparent sm:inline">
-            Job Board
-          </span>
+          {seo?.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={seo.logoUrl}
+              alt="Site Logo"
+              className="h-8 w-auto object-contain"
+            />
+          ) : (
+            <>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-accent to-emerald-400 text-sm font-bold text-slate-950">
+                AI
+              </span>
+              <span className="hidden bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-lg tracking-tight text-transparent sm:inline">
+                Job Board
+              </span>
+            </>
+          )}
         </Link>
 
         <div className="hidden flex-1 items-center justify-center gap-8 lg:flex">
