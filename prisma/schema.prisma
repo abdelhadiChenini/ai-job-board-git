@@ -31,11 +31,42 @@ model JobOffer {
   platform   AIPlatform @relation(fields: [platformId], references: [id])
   platformId String     @map("platform_id")
 
+  savedBy   SavedOpportunity[]
+  appliedBy AppliedOpportunity[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([platformId])
   @@map("job_offers")
+}
+
+model SavedOpportunity {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  opportunityId String    @map("opportunity_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunity JobOffer @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, opportunityId])
+  @@index([opportunityId])
+  @@map("saved_opportunities")
+}
+
+model AppliedOpportunity {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  opportunityId String    @map("opportunity_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunity JobOffer @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, opportunityId])
+  @@index([opportunityId])
+  @@map("applied_opportunities")
 }
 
 model AIPlatform {
@@ -88,6 +119,8 @@ model User {
 
   blogPosts    BlogPost[]
   expertProfile ExpertProfile?
+  savedOpportunities   SavedOpportunity[]
+  appliedOpportunities AppliedOpportunity[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -102,8 +135,6 @@ model ExpertProfile {
   headline          String?
   country           String?
   skills            Json               @default("[]")
-  savedJobs         Json               @default("[]") @map("saved_jobs")
-  appliedJobs       Json               @default("[]") @map("applied_jobs")
   isPublic          Boolean            @default(false) @map("is_public")
   verificationStatus VerificationStatus @default(PENDING) @map("verification_status")
   bio               String?  @db.Text

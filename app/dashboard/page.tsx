@@ -41,8 +41,6 @@ export default async function DashboardPage() {
         headline: null,
         country: null,
         skills: [],
-        savedJobs: [],
-        appliedJobs: [],
         isPublic: false,
         verificationStatus: "PENDING",
         bio: null,
@@ -84,13 +82,6 @@ export default async function DashboardPage() {
   const verified = profile?.verificationStatus === "VERIFIED";
   const publicProfileUrl = profile ? `/experts/${profile.id}` : null;
 
-  const savedJobIds = Array.isArray(profile?.savedJobs)
-    ? (profile.savedJobs as string[])
-    : [];
-  const appliedJobIds = Array.isArray(profile?.appliedJobs)
-    ? (profile.appliedJobs as string[])
-    : [];
-
   const activitySelect = {
     id: true,
     slug: true,
@@ -102,23 +93,34 @@ export default async function DashboardPage() {
     },
   } as const;
 
-  const savedJobs =
-    savedJobIds.length > 0
-      ? await prisma.jobOffer.findMany({
-          where: { id: { in: savedJobIds } },
-          select: activitySelect,
-          orderBy: { createdAt: "desc" },
-        })
-      : [];
+  const [savedRows, appliedRows] = await Promise.all([
+    prisma.savedOpportunity.findMany({
+      where: { userId: session.user.id },
+      select: {
+        createdAt: true,
+        opportunity: { select: activitySelect },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.appliedOpportunity.findMany({
+      where: { userId: session.user.id },
+      select: {
+        createdAt: true,
+        opportunity: { select: activitySelect },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
-  const appliedJobs =
-    appliedJobIds.length > 0
-      ? await prisma.jobOffer.findMany({
-          where: { id: { in: appliedJobIds } },
-          select: activitySelect,
-          orderBy: { createdAt: "desc" },
-        })
-      : [];
+  const savedJobs = savedRows.map((row) => ({
+    ...row.opportunity,
+    date: row.createdAt,
+  }));
+
+  const appliedJobs = appliedRows.map((row) => ({
+    ...row.opportunity,
+    date: row.createdAt,
+  }));
 
   const initials = fullName
     .split(/\s+/)

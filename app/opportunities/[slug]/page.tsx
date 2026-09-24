@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import JobCard from "@/app/components/JobCard";
 import { ShareJobButton } from "./ShareJobButton";
 import { NewsletterForm } from "./NewsletterForm";
+import { OpportunityActions } from "./OpportunityActions";
 
 type Params = { params: { slug: string } };
 
@@ -153,6 +156,32 @@ export default async function OpportunityPage({ params }: Params) {
   const location =
     job.region || (job.jobLocationType === "Remote" ? "Remote" : "Global");
 
+  const session = await getServerSession(authOptions);
+  const viewerId = session?.user?.id;
+
+  let saved = false;
+  let applied = false;
+  if (viewerId) {
+    const [savedRow, appliedRow] = await Promise.all([
+      prisma.savedOpportunity.findUnique({
+        where: {
+          userId_opportunityId: { userId: viewerId, opportunityId: job.id },
+        },
+      }),
+      prisma.appliedOpportunity.findUnique({
+        where: {
+          userId_opportunityId: { userId: viewerId, opportunityId: job.id },
+        },
+      }),
+    ]);
+    saved = Boolean(savedRow);
+    applied = Boolean(appliedRow);
+  }
+
+  const loginHref = `/login?callbackUrl=${encodeURIComponent(
+    `/opportunities/${job.slug}`,
+  )}`;
+
   return (
     <div>
       <script
@@ -234,14 +263,31 @@ export default async function OpportunityPage({ params }: Params) {
             <p className="mb-6 mt-2 text-sm text-slate-400">
               Review the details carefully, then apply directly on the hiring platform.
             </p>
-            <a
-              href={job.affiliateUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-500"
-            >
-              Apply Now
-            </a>
+            {viewerId ? (
+              <OpportunityActions
+                jobId={job.id}
+                affiliateUrl={job.affiliateUrl}
+                initialSaved={saved}
+                initialApplied={applied}
+              />
+            ) : (
+              <>
+                <a
+                  href={job.affiliateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-500"
+                >
+                  Apply Now
+                </a>
+                <Link
+                  href={loginHref}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 py-3 font-semibold text-slate-300 transition-colors hover:border-blue-500/50 hover:text-white"
+                >
+                  Save for Later
+                </Link>
+              </>
+            )}
             <ShareJobButton />
 
             <div className="mt-6 flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-xs text-slate-500">

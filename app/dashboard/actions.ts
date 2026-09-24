@@ -5,6 +5,41 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+export async function saveJob(jobId: string): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  if (!jobId) {
+    return { ok: false, error: "Missing job id." };
+  }
+
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return { ok: false, error: "You must be signed in." };
+  }
+
+  const existing = await prisma.jobOffer.findUnique({
+    where: { id: jobId },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    return { ok: false, error: "Opportunity not found." };
+  }
+
+  await prisma.savedOpportunity.upsert({
+    where: {
+      userId_opportunityId: { userId: session.user.id, opportunityId: jobId },
+    },
+    update: {},
+    create: { userId: session.user.id, opportunityId: jobId },
+  });
+
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
 export async function removeSavedJob(jobId: string): Promise<{
   ok: boolean;
   error?: string;
@@ -19,28 +54,43 @@ export async function removeSavedJob(jobId: string): Promise<{
     return { ok: false, error: "You must be signed in." };
   }
 
-  const profile = await prisma.expertProfile.findUnique({
-    where: { userId: session.user.id },
-    select: { savedJobs: true },
+  await prisma.savedOpportunity.deleteMany({
+    where: { userId: session.user.id, opportunityId: jobId },
   });
 
-  if (!profile) {
-    return { ok: false, error: "Profile not found." };
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function markApplied(jobId: string): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  if (!jobId) {
+    return { ok: false, error: "Missing job id." };
   }
 
-  const currentSaved = Array.isArray(profile.savedJobs)
-    ? (profile.savedJobs as unknown[]).filter(
-        (id): id is string => typeof id === "string",
-      )
-    : [];
+  const session = await getServerSession(authOptions);
 
-  if (!currentSaved.includes(jobId)) {
-    return { ok: true };
+  if (!session?.user?.id) {
+    return { ok: false, error: "You must be signed in." };
   }
 
-  await prisma.expertProfile.update({
-    where: { userId: session.user.id },
-    data: { savedJobs: currentSaved.filter((id) => id !== jobId) },
+  const existing = await prisma.jobOffer.findUnique({
+    where: { id: jobId },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    return { ok: false, error: "Opportunity not found." };
+  }
+
+  await prisma.appliedOpportunity.upsert({
+    where: {
+      userId_opportunityId: { userId: session.user.id, opportunityId: jobId },
+    },
+    update: {},
+    create: { userId: session.user.id, opportunityId: jobId },
   });
 
   revalidatePath("/dashboard");

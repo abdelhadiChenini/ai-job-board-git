@@ -11,7 +11,16 @@ type ActivityJob = {
   aiLabName: string;
   affiliateUrl: string;
   platform: { name: string; logoUrl: string | null };
+  date: Date;
 };
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
 
 function platformInitials(name: string): string {
   return name
@@ -80,6 +89,10 @@ export function Activity({
           </p>
           <p className="truncate text-xs text-slate-400">
             {job.platform.name}
+          </p>
+          <p className="text-xs text-slate-500">
+            {tab === "saved" ? "Saved" : "Applied"} on{" "}
+            {formatDate(job.date)}
           </p>
         </div>
 
