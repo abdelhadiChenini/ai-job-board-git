@@ -112,16 +112,16 @@ export async function Footer() {
         { label: "Log in", href: "/login" },
         { label: "Create Free Account", href: "/signup" },
         { label: "Settings", href: "/dashboard" },
-        { label: "Privacy Policy", href: "/privacy" },
+        { label: "Privacy Policy", href: "/privacy-policy" },
       ],
     },
   ];
 
   const footerLinks = [
     { label: "About", href: "/about" },
-    { label: "Contact", href: "mailto:contact@aijobboard.com" },
+    { label: "Contact", href: "/contact" },
     { label: "Terms", href: "/terms" },
-    { label: "Privacy", href: "/privacy" },
+    { label: "Privacy", href: "/privacy-policy" },
   ];
 
   return (
