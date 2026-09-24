@@ -132,14 +132,14 @@ export default async function DashboardPage() {
       <DashboardSidebar />
 
       <div className="min-w-0 flex-1">
-        <section className="rounded-card bg-white p-6 shadow-2xl sm:p-8">
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl backdrop-blur-xl sm:p-8">
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             {photo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={photo}
                 alt={fullName}
-                className="h-16 w-16 rounded-full object-cover ring-2 ring-slate-200"
+                className="h-16 w-16 rounded-full object-cover ring-2 ring-slate-700"
               />
             ) : (
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-xl font-bold text-white">
@@ -147,11 +147,11 @@ export default async function DashboardPage() {
               </span>
             )}
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-100">
                 {fullName}
               </h1>
               {headline ? (
-                <p className="mt-1 text-sm font-semibold uppercase tracking-wide text-blue-600">
+                <p className="mt-1 text-sm font-semibold uppercase tracking-wide text-slate-400">
                   {headline}
                 </p>
               ) : (
@@ -164,8 +164,8 @@ export default async function DashboardPage() {
         </section>
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-card border border-white/10 bg-slate-800 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Verification Status
             </p>
             <span
@@ -179,11 +179,11 @@ export default async function DashboardPage() {
             </span>
           </div>
 
-          <div className="rounded-card border border-white/10 bg-slate-800 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Profile Completeness
             </p>
-            <p className="mt-3 text-4xl font-bold tracking-tight text-white">
+            <p className="mt-3 text-4xl font-bold tracking-tight text-slate-100">
               {completeness}%
             </p>
             <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-800 ring-1 ring-white/10">
@@ -202,8 +202,8 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          <div className="rounded-card border border-white/10 bg-slate-800 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Public Profile
             </p>
             {publicProfileUrl ? (
