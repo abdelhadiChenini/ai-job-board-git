@@ -1,5 +1,6 @@
 import SearchBar from "@/components/SearchBar";
 import { prisma } from "@/lib/prisma";
+import { Sparkles } from "lucide-react";
 
 const trendTags = [
   "OpenAI",
@@ -139,7 +140,9 @@ export async function Hero() {
             </div>
           </div>
 
-          <div className="absolute -left-6 -top-6 hidden h-24 w-24 animate-float-delayed rounded-2xl border border-white/10 bg-gradient-to-br from-accent/20 to-emerald-400/10 backdrop-blur-md sm:block" />
+          <div className="absolute -left-6 -top-6 hidden h-24 w-24 animate-float-delayed items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-accent/20 to-emerald-400/10 backdrop-blur-md sm:flex">
+            <Sparkles className="h-8 w-8 text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+          </div>
           <div className="absolute -bottom-8 -right-4 hidden h-32 w-32 animate-float rounded-3xl border border-white/10 bg-slate-900/60 backdrop-blur-md sm:block">
             <div className="flex h-full flex-col items-center justify-center gap-1">
               <span
