@@ -2,6 +2,7 @@
 
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Search } from "lucide-react";
 
 const starIcon = (
   <svg
@@ -111,15 +112,18 @@ function SearchBarInner({
         onSubmit={handleSubmit}
         className="flex flex-col items-stretch gap-2 rounded-2xl bg-white p-2.5 shadow-xl shadow-black/30 lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:gap-0 lg:p-2"
       >
-        <input
-          type="text"
-          name="q"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search jobs, skills or keywords..."
-          aria-label="Search jobs, skills or keywords"
-          className="w-full rounded-xl bg-transparent px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none lg:h-full"
-        />
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+          <input
+            type="text"
+            name="q"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search jobs, skills or keywords..."
+            aria-label="Search jobs, skills or keywords"
+            className="w-full rounded-xl bg-transparent py-3.5 pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none lg:h-full"
+          />
+        </div>
 
         <div className="relative lg:border-l lg:border-slate-200">
           <select
