@@ -60,7 +60,9 @@ export function AIAssistantButton({
     <div className="flex flex-col gap-2">
       <button
         type="button"
-        onClick={() => {
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           setOpen((prev) => !prev);
           setError(null);
         }}

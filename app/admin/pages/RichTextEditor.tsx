@@ -41,7 +41,7 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert prose-sm max-w-none min-h-[240px] px-4 py-3 text-slate-200 focus:outline-none",
+          "prose prose-invert prose-sm max-w-none min-h-[200px] w-full p-4 text-slate-200 focus:outline-none cursor-text",
       },
     },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -214,7 +214,7 @@ export function RichTextEditor({
           ↷
         </button>
       </div>
-      <EditorContent editor={editor} />
+      <EditorContent editor={editor} className="pointer-events-auto" />
     </div>
   );
 }

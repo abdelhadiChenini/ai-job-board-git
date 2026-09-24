@@ -441,8 +441,10 @@ export function BlogTable() {
             />
           </label>
 
-          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
-            Content
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-slate-300">
+              Content
+            </label>
             <AIAssistantButton
               contextType="blog"
               placeholder="e.g. Write a blog post about how to land a remote AI training job"
@@ -454,7 +456,7 @@ export function BlogTable() {
               value={form.content}
               onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
             />
-          </label>
+          </div>
 
           <label className="flex items-center gap-3 text-sm font-medium text-slate-300">
             <input

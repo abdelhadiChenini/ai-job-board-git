@@ -488,8 +488,10 @@ export function OpportunityTable({
             </label>
           </div>
 
-          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
-            Description
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-slate-300">
+              Description
+            </label>
             <AIAssistantButton
               contextType="opportunity"
               onGenerate={(html) =>
@@ -502,7 +504,7 @@ export function OpportunityTable({
                 setForm((prev) => ({ ...prev, description: html }))
               }
             />
-          </label>
+          </div>
 
           {formError && (
             <p role="alert" className="text-sm text-red-400">
