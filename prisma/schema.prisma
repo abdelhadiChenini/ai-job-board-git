@@ -116,6 +116,7 @@ model User {
   email          String   @unique
   hashedPassword String   @map("hashed_password")
   role           UserRole @default(EXPERT)
+  lastAIGeneration DateTime? @map("last_ai_generation")
 
   blogPosts    BlogPost[]
   expertProfile ExpertProfile?

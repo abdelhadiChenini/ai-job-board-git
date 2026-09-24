@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getAdminSession } from "@/lib/admin";
+import { prisma } from "@/lib/prisma";
 
 const UNAUTHORIZED = NextResponse.json(
   { error: "Unauthorized." },
   { status: 401 },
 );
+
+const RATE_LIMIT_MS = 15 * 1000;
 
 const CONTEXT_TYPES = ["opportunity", "blog", "email"] as const;
 type ContextType = (typeof CONTEXT_TYPES)[number];
@@ -30,8 +33,29 @@ const SYSTEM_PROMPTS: Record<ContextType, string> = {
 };
 
 export async function POST(request: NextRequest) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+
+  if (!session || !session.user?.id) {
     return UNAUTHORIZED;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { lastAIGeneration: true },
+  });
+
+  if (!user) {
+    return UNAUTHORIZED;
+  }
+
+  if (user.lastAIGeneration) {
+    const elapsed = Date.now() - user.lastAIGeneration.getTime();
+    if (elapsed < RATE_LIMIT_MS) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Please wait a few seconds." },
+        { status: 429 },
+      );
+    }
   }
 
   let body: unknown;
@@ -84,6 +108,11 @@ export async function POST(request: NextRequest) {
   }
 
   const openai = new OpenAI({ apiKey });
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { lastAIGeneration: new Date() },
+  });
 
   try {
     const completion = await openai.chat.completions.create({
