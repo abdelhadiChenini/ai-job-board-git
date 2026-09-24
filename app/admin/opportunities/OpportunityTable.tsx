@@ -27,6 +27,8 @@ type ApiOpportunity = {
 
 type ApiPlatform = { id: string; name: string; slug: string };
 
+type ApiCategory = { id: string; name: string };
+
 type FormState = {
   title: string;
   aiLabName: string;
@@ -72,7 +74,11 @@ function tagsLabel(tags: unknown): string {
   return Array.isArray(tags) ? tags.join(", ") : "";
 }
 
-export function OpportunityTable() {
+export function OpportunityTable({
+  categories = [],
+}: {
+  categories?: ApiCategory[];
+}) {
   const [records, setRecords] = useState<ApiOpportunity[]>([]);
   const [platforms, setPlatforms] = useState<ApiPlatform[]>([]);
   const [loading, setLoading] = useState(true);
@@ -398,13 +404,22 @@ export function OpportunityTable() {
 
             <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
               Category
-              <input
-                type="text"
+              <select
                 value={form.category}
                 onChange={setField("category")}
-                placeholder="AI Training & Evaluation"
                 className={inputClass}
-              />
+              >
+                <option value="">
+                  {categories.length === 0
+                    ? "No categories available - please add one in the Categories tab."
+                    : "Select a category..."}
+                </option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">

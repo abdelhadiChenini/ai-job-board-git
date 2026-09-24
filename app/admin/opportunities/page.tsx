@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
+import { prisma } from "@/lib/prisma";
 import { OpportunityTable } from "./OpportunityTable";
 
 export const metadata: Metadata = {
@@ -10,6 +11,10 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminOpportunitiesPage() {
   await requireAdmin();
+
+  const categories = await prisma.category.findMany({
+    orderBy: { name: "asc" },
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -22,7 +27,7 @@ export default async function AdminOpportunitiesPage() {
         </p>
       </header>
 
-      <OpportunityTable />
+      <OpportunityTable categories={categories} />
     </div>
   );
 }
