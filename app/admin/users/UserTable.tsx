@@ -2,12 +2,14 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Modal from "../Modal";
+import { approveExpert } from "./actions";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 
 type ApiUser = {
   id: string;
   email: string;
   role: string;
+  verificationStatus: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -144,6 +146,41 @@ export function UserTable() {
       ? "rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-400"
       : "rounded-full bg-slate-500/15 px-2.5 py-1 text-xs font-semibold text-slate-300";
 
+  const statusBadge = (user: ApiUser) => {
+    if (user.verificationStatus === "VERIFIED") {
+      return (
+        <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+          Verified
+        </span>
+      );
+    }
+    if (user.verificationStatus === "PENDING") {
+      return (
+        <span className="rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-400">
+          Pending Review
+        </span>
+      );
+    }
+    return <span className="text-xs text-slate-500">—</span>;
+  };
+
+  const approve = async (user: ApiUser) => {
+    setBusy(true);
+    setTableError(null);
+    try {
+      const result = await approveExpert(user.id);
+      if (result && !result.ok) {
+        setTableError(result.error ?? "Could not approve expert.");
+        return;
+      }
+      await load();
+    } catch {
+      setTableError("Network error while approving the expert.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <section className={cardClass}>
       <div className="mb-4 flex items-center justify-between gap-4">
@@ -184,6 +221,7 @@ export function UserTable() {
             <thead>
               <tr className="text-xs uppercase tracking-wide text-slate-500">
                 <th className="pb-3 pr-4 font-semibold">Email</th>
+                <th className="pb-3 pr-4 font-semibold">Status</th>
                 <th className="pb-3 pr-4 font-semibold">Role</th>
                 <th className="pb-3 pr-4 font-semibold">Created</th>
                 <th className="pb-3 font-semibold">
@@ -195,6 +233,7 @@ export function UserTable() {
               {users.map((user) => (
                 <tr key={user.id} className="border-t border-slate-700/60">
                   <td className="py-3 pr-4 text-white">{user.email}</td>
+                  <td className="py-3 pr-4">{statusBadge(user)}</td>
                   <td className="py-3 pr-4">
                     <span className={roleBadge(user.role)}>{user.role}</span>
                   </td>
@@ -202,6 +241,16 @@ export function UserTable() {
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="py-3 text-right">
+                    {user.verificationStatus === "PENDING" && (
+                      <button
+                        type="button"
+                        onClick={() => void approve(user)}
+                        disabled={busy}
+                        className="mr-3 text-sm font-semibold text-emerald-400 hover:text-emerald-300 disabled:opacity-60"
+                      >
+                        Approve
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => openEdit(user)}

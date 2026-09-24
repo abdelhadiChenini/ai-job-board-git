@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, KeyboardEvent, useState } from "react";
 import { PREDEFINED_SKILLS } from "@/lib/constants";
 
 const inputClass =
@@ -42,6 +42,28 @@ export function ProfileAvailability({
         ? prev.skills.filter((item) => item !== skill)
         : [...prev.skills, skill],
     }));
+
+  const addCustomSkills = (raw: string) => {
+    const chunks = raw
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (chunks.length === 0) return;
+
+    setForm((prev) => ({
+      ...prev,
+      skills: Array.from(new Set([...prev.skills, ...chunks])),
+    }));
+    setSearchQuery("");
+  };
+
+  const handleSkillKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault();
+      addCustomSkills(searchQuery);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -130,9 +152,13 @@ export function ProfileAvailability({
                     type="text"
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
+                    onKeyDown={handleSkillKeyDown}
                     placeholder="Search all skills by name..."
                     className="w-full rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30"
                   />
+                  <p className="text-xs text-slate-500">
+                    Press Enter or type a comma to add a custom skill.
+                  </p>
 
                   <div className="mt-1 rounded-xl border border-blue-900/30 bg-slate-900/50 p-4">
                     <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
