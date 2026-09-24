@@ -4,9 +4,9 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const inputClass =
-  "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+  "w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-const labelClass = "flex flex-col gap-1.5 text-sm font-medium text-slate-700";
+const labelClass = "flex flex-col gap-1.5 text-sm font-medium text-slate-300";
 
 const primaryBtn =
   "inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-60";
@@ -59,17 +59,17 @@ export function ContactForm() {
 
   if (sent) {
     return (
-      <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-        <p className="text-sm font-semibold text-emerald-700">
+      <div className="flex flex-col gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+        <p className="text-sm font-semibold text-emerald-300">
           Thanks! Your message has been sent.
         </p>
-        <p className="text-sm text-emerald-700/90">
+        <p className="text-sm text-emerald-300/80">
           Our team will get back to you as soon as possible.
         </p>
         <button
           type="button"
           onClick={() => setSent(false)}
-          className="mt-1 w-fit rounded-full border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+          className="mt-1 w-fit rounded-full border border-emerald-500/40 px-4 py-2 text-sm font-semibold text-emerald-300 transition-colors hover:bg-emerald-500/10"
         >
           Send another message
         </button>
@@ -81,7 +81,7 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <label className={labelClass}>
-          Name
+          Full Name
           <input
             type="text"
             required
@@ -94,7 +94,7 @@ export function ContactForm() {
         </label>
 
         <label className={labelClass}>
-          Email
+          Email Address
           <input
             type="email"
             required
@@ -132,7 +132,7 @@ export function ContactForm() {
       </label>
 
       {error && (
-        <p role="alert" className="text-sm font-medium text-red-600">
+        <p role="alert" className="text-sm font-medium text-red-400">
           {error}
         </p>
       )}

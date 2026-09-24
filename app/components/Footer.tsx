@@ -58,7 +58,7 @@ export async function Footer() {
         { label: "Blog", href: "/blog" },
         { label: "Guides", href: "/guides" },
         { label: "FAQ", href: "/faq" },
-        { label: "Support", href: "mailto:support@aijobboard.com" },
+        { label: "Support", href: "/contact" },
       ],
     },
     {
@@ -67,7 +67,7 @@ export async function Footer() {
         { label: "Post a Job", href: "/for-companies" },
         { label: "Hire Experts", href: "/for-companies" },
         { label: "Pricing", href: "/for-companies" },
-        { label: "Contact Us", href: "mailto:contact@aijobboard.com" },
+        { label: "Contact Us", href: "/contact" },
       ],
     },
     {
