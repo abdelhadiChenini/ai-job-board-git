@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import Footer from "@/app/components/Footer";
 import TopNav from "@/app/components/TopNav";
@@ -76,6 +77,7 @@ export default async function RootLayout({
           <div dangerouslySetInnerHTML={{ __html: seo.footerInjection }} />
         )}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
