@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import FaqAccordion from "@/components/FaqAccordion";
 
 export const metadata: Metadata = {
   title: "Frequently Asked Questions",
@@ -23,13 +24,23 @@ How can I get my opportunities listed?
 Reach out through the contact link available in the footer and our team will help you get started.`;
 
 export default async function FaqPage() {
-  const page = await prisma.page.findUnique({ where: { slug: "faq" } });
+  const pageData = await prisma.page.findUnique({
+    where: { slug: "faq" },
+  });
 
-  const rawContent = page?.content?.trim() ? page.content : DEFAULT_FAQ;
-  const paragraphs = rawContent
-    .split(/\n+/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
+  const rawText = pageData?.content?.trim() ? pageData.content : DEFAULT_FAQ;
+  const blocks = rawText
+    .split(/\n\n+/)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0);
+
+  const faqItems: { question: string; answer: string }[] = [];
+  for (let i = 0; i < blocks.length; i += 2) {
+    faqItems.push({
+      question: blocks[i],
+      answer: blocks[i + 1] || "",
+    });
+  }
 
   return (
     <>
@@ -46,12 +57,8 @@ export default async function FaqPage() {
         </p>
       </section>
 
-      <section className="-mx-4 my-8 bg-paper px-4 py-16 sm:-mx-6 sm:px-6">
-        <div className="prose prose-slate mx-auto max-w-3xl">
-          {paragraphs.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
-        </div>
+      <section className="pb-16">
+        <FaqAccordion items={faqItems} />
       </section>
     </>
   );
