@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import DOMPurify from "isomorphic-dompurify";
 import { prisma } from "@/lib/prisma";
 
 type Params = { params: { slug: string } };
@@ -34,7 +35,7 @@ export default async function CmsPage({ params }: Params) {
       </h1>
       <div
         className="prose prose-invert prose-lg max-w-none leading-relaxed text-slate-300"
-        dangerouslySetInnerHTML={{ __html: pageData.content }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(pageData.content) }}
       />
     </div>
   );
