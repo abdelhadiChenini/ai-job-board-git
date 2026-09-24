@@ -48,12 +48,11 @@ export function RichTextEditor({
   });
 
   useEffect(() => {
-    if (!editor) return;
-    const current = editor.getHTML();
-    if (value !== current) {
-      editor.commands.setContent(value || "", { emitUpdate: false });
+    if (editor && value !== editor.getHTML()) {
+      // Only update if the external value differs from internal state (e.g., AI generation)
+      editor.commands.setContent(value, { emitUpdate: false });
     }
-  }, [editor, value]);
+  }, [value, editor]);
 
   if (!editor) {
     return (
