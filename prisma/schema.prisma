@@ -153,6 +153,10 @@ model ExpertProfile {
   github            String?
   youtube           String?
   website           String?
+  linkedInUrl       String?  @map("linked_in_url")
+  twitterUrl        String?  @map("twitter_url")
+  githubUrl         String?  @map("github_url")
+  websiteUrl        String?  @map("website_url")
   phoneNumber       String?  @map("phone_number")
   showEmail         Boolean  @default(false) @map("show_email")
   showPhone         Boolean  @default(false) @map("show_phone")

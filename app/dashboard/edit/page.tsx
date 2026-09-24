@@ -20,11 +20,11 @@ type ProfileFormData = {
   hourlyRate: string;
   education: string;
   certifications: string;
-  linkedin: string;
-  xUrl: string;
-  github: string;
   youtube: string;
-  website: string;
+  linkedInUrl: string;
+  twitterUrl: string;
+  githubUrl: string;
+  websiteUrl: string;
   phoneNumber: string;
   isPublic: boolean;
   showEmail: boolean;
@@ -46,11 +46,11 @@ const defaultForm: ProfileFormData = {
   hourlyRate: "",
   education: "",
   certifications: "",
-  linkedin: "",
-  xUrl: "",
-  github: "",
   youtube: "",
-  website: "",
+  linkedInUrl: "",
+  twitterUrl: "",
+  githubUrl: "",
+  websiteUrl: "",
   phoneNumber: "",
   isPublic: false,
   showEmail: false,
@@ -567,25 +567,29 @@ export default function EditProfilePage() {
             </section>
 
             <section className="rounded-card bg-white p-6 shadow-2xl sm:p-8">
-              <h2 className={headerClass}>Professional &amp; Social Links</h2>
+              <h2 className={headerClass}>Social Links</h2>
               <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className={labelClass}>
                   LinkedIn
                   <input
                     type="text"
-                    value={form.linkedin}
-                    onChange={(event) => update("linkedin", event.target.value)}
+                    value={form.linkedInUrl}
+                    onChange={(event) =>
+                      update("linkedInUrl", event.target.value)
+                    }
                     placeholder="https://linkedin.com/in/username"
                     className={inputClass}
                   />
                 </label>
 
                 <label className={labelClass}>
-                  X
+                  X (Twitter)
                   <input
                     type="text"
-                    value={form.xUrl}
-                    onChange={(event) => update("xUrl", event.target.value)}
+                    value={form.twitterUrl}
+                    onChange={(event) =>
+                      update("twitterUrl", event.target.value)
+                    }
                     placeholder="https://x.com/username"
                     className={inputClass}
                   />
@@ -595,8 +599,10 @@ export default function EditProfilePage() {
                   GitHub
                   <input
                     type="text"
-                    value={form.github}
-                    onChange={(event) => update("github", event.target.value)}
+                    value={form.githubUrl}
+                    onChange={(event) =>
+                      update("githubUrl", event.target.value)
+                    }
                     placeholder="https://github.com/username"
                     className={inputClass}
                   />
@@ -613,12 +619,14 @@ export default function EditProfilePage() {
                   />
                 </label>
 
-                <label className={`${labelClass} sm:col-span-2`}>
-                  Website
+                <label className={labelClass}>
+                  Personal Website
                   <input
                     type="text"
-                    value={form.website}
-                    onChange={(event) => update("website", event.target.value)}
+                    value={form.websiteUrl}
+                    onChange={(event) =>
+                      update("websiteUrl", event.target.value)
+                    }
                     placeholder="https://example.com"
                     className={inputClass}
                   />
