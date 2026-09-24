@@ -208,6 +208,10 @@ model SeoSetting {
   headerInjection String?  @db.Text @map("header_injection")
   bodyInjection   String?  @db.Text @map("body_injection")
   footerInjection String?  @db.Text @map("footer_injection")
+  linkedinUrl     String?  @map("linkedin_url")
+  twitterUrl      String?  @map("twitter_url")
+  instagramUrl    String?  @map("instagram_url")
+  youtubeUrl      String?  @map("youtube_url")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

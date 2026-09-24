@@ -53,6 +53,10 @@ export async function PUT(request: NextRequest) {
       headerInjection: strOrNull(b.headerInjection),
       bodyInjection: strOrNull(b.bodyInjection),
       footerInjection: strOrNull(b.footerInjection),
+      linkedinUrl: strOrNull(b.linkedinUrl),
+      twitterUrl: strOrNull(b.twitterUrl),
+      instagramUrl: strOrNull(b.instagramUrl),
+      youtubeUrl: strOrNull(b.youtubeUrl),
     },
     update: {
       siteTitle: strOrNull(b.siteTitle),
@@ -62,6 +66,10 @@ export async function PUT(request: NextRequest) {
       headerInjection: strOrNull(b.headerInjection),
       bodyInjection: strOrNull(b.bodyInjection),
       footerInjection: strOrNull(b.footerInjection),
+      linkedinUrl: strOrNull(b.linkedinUrl),
+      twitterUrl: strOrNull(b.twitterUrl),
+      instagramUrl: strOrNull(b.instagramUrl),
+      youtubeUrl: strOrNull(b.youtubeUrl),
     },
   });
 

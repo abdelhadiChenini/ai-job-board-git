@@ -10,6 +10,10 @@ type SeoFormData = {
   headerInjection: string;
   bodyInjection: string;
   footerInjection: string;
+  linkedinUrl: string;
+  twitterUrl: string;
+  instagramUrl: string;
+  youtubeUrl: string;
 };
 
 const defaultForm: SeoFormData = {
@@ -20,10 +24,17 @@ const defaultForm: SeoFormData = {
   headerInjection: "",
   bodyInjection: "",
   footerInjection: "",
+  linkedinUrl: "",
+  twitterUrl: "",
+  instagramUrl: "",
+  youtubeUrl: "",
 };
 
 const inputClass =
   "w-full rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none";
+
+const socialInputClass =
+  "w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 const labelClass = "flex flex-col gap-1.5 text-sm font-medium text-slate-300";
 
@@ -84,6 +95,10 @@ export default function AdminSeoPage() {
           headerInjection: settings.headerInjection ?? "",
           bodyInjection: settings.bodyInjection ?? "",
           footerInjection: settings.footerInjection ?? "",
+          linkedinUrl: settings.linkedinUrl ?? "",
+          twitterUrl: settings.twitterUrl ?? "",
+          instagramUrl: settings.instagramUrl ?? "",
+          youtubeUrl: settings.youtubeUrl ?? "",
         });
       } catch {
         if (!cancelled) setLoadError("Could not load SEO settings.");
@@ -263,6 +278,65 @@ export default function AdminSeoPage() {
                     handleImageUpload(event.target.files?.[0] ?? null)
                   }
                   className={`${inputClass} file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white`}
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className={cardClass}>
+            <h2 className="text-xl font-bold tracking-tight text-white">
+              Social Media Links
+            </h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Links shown as icons in the site footer.
+            </p>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className={labelClass}>
+                LinkedIn
+                <input
+                  type="url"
+                  value={form.linkedinUrl}
+                  onChange={(event) =>
+                    update("linkedinUrl", event.target.value)
+                  }
+                  placeholder="https://www.linkedin.com/company/acme"
+                  className={socialInputClass}
+                />
+              </label>
+
+              <label className={labelClass}>
+                X (Twitter)
+                <input
+                  type="url"
+                  value={form.twitterUrl}
+                  onChange={(event) => update("twitterUrl", event.target.value)}
+                  placeholder="https://x.com/acme"
+                  className={socialInputClass}
+                />
+              </label>
+
+              <label className={labelClass}>
+                Instagram
+                <input
+                  type="url"
+                  value={form.instagramUrl}
+                  onChange={(event) =>
+                    update("instagramUrl", event.target.value)
+                  }
+                  placeholder="https://www.instagram.com/acme"
+                  className={socialInputClass}
+                />
+              </label>
+
+              <label className={labelClass}>
+                YouTube
+                <input
+                  type="url"
+                  value={form.youtubeUrl}
+                  onChange={(event) => update("youtubeUrl", event.target.value)}
+                  placeholder="https://www.youtube.com/@acme"
+                  className={socialInputClass}
                 />
               </label>
             </div>
