@@ -2,13 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 
 export function AuthNav() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
-  const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
 
@@ -60,11 +59,9 @@ export function AuthNav() {
   const isAdmin = session.user.role === "ADMIN";
   const dashboardHref = isAdmin ? "/admin/users" : "/dashboard";
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setOpen(false);
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+    void signOut({ callbackUrl: "/login" });
   };
 
   return (
