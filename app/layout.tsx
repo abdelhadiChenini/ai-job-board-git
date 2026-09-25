@@ -70,7 +70,7 @@ export default async function RootLayout({
         )}
         <Providers>
           <TopNav />
-          <div className="site-shell">{children}</div>
+          <div className="w-full px-6 py-8 md:px-12 lg:px-20">{children}</div>
           <Footer />
         </Providers>
         {seo?.footerInjection && (

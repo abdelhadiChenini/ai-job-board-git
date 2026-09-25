@@ -126,7 +126,7 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-white/10 bg-navy" aria-label="Footer">
-      <div className="site-shell">
+      <div className="w-full px-6 py-8 md:px-12 lg:px-20">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_auto]">
           <h2 className="text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
             Find AI work. Or find the talent to get it done.

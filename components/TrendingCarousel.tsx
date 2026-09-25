@@ -152,7 +152,7 @@ export function TrendingCarousel({
       ) : (
         <div
           ref={carouselRef}
-          className="hide-scrollbar mt-6 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2"
+          className="hide-scrollbar mt-6 flex w-full max-w-none snap-x snap-mandatory gap-6 overflow-x-auto pb-2"
         >
           {jobs.map((job) => (
             <div key={job.id} className="w-80 shrink-0 snap-center">

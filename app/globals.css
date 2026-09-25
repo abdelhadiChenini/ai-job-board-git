@@ -41,20 +41,7 @@ body {
 }
 
 /*
- * Site shell: constrains content width and pads it using LOGICAL
- * properties so the layout mirrors automatically when [dir="rtl"]
- * is applied for future localization (Arabic, Hebrew, etc.).
- */
-.site-shell {
-  width: 100%;
-  max-width: 1200px;
-  margin-inline: auto; /* auto-margin resolves to left/right per dir */
-  padding-inline: 1.5rem; /* physical 'padding-left/right' equivalent */
-  padding-block: 2rem;
-}
-
-/*
- * Full-bleed: breaks a section out of the centered .site-shell so its
+ * Full-bleed: breaks a section out of the padded content wrapper so its
  * background stretches edge-to-edge across the viewport.
  */
 .full-bleed {
@@ -115,9 +102,6 @@ body {
 }
 
 @media (max-width: 640px) {
-  .site-shell {
-    padding-inline: 1rem;
-  }
   .site-card {
     padding: 1.25rem;
   }
