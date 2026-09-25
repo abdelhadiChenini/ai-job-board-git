@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import JobCard from "@/app/components/JobCard";
 
 export type TrendingJobOffer = {
@@ -56,15 +56,57 @@ export function TrendingCarousel({
   jobs: TrendingJobOffer[];
   savedOpportunityIds?: string[];
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const pauseTimeoutRef = useRef<number | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const savedIds = new Set(savedOpportunityIds);
 
   const scroll = (offset: number) => {
-    containerRef.current?.scrollBy({ left: offset, behavior: "smooth" });
+    setIsPaused(true);
+    carouselRef.current?.scrollBy({ left: offset, behavior: "smooth" });
+
+    if (pauseTimeoutRef.current !== null) {
+      window.clearTimeout(pauseTimeoutRef.current);
+    }
+    pauseTimeoutRef.current = window.setTimeout(() => {
+      setIsPaused(false);
+      pauseTimeoutRef.current = null;
+    }, 5000);
   };
 
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      const carousel = carouselRef.current;
+      if (!carousel || isHovered || isPaused) {
+        return;
+      }
+
+      if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth) {
+        carousel.scrollTo({ left: 0, behavior: "smooth" });
+        return;
+      }
+
+      carousel.scrollBy({ left: 350, behavior: "smooth" });
+    }, 3500);
+
+    return () => window.clearInterval(interval);
+  }, [isHovered, isPaused]);
+
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current !== null) {
+        window.clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <section className="py-20">
+    <section
+      className="py-20"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <h2 className="bg-gradient-to-r from-white to-accent bg-clip-text text-3xl font-bold tracking-tight text-transparent">
@@ -109,7 +151,7 @@ export function TrendingCarousel({
         </div>
       ) : (
         <div
-          ref={containerRef}
+          ref={carouselRef}
           className="hide-scrollbar mt-6 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2"
         >
           {jobs.map((job) => (
