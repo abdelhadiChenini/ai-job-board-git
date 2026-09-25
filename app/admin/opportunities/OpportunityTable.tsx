@@ -259,7 +259,7 @@ export function OpportunityTable({
         <p className="text-sm text-slate-400">
           {loading
             ? "Loading…"
-            : `${records.length} opportunity${records.length === 1 ? "" : "ies"}`}
+            : `${records.length} ${records.length === 1 ? "opportunity" : "opportunities"}`}
         </p>
         <button type="button" onClick={openCreate} className={primaryBtn}>
           + Create New

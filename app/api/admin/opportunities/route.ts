@@ -39,16 +39,9 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = request.nextUrl;
-  const take = Math.min(
-    Math.max(Number(searchParams.get("take") ?? "20") || 20, 1),
-    100,
-  );
-  const skip = Math.max(Number(searchParams.get("skip") ?? "0") || 0, 0);
   const platformId = searchParams.get("platformId") || undefined;
 
   const jobOffers = await prisma.jobOffer.findMany({
-    take,
-    skip,
     where: platformId ? { platformId } : undefined,
     orderBy: { createdAt: "desc" },
     include: {
