@@ -1,5 +1,5 @@
 import Hero from "@/app/components/Hero";
-import TrendingCarousel from "@/components/TrendingCarousel";
+import OpportunityCarousel from "@/components/OpportunityCarousel";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -12,6 +12,21 @@ function platformInitials(name: string): string {
     .slice(0, 2)
     .map((word) => word.charAt(0).toUpperCase())
     .join("");
+}
+
+function selectDiverseOpportunities<T extends { platformId: string }>(
+  opportunities: T[],
+): T[] {
+  const usedPlatformIds = new Set<string>();
+  return opportunities
+    .filter((opportunity) => {
+      if (usedPlatformIds.has(opportunity.platformId)) {
+        return false;
+      }
+      usedPlatformIds.add(opportunity.platformId);
+      return true;
+    })
+    .slice(0, 12);
 }
 
 type SearchParams = {
@@ -48,38 +63,40 @@ export default async function HomePage({
     where.jobLocationType = location;
   }
 
-  const [trendingJobPool, platforms] = await Promise.all([
-    prisma.jobOffer.findMany({
-      include: {
-        platform: { select: { name: true, slug: true, logoUrl: true } },
-      },
-      where: { ...where, badge: "Trending" },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-    }),
-    prisma.aIPlatform.findMany({
-      select: {
-        id: true,
-        name: true,
-        websiteUrl: true,
-        description: true,
-        logoUrl: true,
-      },
-      orderBy: { name: "asc" },
-      take: 8,
-    }),
-  ]);
+  const [trendingOpportunityPool, latestOpportunityPool, platforms] =
+    await Promise.all([
+      prisma.jobOffer.findMany({
+        include: {
+          platform: { select: { name: true, slug: true, logoUrl: true } },
+        },
+        where: { ...where, badge: "Trending" },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+      prisma.jobOffer.findMany({
+        include: {
+          platform: { select: { name: true, slug: true, logoUrl: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+      prisma.aIPlatform.findMany({
+        select: {
+          id: true,
+          name: true,
+          websiteUrl: true,
+          description: true,
+          logoUrl: true,
+        },
+        orderBy: { name: "asc" },
+        take: 8,
+      }),
+    ]);
 
-  const usedPlatformIds = new Set<string>();
-  const trendingJobs = trendingJobPool
-    .filter((job) => {
-      if (usedPlatformIds.has(job.platformId)) {
-        return false;
-      }
-      usedPlatformIds.add(job.platformId);
-      return true;
-    })
-    .slice(0, 12);
+  const trendingOpportunities = selectDiverseOpportunities(
+    trendingOpportunityPool,
+  );
+  const latestOpportunities = selectDiverseOpportunities(latestOpportunityPool);
 
   const session = await getServerSession(authOptions);
 
@@ -119,10 +136,19 @@ export default async function HomePage({
         </p>
       </div>
 
-      <TrendingCarousel
-        jobs={trendingJobs}
+      <OpportunityCarousel
+        title="Trending Opportunities"
+        opportunities={trendingOpportunities}
         savedOpportunityIds={savedOpportunityIds}
       />
+
+      <div className="mt-16">
+        <OpportunityCarousel
+          title="Latest Opportunities"
+          opportunities={latestOpportunities}
+          savedOpportunityIds={savedOpportunityIds}
+        />
+      </div>
 
       <section className="py-16">
         <header>

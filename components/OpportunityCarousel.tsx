@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import JobCard from "@/app/components/JobCard";
 
-export type TrendingJobOffer = {
+export type OpportunityCarouselItem = {
   id: string;
   slug?: string | null;
   title: string;
@@ -15,6 +15,12 @@ export type TrendingJobOffer = {
     slug: string;
     logoUrl?: string | null;
   } | null;
+};
+
+type OpportunityCarouselProps = {
+  title: string;
+  opportunities: OpportunityCarouselItem[];
+  savedOpportunityIds?: string[];
 };
 
 function toTagList(tags: unknown): string[] {
@@ -49,13 +55,11 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-export function TrendingCarousel({
-  jobs,
+export function OpportunityCarousel({
+  title,
+  opportunities,
   savedOpportunityIds = [],
-}: {
-  jobs: TrendingJobOffer[];
-  savedOpportunityIds?: string[];
-}) {
+}: OpportunityCarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const pauseTimeoutRef = useRef<number | null>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -110,10 +114,10 @@ export function TrendingCarousel({
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <h2 className="bg-gradient-to-r from-white to-accent bg-clip-text text-3xl font-bold tracking-tight text-transparent">
-            Trending Opportunities
+            {title}
           </h2>
           <span className="rounded-full bg-white/10 px-3 py-0.5 text-sm font-semibold text-slate-300">
-            {jobs.length}
+            {opportunities.length}
           </span>
         </div>
 
@@ -121,7 +125,7 @@ export function TrendingCarousel({
           <button
             type="button"
             onClick={() => scroll(-400)}
-            aria-label="Scroll trending opportunities left"
+            aria-label={`Scroll ${title.toLowerCase()} left`}
             className="rounded-full bg-slate-800 p-2 text-white transition-colors hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             <ArrowIcon direction="left" />
@@ -129,7 +133,7 @@ export function TrendingCarousel({
           <button
             type="button"
             onClick={() => scroll(400)}
-            aria-label="Scroll trending opportunities right"
+            aria-label={`Scroll ${title.toLowerCase()} right`}
             className="rounded-full bg-slate-800 p-2 text-white transition-colors hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             <ArrowIcon direction="right" />
@@ -140,7 +144,7 @@ export function TrendingCarousel({
         Hand-picked roles from the world&apos;s leading AI labs and platforms.
       </p>
 
-      {jobs.length === 0 ? (
+      {opportunities.length === 0 ? (
         <div className="mt-12 rounded-2xl border border-slate-200 bg-white p-6">
           <h3 className="text-lg font-semibold text-slate-900">
             No open roles right now
@@ -154,18 +158,18 @@ export function TrendingCarousel({
           ref={carouselRef}
           className="hide-scrollbar mt-6 flex w-full max-w-none snap-x snap-mandatory gap-6 overflow-x-auto pb-2"
         >
-          {jobs.map((job) => (
-            <div key={job.id} className="w-80 shrink-0 snap-center">
+          {opportunities.map((opportunity) => (
+            <div key={opportunity.id} className="w-80 shrink-0 snap-center">
               <JobCard
-                title={job.title}
-                labName={job.platform?.name ?? job.aiLabName}
-                tags={toTagList(job.tags)}
-                logoUrl={job.platform?.logoUrl}
-                badge={job.badge}
-                slug={job.slug}
-                url={`/api/redirect?id=${job.id}`}
-                jobId={job.id}
-                saved={savedIds.has(job.id)}
+                title={opportunity.title}
+                labName={opportunity.platform?.name ?? opportunity.aiLabName}
+                tags={toTagList(opportunity.tags)}
+                logoUrl={opportunity.platform?.logoUrl}
+                badge={opportunity.badge}
+                slug={opportunity.slug}
+                url={`/api/redirect?id=${opportunity.id}`}
+                jobId={opportunity.id}
+                saved={savedIds.has(opportunity.id)}
               />
             </div>
           ))}
@@ -175,4 +179,4 @@ export function TrendingCarousel({
   );
 }
 
-export default TrendingCarousel;
+export default OpportunityCarousel;
