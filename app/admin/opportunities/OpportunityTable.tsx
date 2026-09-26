@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Modal from "../Modal";
 import RichTextEditor from "../pages/RichTextEditor";
 import AIAssistantButton from "@/components/admin/AIAssistantButton";
@@ -76,10 +77,20 @@ function tagsLabel(tags: unknown): string {
 
 export function OpportunityTable({
   categories = [],
+  opportunities = [],
+  currentPage = 1,
+  totalPages = 1,
+  totalCount,
 }: {
   categories?: ApiCategory[];
+  opportunities?: ApiOpportunity[];
+  currentPage?: number;
+  totalPages?: number;
+  totalCount?: number;
 }) {
-  const [records, setRecords] = useState<ApiOpportunity[]>([]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [records, setRecords] = useState<ApiOpportunity[]>(opportunities);
   const [platforms, setPlatforms] = useState<ApiPlatform[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -92,26 +103,17 @@ export function OpportunityTable({
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const total = totalCount ?? records.length;
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     setTableError(null);
     try {
-      const [opportunitiesResponse, platformsResponse] = await Promise.all([
-        fetch("/api/admin/opportunities"),
-        fetch("/api/admin/platforms"),
-      ]);
-      const opportunities: unknown = await opportunitiesResponse.json();
-      const platformData: unknown = await platformsResponse.json();
+      const response = await fetch("/api/admin/platforms");
+      const platformData: unknown = await response.json();
 
-      if (!opportunitiesResponse.ok) {
-        setLoadError(
-          (opportunities as { error?: string } | null)?.error ??
-            "Failed to load opportunities.",
-        );
-        return;
-      }
-      if (!platformsResponse.ok) {
+      if (!response.ok) {
         setLoadError(
           (platformData as { error?: string } | null)?.error ??
             "Failed to load platforms.",
@@ -119,7 +121,6 @@ export function OpportunityTable({
         return;
       }
 
-      setRecords(Array.isArray(opportunities) ? (opportunities as ApiOpportunity[]) : []);
       setPlatforms(Array.isArray(platformData) ? (platformData as ApiPlatform[]) : []);
     } catch {
       setLoadError("Network error while loading data.");
@@ -131,6 +132,15 @@ export function OpportunityTable({
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setRecords(opportunities);
+  }, [opportunities]);
+
+  const goToPage = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    router.push(page === 1 ? pathname : `${pathname}?page=${page}`);
+  };
 
   const setField = (field: keyof FormState) => (
     event: FormEvent<
@@ -212,7 +222,7 @@ export function OpportunityTable({
         return;
       }
 
-      await load();
+      router.refresh();
       closeModal();
     } catch {
       setFormError("Network error. Try again.");
@@ -238,7 +248,7 @@ export function OpportunityTable({
         );
         return;
       }
-      await load();
+      router.refresh();
     } catch {
       setTableError("Network error while deleting the opportunity.");
     } finally {
@@ -257,9 +267,7 @@ export function OpportunityTable({
     <section className={cardClass}>
       <div className="mb-4 flex items-center justify-between gap-4">
         <p className="text-sm text-slate-400">
-          {loading
-            ? "Loading…"
-            : `${records.length} ${records.length === 1 ? "opportunity" : "opportunities"}`}
+          {total} {total === 1 ? "opportunity" : "opportunities"}
         </p>
         <button type="button" onClick={openCreate} className={primaryBtn}>
           + Create New
@@ -281,13 +289,11 @@ export function OpportunityTable({
         </p>
       )}
 
-      {loading ? (
+      {records.length === 0 ? (
         <p className="py-10 text-center text-sm text-slate-500">
-          Fetching opportunities…
-        </p>
-      ) : records.length === 0 ? (
-        <p className="py-10 text-center text-sm text-slate-500">
-          No opportunities yet. Click “Create New” to add one.
+          {loading
+            ? "Fetching opportunities…"
+            : "No opportunities yet. Click “Create New” to add one."}
         </p>
       ) : (
         <div className="overflow-x-auto">
@@ -341,6 +347,32 @@ export function OpportunityTable({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-slate-400">
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1 || busy}
+              className={subtleBtn}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages || busy}
+              className={subtleBtn}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 

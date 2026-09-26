@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Prisma } from "@prisma/client";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { OpportunityTable } from "./OpportunityTable";
@@ -9,12 +10,48 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOpportunitiesPage() {
+const PAGE_SIZE = 30;
+
+const listArgs = {
+  include: { platform: { select: { id: true, name: true, slug: true } } },
+  orderBy: { createdAt: "desc" },
+} satisfies Prisma.JobOfferFindManyArgs;
+
+export default async function AdminOpportunitiesPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
   await requireAdmin();
 
-  const categories = await prisma.category.findMany({
-    orderBy: { name: "asc" },
-  });
+  const currentPage = Math.max(1, Number(searchParams.page) || 1);
+  const take = PAGE_SIZE;
+  const skip = (currentPage - 1) * take;
+
+  const [categories, totalCount, firstSlice] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+    }),
+    prisma.jobOffer.count(),
+    prisma.jobOffer.findMany({ ...listArgs, take, skip }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / take));
+  const page = Math.min(currentPage, totalPages);
+  const rows =
+    page === currentPage
+      ? firstSlice
+      : await prisma.jobOffer.findMany({
+          ...listArgs,
+          take,
+          skip: (page - 1) * take,
+        });
+
+  const opportunities = rows.map((row) => ({
+    ...row,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,7 +64,13 @@ export default async function AdminOpportunitiesPage() {
         </p>
       </header>
 
-      <OpportunityTable categories={categories} />
+      <OpportunityTable
+        categories={categories}
+        opportunities={opportunities}
+        currentPage={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+      />
     </div>
   );
 }
