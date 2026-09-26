@@ -2,14 +2,16 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Modal from "../Modal";
-import { approveExpert } from "./actions";
+import { updateExpertStatus } from "./actions";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
+
+type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 type ApiUser = {
   id: string;
   email: string;
   role: string;
-  verificationStatus: string | null;
+  verificationStatus: VerificationStatus | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -147,35 +149,48 @@ export function UserTable() {
       : "rounded-full bg-slate-500/15 px-2.5 py-1 text-xs font-semibold text-slate-300";
 
   const statusBadge = (user: ApiUser) => {
-    if (user.verificationStatus === "VERIFIED") {
+    if (user.verificationStatus === "APPROVED") {
       return (
         <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-          Verified
+          Approved
+        </span>
+      );
+    }
+    if (user.verificationStatus === "REJECTED") {
+      return (
+        <span className="rounded-full bg-red-500/15 px-2.5 py-1 text-xs font-semibold text-red-400">
+          Rejected
         </span>
       );
     }
     if (user.verificationStatus === "PENDING") {
       return (
         <span className="rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-400">
-          Pending Review
+          Pending
         </span>
       );
     }
     return <span className="text-xs text-slate-500">—</span>;
   };
 
-  const approve = async (user: ApiUser) => {
+  const setVerification = async (
+    user: ApiUser,
+    status: "APPROVED" | "REJECTED",
+  ) => {
     setBusy(true);
     setTableError(null);
     try {
-      const result = await approveExpert(user.id);
+      const result = await updateExpertStatus(user.id, status);
       if (result && !result.ok) {
-        setTableError(result.error ?? "Could not approve expert.");
+        setTableError(
+          result.error ??
+            `Could not mark the expert as ${status.toLowerCase()}.`,
+        );
         return;
       }
       await load();
     } catch {
-      setTableError("Network error while approving the expert.");
+      setTableError("Network error while updating the verification status.");
     } finally {
       setBusy(false);
     }
@@ -241,15 +256,33 @@ export function UserTable() {
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="py-3 text-right">
-                    {user.verificationStatus === "PENDING" && (
-                      <button
-                        type="button"
-                        onClick={() => void approve(user)}
-                        disabled={busy}
-                        className="mr-3 text-sm font-semibold text-emerald-400 hover:text-emerald-300 disabled:opacity-60"
-                      >
-                        Approve
-                      </button>
+                    {user.verificationStatus && (
+                      <span className="mr-3 inline-flex items-center gap-2 align-middle">
+                        {user.verificationStatus !== "APPROVED" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void setVerification(user, "APPROVED")
+                            }
+                            disabled={busy}
+                            className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 disabled:opacity-60"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {user.verificationStatus !== "REJECTED" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void setVerification(user, "REJECTED")
+                            }
+                            disabled={busy}
+                            className="text-sm font-semibold text-orange-400 hover:text-orange-300 disabled:opacity-60"
+                          >
+                            Reject
+                          </button>
+                        )}
+                      </span>
                     )}
                     <button
                       type="button"

@@ -108,7 +108,8 @@ enum UserRole {
 
 enum VerificationStatus {
   PENDING
-  VERIFIED
+  APPROVED
+  REJECTED
 }
 
 model User {

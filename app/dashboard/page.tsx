@@ -83,7 +83,7 @@ export default async function DashboardPage() {
 
   const completeness = calculateCompleteness(profile);
 
-  const verified = profile?.verificationStatus === "VERIFIED";
+  const verified = profile?.verificationStatus === "APPROVED";
   const publicProfileUrl = profile ? `/experts/${profile.id}` : null;
 
   const activitySelect = {
