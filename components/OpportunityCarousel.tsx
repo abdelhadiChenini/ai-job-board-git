@@ -106,42 +106,43 @@ export function OpportunityCarousel({
   }, []);
 
   return (
-    <section
-      className="py-20"
+    <div
+      className="w-full -mx-6 py-20 md:-mx-12 lg:-mx-20"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-12">
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h2 className="bg-gradient-to-r from-white to-accent bg-clip-text text-3xl font-bold tracking-tight text-transparent">
-              {title}
-            </h2>
-            <span className="rounded-full bg-white/10 px-3 py-0.5 text-sm font-semibold text-slate-300">
-              {opportunities.length}
-            </span>
-          </div>
+      <div className="max-w-[1400px] mx-auto w-full px-6 md:px-12 mb-6 flex items-end justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h2 className="bg-gradient-to-r from-white to-accent bg-clip-text text-3xl font-bold tracking-tight text-transparent">
+            {title}
+          </h2>
+          <span className="rounded-full bg-white/10 px-3 py-0.5 text-sm font-semibold text-slate-300">
+            {opportunities.length}
+          </span>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => scroll(-400)}
-              aria-label={`Scroll ${title.toLowerCase()} left`}
-              className="rounded-full bg-slate-800 p-2 text-white transition-colors hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              <ArrowIcon direction="left" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scroll(400)}
-              aria-label={`Scroll ${title.toLowerCase()} right`}
-              className="rounded-full bg-slate-800 p-2 text-white transition-colors hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              <ArrowIcon direction="right" />
-            </button>
-          </div>
-        </header>
-        <p className="mt-3 text-slate-400">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => scroll(-400)}
+            aria-label={`Scroll ${title.toLowerCase()} left`}
+            className="rounded-full bg-slate-800 p-2 text-white transition-colors hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            <ArrowIcon direction="left" />
+          </button>
+          <button
+            type="button"
+            onClick={() => scroll(400)}
+            aria-label={`Scroll ${title.toLowerCase()} right`}
+            className="rounded-full bg-slate-800 p-2 text-white transition-colors hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            <ArrowIcon direction="right" />
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-[1400px] mx-auto w-full px-6 md:px-12">
+        <p className="text-slate-400">
           Hand-picked roles from the world&apos;s leading AI labs and platforms.
         </p>
       </div>
@@ -160,7 +161,7 @@ export function OpportunityCarousel({
       ) : (
         <div
           ref={carouselRef}
-          className="hide-scrollbar -mx-6 mt-6 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 pr-6 pl-[max(3rem,calc((100%_-_1400px)/2_+_1.5rem))] md:-mx-12 md:pr-12 md:pl-[max(6rem,calc((100%_-_1400px)/2_+_3rem))] lg:-mx-20 lg:pl-[max(8rem,calc((100%_-_1400px)/2_+_3rem))]"
+          className="hide-scrollbar mt-6 flex w-full max-w-none snap-x snap-mandatory gap-6 overflow-x-auto pb-2 pl-6 pr-6 md:pr-12 md:pl-[max(3rem,calc((100vw_-_1400px)/2_+_3rem))]"
         >
           {opportunities.map((opportunity) => (
             <div key={opportunity.id} className="w-80 shrink-0 snap-center">
@@ -179,7 +180,7 @@ export function OpportunityCarousel({
           ))}
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
