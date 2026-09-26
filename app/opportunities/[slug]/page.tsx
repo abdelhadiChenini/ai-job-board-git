@@ -11,20 +11,27 @@ import { OpportunityActions } from "./OpportunityActions";
 
 type Params = { params: { slug: string } };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const job = await prisma.jobOffer.findUnique({
-    where: { slug: params.slug },
-    include: { platform: { select: { name: true } } },
-  });
+  const job = await fetchJob(params.slug);
 
   if (!job) {
-    return { title: "Opportunity" };
+    return {
+      title: "Opportunity not found",
+      robots: { index: false, follow: false },
+    };
   }
 
+  const title = `${job.title} at ${job.platform.name}`;
+  const description = excerpt(job.description);
+
   return {
-    title: job.title,
-    description: excerpt(job.description),
-    openGraph: { title: job.title, description: excerpt(job.description) },
+    title,
+    description,
+    keywords: toTagList(job.tags),
+    alternates: { canonical: `/opportunities/${job.slug}` },
+    openGraph: { title, description },
   };
 }
 
@@ -40,8 +47,32 @@ function isHtml(value: string): boolean {
   return /<\/?[a-z][\s\S]*>/i.test(value);
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&apos;": "'",
+  "&#39;": "'",
+  "&hellip;": "…",
+  "&mdash;": "—",
+  "&ndash;": "–",
+  "&rsquo;": "’",
+  "&lsquo;": "‘",
+  "&ldquo;": "“",
+  "&rdquo;": "”",
+};
+
 function plainText(value: string): string {
-  return value.replace(/<[^>]*>/g, "");
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(
+      /&(#[0-9]+|[a-z]+);/gi,
+      (match) => HTML_ENTITIES[match.toLowerCase()] ?? match,
+    )
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function excerpt(value: string): string {
@@ -66,8 +97,65 @@ function formatRate(job: {
   return "Rate on request";
 }
 
-function buildJsonLd(job: NonNullable<Awaited<ReturnType<typeof fetchJob>>>, url: string) {
-  const postedDate = (job.datePosted ?? job.createdAt).toISOString().slice(0, 10);
+type EmploymentType =
+  | "FULL_TIME"
+  | "PART_TIME"
+  | "CONTRACTOR"
+  | "TEMPORARY"
+  | "INTERN";
+
+const EMPLOYMENT_TYPE_RULES: ReadonlyArray<[RegExp, EmploymentType]> = [
+  [/\b(intern|internship)\b/i, "INTERN"],
+  [/\bpart[\s-]?time\b/i, "PART_TIME"],
+  [/\b(temporary|temp)\b/i, "TEMPORARY"],
+  [/\b(contract|contractor|freelance)\b/i, "CONTRACTOR"],
+];
+
+function toEmploymentType(job: {
+  title: string;
+  tags: unknown;
+}): EmploymentType {
+  const haystack = `${job.title} ${toTagList(job.tags).join(" ")}`;
+
+  for (const [pattern, employmentType] of EMPLOYMENT_TYPE_RULES) {
+    if (pattern.test(haystack)) {
+      return employmentType;
+    }
+  }
+
+  return "FULL_TIME";
+}
+
+function toJobLocationType(
+  value: string,
+): "TELECOMMUTE" | "HYBRID" | "ONSITE" {
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized.includes("hybrid")) return "HYBRID";
+  if (normalized.includes("remote") || normalized.includes("telecommute")) {
+    return "TELECOMMUTE";
+  }
+
+  return "ONSITE";
+}
+
+function toCountryCode(region: string | null): string | null {
+  const value = region?.trim().toUpperCase() ?? "";
+  return /^[A-Z]{2}$/.test(value) ? value : null;
+}
+
+function buildJsonLd(
+  job: NonNullable<Awaited<ReturnType<typeof fetchJob>>>,
+  path: string,
+) {
+  const postedAt = job.datePosted ?? job.createdAt;
+  const postedDate = postedAt.toISOString().slice(0, 10);
+  const validThrough = new Date(
+    postedAt.getTime() + 30 * 24 * 60 * 60 * 1000,
+  )
+    .toISOString()
+    .slice(0, 10);
+  const countryCode = toCountryCode(job.region);
   const salary =
     job.salaryMin !== null || job.salaryMax !== null
       ? {
@@ -87,14 +175,24 @@ function buildJsonLd(job: NonNullable<Awaited<ReturnType<typeof fetchJob>>>, url
     title: job.title,
     description: plainText(job.description),
     datePosted: postedDate,
+    validThrough,
+    employmentType: toEmploymentType(job),
     hiringOrganization: {
       "@type": "Organization",
-      name: job.aiLabName,
+      name: job.platform.name || job.aiLabName,
       ...(job.platform.websiteUrl ? { sameAs: job.platform.websiteUrl } : {}),
     },
-    jobLocationType: job.jobLocationType,
+    jobLocationType: toJobLocationType(job.jobLocationType),
+    ...(countryCode
+      ? {
+          jobLocation: {
+            "@type": "Place",
+            address: { "@type": "PostalAddress", addressCountry: countryCode },
+          },
+        }
+      : {}),
     ...(salary ? { baseSalary: salary } : {}),
-    ...(url ? { url } : {}),
+    ...(SITE_URL ? { url: `${SITE_URL}${path}` } : {}),
   };
 }
 
@@ -192,7 +290,9 @@ export default async function OpportunityPage({ params }: Params) {
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
       />
 
       <section className="full-bleed w-full border-b border-slate-800 bg-slate-950 py-12">
