@@ -107,11 +107,11 @@ export function OpportunityCarousel({
 
   return (
     <div
-      className="w-full -mx-6 py-20 md:-mx-12 lg:-mx-20"
+      className="w-full -mx-6 overflow-hidden py-20 pl-6 md:-mx-12 md:pl-12 lg:-mx-20 xl:pl-[max(3rem,calc((100vw_-_1400px)/2_+_3rem))]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="max-w-[1400px] mx-auto w-full px-6 md:px-12 mb-6 flex items-end justify-between gap-4">
+      <div className="mb-6 flex items-end justify-between gap-4 pr-6 md:pr-12 xl:pr-[max(3rem,calc((100vw_-_1400px)/2_+_3rem))]">
         <div className="flex items-center gap-3">
           <h2 className="bg-gradient-to-r from-white to-accent bg-clip-text text-3xl font-bold tracking-tight text-transparent">
             {title}
@@ -141,14 +141,12 @@ export function OpportunityCarousel({
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto w-full px-6 md:px-12">
-        <p className="text-slate-400">
-          Hand-picked roles from the world&apos;s leading AI labs and platforms.
-        </p>
-      </div>
+      <p className="mb-6 pr-6 text-slate-400 md:pr-12 xl:pr-[max(3rem,calc((100vw_-_1400px)/2_+_3rem))]">
+        Hand-picked roles from the world&apos;s leading AI labs and platforms.
+      </p>
 
       {opportunities.length === 0 ? (
-        <div className="mx-auto mt-12 w-full max-w-[1400px] px-6 md:px-12">
+        <div className="pr-6 md:pr-12 xl:pr-[max(3rem,calc((100vw_-_1400px)/2_+_3rem))]">
           <div className="rounded-2xl border border-slate-200 bg-white p-6">
             <h3 className="text-lg font-semibold text-slate-900">
               No open roles right now
@@ -161,10 +159,10 @@ export function OpportunityCarousel({
       ) : (
         <div
           ref={carouselRef}
-          className="hide-scrollbar mt-6 flex w-full max-w-none snap-x snap-mandatory gap-6 overflow-x-auto pb-2 pl-6 pr-6 md:pr-12 md:pl-[max(3rem,calc((100vw_-_1400px)/2_+_3rem))]"
+          className="hide-scrollbar flex w-full gap-6 overflow-x-auto pb-4 pr-6 md:pr-12"
         >
           {opportunities.map((opportunity) => (
-            <div key={opportunity.id} className="w-80 shrink-0 snap-center">
+            <div key={opportunity.id} className="w-80 shrink-0">
               <JobCard
                 title={opportunity.title}
                 labName={opportunity.platform?.name ?? opportunity.aiLabName}
