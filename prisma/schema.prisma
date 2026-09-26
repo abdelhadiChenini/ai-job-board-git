@@ -213,6 +213,15 @@ model SiteSetting {
   @@map("site_settings")
 }
 
+model SiteSettings {
+  id                Int     @id @default(1)
+  isMaintenanceMode Boolean @default(false)
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings_global")
+}
+
 model SeoSetting {
   id              String   @id @default("global")
   siteTitle       String?  @map("site_title")

@@ -54,3 +54,16 @@ export async function saveFaqPage(formData: FormData) {
   revalidatePath("/admin/settings");
   redirect("/admin/settings?saved=faq");
 }
+
+export async function toggleMaintenance(status: boolean) {
+  await requireAdmin();
+
+  await prisma.siteSettings.upsert({
+    where: { id: 1 },
+    update: { isMaintenanceMode: status },
+    create: { id: 1, isMaintenanceMode: status },
+  });
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/", "layout");
+}

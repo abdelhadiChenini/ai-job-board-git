@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
-import { saveFaqPage, saveSiteSettings } from "./actions";
+import { saveFaqPage, saveSiteSettings, toggleMaintenance } from "./actions";
 
 export const metadata: Metadata = {
   title: "Site Settings",
@@ -22,11 +22,15 @@ export default async function AdminSettingsPage({
 }) {
   await requireAdmin();
 
-  const [siteTitleSetting, siteHeaderSetting, faqPage] = await Promise.all([
-    prisma.siteSetting.findUnique({ where: { key: "site_title" } }),
-    prisma.siteSetting.findUnique({ where: { key: "site_header" } }),
-    prisma.page.findUnique({ where: { slug: "faq" } }),
-  ]);
+  const [siteTitleSetting, siteHeaderSetting, faqPage, globalSettings] =
+    await Promise.all([
+      prisma.siteSetting.findUnique({ where: { key: "site_title" } }),
+      prisma.siteSetting.findUnique({ where: { key: "site_header" } }),
+      prisma.page.findUnique({ where: { slug: "faq" } }),
+      prisma.siteSettings.findUnique({ where: { id: 1 } }),
+    ]);
+
+  const isMaintenanceMode = globalSettings?.isMaintenanceMode ?? false;
 
   return (
     <div className="flex flex-col gap-6">
@@ -101,6 +105,52 @@ export default async function AdminSettingsPage({
             className="mt-2 inline-flex w-fit items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:bg-blue-700"
           >
             Save settings
+          </button>
+        </form>
+      </section>
+
+      <section className={cardClass}>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-xl font-bold tracking-tight text-white">
+            Maintenance mode
+          </h2>
+          <p className="text-sm text-slate-400">
+            When enabled, every visitor sees the &ldquo;Under
+            Maintenance&rdquo; screen. Admins keep full access to the site.
+          </p>
+        </div>
+
+        <form
+          action={toggleMaintenance.bind(null, !isMaintenanceMode)}
+          className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-slate-900/40 p-4"
+        >
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-semibold text-white">
+              {isMaintenanceMode ? "Maintenance is on" : "Site is live"}
+            </p>
+            <p className="text-xs text-slate-400">
+              Stored in the{" "}
+              <code className="text-slate-300">SiteSettings</code> record with
+              id <code className="text-slate-300">1</code>.
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            role="switch"
+            aria-checked={isMaintenanceMode}
+            aria-label="Toggle maintenance mode"
+            className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+              isMaintenanceMode
+                ? "border-red-500 bg-red-600"
+                : "border-slate-600 bg-slate-700"
+            }`}
+          >
+            <span
+              className={`inline-block h-6 w-6 rounded-full bg-white transition-transform ${
+                isMaintenanceMode ? "translate-x-7" : "translate-x-1"
+              }`}
+            />
           </button>
         </form>
       </section>
