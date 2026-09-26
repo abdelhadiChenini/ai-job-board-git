@@ -63,7 +63,7 @@ export default async function HomePage({
     where.jobLocationType = location;
   }
 
-  const [trendingOpportunityPool, latestOpportunityPool, platforms] =
+  const [trendingOpportunityPool, latestOpportunities, platforms] =
     await Promise.all([
       prisma.jobOffer.findMany({
         include: {
@@ -78,7 +78,7 @@ export default async function HomePage({
           platform: { select: { name: true, slug: true, logoUrl: true } },
         },
         orderBy: { createdAt: "desc" },
-        take: 30,
+        take: 12,
       }),
       prisma.aIPlatform.findMany({
         select: {
@@ -96,7 +96,6 @@ export default async function HomePage({
   const trendingOpportunities = selectDiverseOpportunities(
     trendingOpportunityPool,
   );
-  const latestOpportunities = selectDiverseOpportunities(latestOpportunityPool);
 
   const session = await getServerSession(authOptions);
 
