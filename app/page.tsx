@@ -110,56 +110,47 @@ export default async function HomePage({
   }
 
   return (
-    <>
-      <div className="-mx-6 md:-mx-12 lg:-mx-20">
-        <div className="max-w-[1400px] mx-auto w-full px-6 md:px-12">
-          <Hero />
-        </div>
-      </div>
+    <div className="max-w-7xl mx-auto w-full px-6">
+      <Hero />
 
-      <div className="-mx-6 mt-8 md:-mx-12 lg:-mx-20">
-        <div className="max-w-[1400px] mx-auto w-full px-6 md:px-12">
-          <div
-            role="note"
-            className="flex items-start gap-3 rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-5 text-yellow-200"
-          >
-            <svg
-              className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <p className="text-sm leading-relaxed">
-              Transparency notice: some listings on this site are affiliate
-              links, and we may earn a commission when you apply through them.
-              This never affects your chances of getting hired or a
-              platform&apos;s rating.
-            </p>
-          </div>
-        </div>
+      <div
+        role="note"
+        className="mt-8 flex items-start gap-3 rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-5 text-yellow-200"
+      >
+        <svg
+          className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fillRule="evenodd"
+            d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <p className="text-sm leading-relaxed">
+          Transparency notice: some listings on this site are affiliate links,
+          and we may earn a commission when you apply through them. This never
+          affects your chances of getting hired or a platform&apos;s rating.
+        </p>
       </div>
-
-      <OpportunityCarousel
-        title="Trending Opportunities"
-        opportunities={trendingOpportunities}
-        savedOpportunityIds={savedOpportunityIds}
-      />
 
       <div className="mt-16">
         <OpportunityCarousel
-          title="Latest Opportunities"
-          opportunities={latestOpportunities}
+          title="Trending Opportunities"
+          opportunities={trendingOpportunities}
           savedOpportunityIds={savedOpportunityIds}
         />
       </div>
 
-      <section className="py-16">
+      <OpportunityCarousel
+        title="Latest Opportunities"
+        opportunities={latestOpportunities}
+        savedOpportunityIds={savedOpportunityIds}
+      />
+
+      <section className="pb-16">
         <header>
           <h2 className="bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
             Explore AI Work Platforms
@@ -214,6 +205,6 @@ export default async function HomePage({
           </div>
         )}
       </section>
-    </>
+    </div>
   );
 }

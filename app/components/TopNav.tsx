@@ -15,7 +15,7 @@ export async function TopNav() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/80 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-[1400px] items-center gap-4 px-6 py-4 md:px-12">
+      <div className="max-w-7xl mx-auto w-full px-6 py-4 flex items-center gap-4">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 font-extrabold tracking-tight"
