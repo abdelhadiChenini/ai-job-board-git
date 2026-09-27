@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import AuthNav from "./AuthNav";
 
 const navItems = [
+  { label: "Home", href: "/" },
   { label: "Opportunities", href: "/opportunities" },
   { label: "AI Platforms", href: "/platforms" },
   { label: "Experts", href: "/experts" },
