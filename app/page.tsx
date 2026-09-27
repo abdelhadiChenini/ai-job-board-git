@@ -1,7 +1,5 @@
 import Hero from "@/app/components/Hero";
 import OpportunityCarousel from "@/components/OpportunityCarousel";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
@@ -97,17 +95,6 @@ export default async function HomePage({
     trendingOpportunityPool,
   );
 
-  const session = await getServerSession(authOptions);
-
-  let savedOpportunityIds: string[] = [];
-  if (session?.user?.id) {
-    const savedRows = await prisma.savedOpportunity.findMany({
-      where: { userId: session.user.id },
-      select: { opportunityId: true },
-    });
-    savedOpportunityIds = savedRows.map((row) => row.opportunityId);
-  }
-
   return (
     <div className="max-w-7xl mx-auto w-full px-6">
       <Hero />
@@ -139,14 +126,12 @@ export default async function HomePage({
         <OpportunityCarousel
           title="Trending Opportunities"
           opportunities={trendingOpportunities}
-          savedOpportunityIds={savedOpportunityIds}
         />
       </div>
 
       <OpportunityCarousel
         title="Latest Opportunities"
         opportunities={latestOpportunities}
-        savedOpportunityIds={savedOpportunityIds}
       />
 
       <section className="pb-16">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import JobCard from "@/app/components/JobCard";
 
 export type OpportunityCarouselItem = {
@@ -58,13 +59,50 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
 export function OpportunityCarousel({
   title,
   opportunities,
-  savedOpportunityIds = [],
+  savedOpportunityIds,
 }: OpportunityCarouselProps) {
+  const { status } = useSession();
   const carouselRef = useRef<HTMLDivElement>(null);
   const pauseTimeoutRef = useRef<number | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const savedIds = new Set(savedOpportunityIds);
+  const [clientSavedIds, setClientSavedIds] = useState<string[]>([]);
+  const hasServerSavedIds = Array.isArray(savedOpportunityIds);
+  const savedIds = new Set(
+    hasServerSavedIds ? savedOpportunityIds : clientSavedIds,
+  );
+
+  useEffect(() => {
+    if (hasServerSavedIds) {
+      return;
+    }
+
+    if (status !== "authenticated") {
+      setClientSavedIds([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetch("/api/saved")
+      .then((response) =>
+        response.ok ? response.json() : { savedOpportunityIds: [] },
+      )
+      .then((data: { savedOpportunityIds?: string[] }) => {
+        if (!cancelled) {
+          setClientSavedIds(data.savedOpportunityIds ?? []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setClientSavedIds([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [status, hasServerSavedIds]);
 
   const scroll = (offset: number) => {
     setIsPaused(true);

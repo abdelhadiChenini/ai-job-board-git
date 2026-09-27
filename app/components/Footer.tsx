@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 function LinkedinIcon({ className }: { className?: string }) {
@@ -51,8 +50,6 @@ const FALLBACKS: Record<string, string> = {
 type Column = { title: string; links: { label: string; href: string }[] };
 
 export async function Footer() {
-  noStore();
-
   const settings = await prisma.siteSetting.findMany({
     where: { key: { in: [...SETTING_KEYS] } },
   });

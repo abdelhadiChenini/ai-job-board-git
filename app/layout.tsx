@@ -7,7 +7,7 @@ import Footer from "@/app/components/Footer";
 import TopNav from "@/app/components/TopNav";
 import Providers from "./Providers";
 import { prisma } from "@/lib/prisma";
-import { getAdminSession } from "@/lib/admin";
+import MaintenanceGate from "@/app/components/MaintenanceGate";
 
 const DEFAULT_TITLE = "AI Job Board";
 const DEFAULT_DESCRIPTION =
@@ -46,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function RootLayout({
   children,
@@ -59,28 +59,6 @@ export default async function RootLayout({
   ]);
 
   const isMaintenanceMode = globalSettings?.isMaintenanceMode ?? false;
-  const isAdmin = isMaintenanceMode ? !!(await getAdminSession()) : false;
-
-  if (isMaintenanceMode && !isAdmin) {
-    return (
-      <html lang="en" dir="ltr">
-        <body
-          style={{ fontFamily: fonts }}
-          className="min-h-screen overflow-x-hidden bg-[#0B0F19] text-slate-200 antialiased"
-        >
-          <div className="flex h-screen items-center justify-center px-6 text-center">
-            <div>
-              <h1 className="mb-4 text-3xl font-bold">Under Maintenance</h1>
-              <p className="text-slate-400">
-                We are currently rolling out a major update. We will be right
-                back.
-              </p>
-            </div>
-          </div>
-        </body>
-      </html>
-    );
-  }
 
   return (
     <html lang="en" dir="ltr">
@@ -93,18 +71,15 @@ export default async function RootLayout({
         style={{ fontFamily: fonts }}
         className="min-h-screen overflow-x-hidden bg-slate-950 text-slate-300 antialiased"
       >
-        {isAdmin && isMaintenanceMode && (
-          <div className="bg-red-600 px-4 py-2 text-center text-sm font-semibold text-white">
-            Maintenance Mode Active
-          </div>
-        )}
         {seo?.bodyInjection && (
           <div dangerouslySetInnerHTML={{ __html: seo.bodyInjection }} />
         )}
         <Providers>
-          <TopNav />
-          <div className="w-full px-6 py-8 md:px-12 lg:px-20">{children}</div>
-          <Footer />
+          <MaintenanceGate isMaintenanceMode={isMaintenanceMode}>
+            <TopNav />
+            <div className="w-full px-6 py-8 md:px-12 lg:px-20">{children}</div>
+            <Footer />
+          </MaintenanceGate>
         </Providers>
         {seo?.footerInjection && (
           <div dangerouslySetInnerHTML={{ __html: seo.footerInjection }} />

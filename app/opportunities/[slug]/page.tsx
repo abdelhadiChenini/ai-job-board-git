@@ -9,6 +9,8 @@ import { ShareJobButton } from "./ShareJobButton";
 import { NewsletterForm } from "./NewsletterForm";
 import { OpportunityActions } from "./OpportunityActions";
 
+export const dynamic = "force-dynamic";
+
 type Params = { params: { slug: string } };
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");

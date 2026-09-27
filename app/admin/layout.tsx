@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/admin";
 import AdminSidebar from "./AdminSidebar";
 import NotificationBell from "@/components/admin/NotificationBell";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Admin",
 };
