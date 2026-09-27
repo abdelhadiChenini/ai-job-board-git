@@ -7,9 +7,9 @@ export const metadata: Metadata = {
 };
 
 const directContacts = [
-  { label: "General inquiries", value: "contact@aijobboard.com" },
-  { label: "Business partnerships", value: "partnerships@aijobboard.com" },
-  { label: "Support", value: "support@aijobboard.com" },
+  { label: "General inquiries", value: "contact@ameelai.com" },
+  { label: "Business partnerships", value: "partnerships@ameelai.com" },
+  { label: "Support", value: "contact@ameelai.com" },
 ];
 
 export default function ContactPage() {

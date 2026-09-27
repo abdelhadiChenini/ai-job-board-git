@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
+import { Link as LinkIcon } from "lucide-react";
 
 const toolbarBtn =
   "rounded-md px-2.5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-40";
@@ -34,14 +35,50 @@ export function RichTextEditor({
     reader.readAsDataURL(file);
   };
 
+  const handleLink = () => {
+    const isLinkActive = editor?.isActive("link");
+
+    // Nothing selected and not already on a link: nothing to do.
+    if (editor?.state.selection.empty && !isLinkActive) return;
+
+    // Clicking while on an existing link removes it.
+    if (isLinkActive) {
+      editor?.chain().focus().extendMarkRange("link").unsetLink().run();
+      return;
+    }
+
+    const url = window.prompt("Enter URL", "https://");
+    if (url === null) return;
+
+    const href = url.trim();
+    if (href === "") {
+      editor?.chain().focus().unsetLink().run();
+      return;
+    }
+
+    // setLink validates the href, so unsafe protocols (javascript:, data:)
+    // are rejected by the extension itself.
+    editor?.chain().focus().setLink({ href }).run();
+  };
+
   const editor = useEditor({
-    extensions: [StarterKit, Image],
+    extensions: [
+      // StarterKit v3 bundles the Link extension; configure it there instead
+      // of registering a second one, which would duplicate the `link` mark.
+      StarterKit.configure({
+        link: {
+          openOnClick: false,
+          HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
+        },
+      }),
+      Image,
+    ],
     content: value || "",
     immediatelyRender: false,
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert prose-sm max-w-none min-h-[200px] w-full p-4 text-slate-200 focus:outline-none cursor-text",
+          "prose prose-invert prose-sm max-w-none min-h-[200px] w-full p-4 text-slate-200 focus:outline-none cursor-text prose-a:text-blue-400",
       },
     },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -189,6 +226,16 @@ export function RichTextEditor({
           className={toolbarBtn}
         >
           🖼
+        </button>
+        <button
+          type="button"
+          aria-label="Link"
+          title="Link"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={handleLink}
+          className={`${editor.isActive("link") ? toolbarBtnActive : toolbarBtn}`}
+        >
+          <LinkIcon className="h-4 w-4" aria-hidden="true" />
         </button>
 
         <span className="mx-1 h-5 w-px bg-slate-700" aria-hidden="true" />

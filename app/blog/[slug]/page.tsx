@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import DOMPurify from "isomorphic-dompurify";
 import { prisma } from "@/lib/prisma";
 
 type Params = { params: { slug: string } };
@@ -94,10 +95,14 @@ export default async function BlogPostPage({ params }: Params) {
         )}
       </section>
 
-      <section className="rounded-card bg-white p-6 shadow-2xl sm:p-8">
+      <section className="rounded-card border border-white/10 bg-slate-800 p-6 sm:p-8">
         <div
-          className="prose prose-slate prose-sm max-w-none"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          className="prose prose-invert prose-sm max-w-none text-slate-300 prose-headings:text-white prose-a:text-blue-400"
+          dangerouslySetInnerHTML={{
+            // ADD_ATTR keeps the editor's target="_blank"; the paired
+            // rel="noopener noreferrer" is already preserved by default.
+            __html: DOMPurify.sanitize(post.content, { ADD_ATTR: ["target"] }),
+          }}
         />
       </section>
     </article>
