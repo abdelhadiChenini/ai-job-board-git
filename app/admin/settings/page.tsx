@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { saveFaqPage, saveSiteSettings, toggleMaintenance } from "./actions";
+import FaqItemsEditor from "./FaqItemsEditor";
+import { parseFaqContent } from "@/lib/faq";
 
 export const metadata: Metadata = {
   title: "Site Settings",
@@ -160,8 +162,9 @@ export default async function AdminSettingsPage({
           FAQ page
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          Edit the raw text content of the{" "}
-          <code className="text-slate-300">Page</code> record with slug{" "}
+          Add each question and answer as a separate pair. They are stored as
+          JSON in the <code className="text-slate-300">content</code> field of
+          the <code className="text-slate-300">Page</code> record with slug{" "}
           <code className="text-slate-300">faq</code>.
         </p>
 
@@ -179,16 +182,7 @@ export default async function AdminSettingsPage({
             />
           </label>
 
-          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
-            Raw page content
-            <textarea
-              name="faqContent"
-              rows={14}
-              defaultValue={faqPage?.content ?? ""}
-              placeholder={"What is this platform?\nHow do I apply for roles?"}
-              className={`${inputClass} font-mono`}
-            />
-          </label>
+          <FaqItemsEditor initialItems={parseFaqContent(faqPage?.content)} />
 
           <button
             type="submit"

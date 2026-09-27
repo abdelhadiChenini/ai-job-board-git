@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin";
+import { parseFaqItemsField, serializeFaqItems } from "@/lib/faq";
 
 const SITE_TITLE_KEY = "site_title";
 const SITE_HEADER_KEY = "site_header";
@@ -39,9 +40,15 @@ export async function saveFaqPage(formData: FormData) {
   await requireAdmin();
 
   const title = String(formData.get("faqTitle") ?? "").trim();
-  const content = String(formData.get("faqContent") ?? "");
+  const items = parseFaqItemsField(String(formData.get("faqItems") ?? ""));
 
-  if (!title || title.length > 120 || content.length > 60000) {
+  if (!title || title.length > 120 || items === null) {
+    redirect("/admin/settings?error=faq");
+  }
+
+  const content = serializeFaqItems(items);
+
+  if (content.length > 60000) {
     redirect("/admin/settings?error=faq");
   }
 
@@ -52,6 +59,7 @@ export async function saveFaqPage(formData: FormData) {
   });
 
   revalidatePath("/admin/settings");
+  revalidatePath("/faq");
   redirect("/admin/settings?saved=faq");
 }
 
