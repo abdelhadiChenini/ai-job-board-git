@@ -33,7 +33,7 @@ export default function FaqAccordion({ items }: FaqAccordionProps) {
               />
             </button>
             {isOpen && (
-              <div className="p-5 pt-0 text-slate-400 leading-relaxed">
+              <div className="whitespace-pre-wrap p-5 pt-0 text-slate-400 leading-relaxed">
                 {item.answer}
               </div>
             )}

@@ -34,7 +34,7 @@ export default async function CmsPage({ params }: Params) {
         {pageData.title}
       </h1>
       <div
-        className="prose prose-invert prose-lg max-w-none leading-relaxed text-slate-300"
+        className="prose prose-invert prose-lg max-w-none whitespace-pre-wrap leading-relaxed text-slate-300"
         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(pageData.content) }}
       />
     </div>
