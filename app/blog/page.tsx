@@ -61,6 +61,8 @@ export default async function BlogIndexPage() {
                 <img
                   src={post.featuredImage}
                   alt=""
+                  loading="lazy"
+                  decoding="async"
                   className="mb-4 h-44 w-full rounded-xl object-cover"
                 />
               )}

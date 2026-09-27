@@ -185,6 +185,8 @@ export default async function HomePage({
                     <img
                       src={platform.logoUrl}
                       alt={`${platform.name} logo`}
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover rounded-xl"
                     />
                   ) : (

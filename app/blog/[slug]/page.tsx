@@ -75,6 +75,9 @@ export default async function BlogPostPage({ params }: Params) {
         <img
           src={post.featuredImage}
           alt=""
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
           className="w-full rounded-card border border-white/10 object-cover"
         />
       )}
