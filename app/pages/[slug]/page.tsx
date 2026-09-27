@@ -45,7 +45,11 @@ export default async function PublicPage({ params }: Params) {
 
       <div
         className="prose prose-invert prose-lg max-w-none whitespace-pre-wrap leading-relaxed text-slate-300"
-        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content) }}
+        dangerouslySetInnerHTML={{
+          __html: DOMPurify.sanitize(page.content, {
+            ADD_ATTR: ["target", "rel"],
+          }),
+        }}
       />
     </article>
   );

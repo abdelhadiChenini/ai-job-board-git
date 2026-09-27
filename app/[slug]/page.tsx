@@ -35,7 +35,11 @@ export default async function CmsPage({ params }: Params) {
       </h1>
       <div
         className="prose prose-invert prose-lg max-w-none whitespace-pre-wrap leading-relaxed text-slate-300"
-        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(pageData.content) }}
+        dangerouslySetInnerHTML={{
+          __html: DOMPurify.sanitize(pageData.content, {
+            ADD_ATTR: ["target", "rel"],
+          }),
+        }}
       />
     </div>
   );

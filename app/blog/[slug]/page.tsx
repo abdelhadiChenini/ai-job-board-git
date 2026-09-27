@@ -99,9 +99,11 @@ export default async function BlogPostPage({ params }: Params) {
         <div
           className="prose prose-invert prose-sm max-w-none text-slate-300 prose-headings:text-white prose-a:text-blue-400"
           dangerouslySetInnerHTML={{
-            // ADD_ATTR keeps the editor's target="_blank"; the paired
-            // rel="noopener noreferrer" is already preserved by default.
-            __html: DOMPurify.sanitize(post.content, { ADD_ATTR: ["target"] }),
+            // ADD_ATTR preserves the editor's target="_blank" and the paired
+            // rel="noopener noreferrer" from being dropped.
+            __html: DOMPurify.sanitize(post.content, {
+              ADD_ATTR: ["target", "rel"],
+            }),
           }}
         />
       </section>
