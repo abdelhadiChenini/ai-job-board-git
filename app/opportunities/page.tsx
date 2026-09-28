@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import JobCard from "@/app/components/JobCard";
+import Pagination from "@/components/Pagination";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -17,7 +18,17 @@ type SearchParams = {
   category?: string;
   region?: string;
   platform?: string;
+  page?: string;
 };
+
+const PAGE_SIZE = 20;
+
+/** Defensive parsing: rejects NaN, 0, negatives and other junk. */
+function parsePage(raw: string | undefined): number {
+  const parsed = Number.parseInt(raw ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return parsed;
+}
 
 function toTagList(tags: unknown): string[] {
   if (!Array.isArray(tags)) {
@@ -110,6 +121,7 @@ export default async function OpportunitiesPage({
   const category = searchParams.category?.trim();
   const region = searchParams.region?.trim();
   const platform = searchParams.platform?.trim();
+  const requestedPage = parsePage(searchParams.page);
 
   const where: Prisma.JobOfferWhereInput = {};
   if (q) {
@@ -123,30 +135,57 @@ export default async function OpportunitiesPage({
   if (region) where.region = region;
   if (platform) where.platform = { name: platform };
 
-  const [jobs, categories, regions, platforms] = await Promise.all([
-    prisma.jobOffer.findMany({
+  const [initialJobs, total, categories, regions, platforms] =
+    await Promise.all([
+      prisma.jobOffer.findMany({
+        include: {
+          platform: { select: { name: true, slug: true, logoUrl: true } },
+        },
+        where,
+        orderBy: { createdAt: "desc" },
+        take: PAGE_SIZE,
+        skip: (requestedPage - 1) * PAGE_SIZE,
+      }),
+      prisma.jobOffer.count({ where }),
+      prisma.jobOffer.findMany({
+        where: { category: { not: null } },
+        select: { category: true },
+        distinct: ["category"],
+      }),
+      prisma.jobOffer.findMany({
+        where: { region: { not: null } },
+        select: { region: true },
+        distinct: ["region"],
+      }),
+      prisma.aIPlatform.findMany({
+        select: { name: true },
+        orderBy: { name: "asc" },
+      }),
+    ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // An out-of-range ?page= would otherwise render an empty grid behind the
+  // "no roles match your filters" copy, so clamp to the last real page.
+  const page = Math.min(requestedPage, totalPages);
+  let jobs = initialJobs;
+  if (page !== requestedPage) {
+    jobs = await prisma.jobOffer.findMany({
       include: {
         platform: { select: { name: true, slug: true, logoUrl: true } },
       },
       where,
       orderBy: { createdAt: "desc" },
-      take: 60,
-    }),
-    prisma.jobOffer.findMany({
-      where: { category: { not: null } },
-      select: { category: true },
-      distinct: ["category"],
-    }),
-    prisma.jobOffer.findMany({
-      where: { region: { not: null } },
-      select: { region: true },
-      distinct: ["region"],
-    }),
-    prisma.aIPlatform.findMany({
-      select: { name: true },
-      orderBy: { name: "asc" },
-    }),
-  ]);
+      take: PAGE_SIZE,
+      skip: (page - 1) * PAGE_SIZE,
+    });
+  }
+
+  const firstItem = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const lastItem = Math.min(page * PAGE_SIZE, total);
+  const rangeLabel = `Showing ${firstItem}-${lastItem} of ${total} ${
+    total === 1 ? "role" : "roles"
+  }`;
 
   const categoryOptions = categories
     .map((row) => row.category)
@@ -279,7 +318,7 @@ export default async function OpportunitiesPage({
               Opportunities
             </h2>
             <span className="rounded-full bg-white/10 px-3 py-0.5 text-sm font-semibold text-slate-300">
-              {jobs.length} role{jobs.length === 1 ? "" : "s"}
+              {rangeLabel}
             </span>
           </header>
           <p className="mt-1 text-sm text-slate-400">
@@ -326,6 +365,12 @@ export default async function OpportunitiesPage({
               ))}
             </div>
           )}
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            filters={searchParams}
+          />
         </div>
       </div>
     </>
