@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import type { FormEvent } from "react";
 
 const starIcon = (
   <svg
@@ -48,61 +48,37 @@ const chevron = (
   </svg>
 );
 
-type SearchBarProps = {
+export type SearchBarProps = {
   companies: string[];
   categories: string[];
   locations: string[];
 };
 
-export default function SearchBar(props: SearchBarProps) {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex h-[228px] w-full max-w-5xl animate-pulse flex-col gap-5">
-          <div className="rounded-2xl bg-white/10" />
-          <div className="flex gap-2">
-            <div className="h-9 w-32 rounded-full bg-white/10" />
-            <div className="h-9 w-24 rounded-full bg-white/10" />
-            <div className="h-9 w-24 rounded-full bg-white/10" />
-          </div>
-        </div>
-      }
-    >
-      <SearchBarInner {...props} />
-    </Suspense>
-  );
-}
-
-function SearchBarInner({
+export function SearchBar({
   companies,
   categories,
   locations,
 }: SearchBarProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const [query, setQuery] = useState(searchParams.get("q") ?? "");
-  const [category, setCategory] = useState(
-    searchParams.get("category") ?? "",
-  );
-  const [company, setCompany] = useState(searchParams.get("company") ?? "");
-  const [location, setLocation] = useState(
-    searchParams.get("location") ?? "",
-  );
   const [activePill, setActivePill] = useState("All Opportunities");
+  const [q, setQ] = useState("");
+  const [category, setCategory] = useState("");
+  const [company, setCompany] = useState("");
+  const [location, setLocation] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
+    const query = q.trim();
+    if (query) params.set("q", query);
     if (category) params.set("category", category);
-    if (company) params.set("company", company);
-    if (location) params.set("location", location);
+    if (company) params.set("platform", company);
+    if (location) params.set("region", location);
 
-    const queryString = params.toString();
-    router.push(queryString ? `?${queryString}` : "?");
-  };
+    const search = params.toString();
+    router.push(search ? `/opportunities?${search}` : "/opportunities");
+  }
 
   return (
     <div className="flex w-full max-w-5xl flex-col gap-5">
@@ -112,18 +88,15 @@ function SearchBarInner({
         onSubmit={handleSubmit}
         className="flex flex-col items-stretch gap-2 rounded-2xl bg-white p-2.5 shadow-xl shadow-black/30 lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:gap-0 lg:p-2"
       >
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-          <input
-            type="text"
-            name="q"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search jobs, skills or keywords..."
-            aria-label="Search jobs, skills or keywords"
-            className="w-full rounded-xl bg-transparent py-3.5 pl-12 pr-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none lg:h-full"
-          />
-        </div>
+        <input
+          type="text"
+          name="q"
+          value={q}
+          onChange={(event) => setQ(event.target.value)}
+          placeholder="Search jobs, skills or keywords..."
+          aria-label="Search jobs, skills or keywords"
+          className="w-full rounded-xl bg-transparent px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none lg:h-full"
+        />
 
         <div className="relative lg:border-l lg:border-slate-200">
           <select
@@ -134,9 +107,9 @@ function SearchBarInner({
             className="h-full w-full appearance-none bg-transparent px-4 py-3.5 pr-10 text-sm text-slate-600 focus:outline-none"
           >
             <option value="">All categories</option>
-            {categories.map((categoryOption) => (
-              <option key={categoryOption} value={categoryOption}>
-                {categoryOption}
+            {categories.map((option) => (
+              <option key={option} value={option}>
+                {option}
               </option>
             ))}
           </select>
@@ -152,9 +125,9 @@ function SearchBarInner({
             className="h-full w-full appearance-none bg-transparent px-4 py-3.5 pr-10 text-sm text-slate-600 focus:outline-none"
           >
             <option value="">All companies</option>
-            {companies.map((companyOption) => (
-              <option key={companyOption} value={companyOption}>
-                {companyOption}
+            {companies.map((option) => (
+              <option key={option} value={option}>
+                {option}
               </option>
             ))}
           </select>
@@ -170,9 +143,9 @@ function SearchBarInner({
             className="h-full w-full appearance-none bg-transparent px-4 py-3.5 pr-10 text-sm text-slate-600 focus:outline-none"
           >
             <option value="">All locations</option>
-            {locations.map((locationOption) => (
-              <option key={locationOption} value={locationOption}>
-                {locationOption}
+            {locations.map((option) => (
+              <option key={option} value={option}>
+                {option}
               </option>
             ))}
           </select>
@@ -206,3 +179,5 @@ function SearchBarInner({
     </div>
   );
 }
+
+export default SearchBar;

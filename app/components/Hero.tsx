@@ -26,25 +26,26 @@ export async function Hero() {
       orderBy: { name: "asc" },
     }),
     prisma.jobOffer.findMany({
-      select: { tags: true, jobLocationType: true },
+      select: { category: true, region: true },
     }),
   ]);
 
   const companies = platforms.map((platform) => platform.name).sort();
 
-  const categorySet = new Set<string>();
-  for (const job of jobs) {
-    if (!Array.isArray(job.tags)) continue;
-    for (const tag of job.tags) {
-      if (typeof tag === "string" && tag.trim()) {
-        categorySet.add(tag);
-      }
-    }
-  }
-  const categories = Array.from(categorySet).sort();
+  const categories = Array.from(
+    new Set(
+      jobs
+        .map((job) => job.category)
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ).sort();
 
   const locations = Array.from(
-    new Set(jobs.map((job) => job.jobLocationType).filter(Boolean)),
+    new Set(
+      jobs
+        .map((job) => job.region)
+        .filter((value): value is string => Boolean(value)),
+    ),
   ).sort();
 
   return (
