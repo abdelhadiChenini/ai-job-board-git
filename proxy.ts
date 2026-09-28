@@ -5,7 +5,7 @@ const sessionCookieName = isProduction
   ? "__Secure-next-auth.session-token"
   : "next-auth.session-token";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const sessionToken = req.cookies.get(sessionCookieName)?.value;
 
   if (!sessionToken) {
