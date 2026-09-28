@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 import { prisma } from "@/lib/prisma";
+import SafeImage from "@/components/SafeImage";
 
 type Params = { params: { slug: string } };
 
@@ -72,12 +73,13 @@ export default async function BlogPostPage({ params }: Params) {
       />
 
       {post.featuredImage && (
-        <img
+        <SafeImage
           src={post.featuredImage}
           alt=""
-          loading="eager"
-          fetchPriority="high"
-          decoding="async"
+          width={1200}
+          height={630}
+          sizes="(min-width: 1280px) 1152px, 100vw"
+          priority
           className="w-full rounded-card border border-white/10 object-cover"
         />
       )}

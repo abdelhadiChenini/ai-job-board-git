@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import SafeImage from "@/components/SafeImage";
 
 export const metadata: Metadata = {
   title: "Blog & Resources",
@@ -58,11 +59,12 @@ export default async function BlogIndexPage() {
             >
               {post.featuredImage && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <SafeImage
                   src={post.featuredImage}
                   alt=""
-                  loading="lazy"
-                  decoding="async"
+                  width={640}
+                  height={360}
+                  sizes="(min-width: 768px) 33vw, 100vw"
                   className="mb-4 h-44 w-full rounded-xl object-cover"
                 />
               )}

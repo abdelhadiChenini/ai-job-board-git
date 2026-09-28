@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calculateCompleteness } from "@/lib/completeness";
 import DashboardSidebar from "./DashboardSidebar";
+import SafeImage from "@/components/SafeImage";
 import ProfileAvailability from "./ProfileAvailability";
 import RecommendedForYou from "./RecommendedForYou";
 import Activity from "./Activity";
@@ -142,9 +143,11 @@ export default async function DashboardPage() {
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             {photo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <SafeImage
                 src={photo}
                 alt={fullName}
+                width={64}
+                height={64}
                 className="h-16 w-16 rounded-full object-cover ring-2 ring-slate-700"
               />
             ) : (

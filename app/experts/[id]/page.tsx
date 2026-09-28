@@ -6,6 +6,7 @@ import { Globe } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import SafeImage from "@/components/SafeImage";
 
 type Params = { params: { id: string } };
 
@@ -151,9 +152,11 @@ export default async function ExpertProfilePage({ params }: Params) {
         <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center">
           {profile.profilePicture ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <SafeImage
               src={profile.profilePicture}
               alt={profile.fullName}
+              width={96}
+              height={96}
               className="h-24 w-24 rounded-full object-cover ring-2 ring-accent/40"
             />
           ) : (

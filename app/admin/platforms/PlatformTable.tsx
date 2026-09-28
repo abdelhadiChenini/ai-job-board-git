@@ -3,6 +3,8 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Modal from "../Modal";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
+import { uploadImage } from "@/lib/uploadImage";
+import SafeImage from "@/components/SafeImage";
 
 type ApiPlatform = {
   id: string;
@@ -75,20 +77,20 @@ export function PlatformTable() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (file: File | null) => {
+  const handleImageUpload = async (file: File | null) => {
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm((prev) => ({
-        ...prev,
-        logoUrl: typeof reader.result === "string" ? reader.result : "",
-      }));
-    };
-    reader.onerror = () => {
-      setForm((prev) => ({ ...prev, logoUrl: "" }));
-    };
-    reader.readAsDataURL(file);
+    setFormError(null);
+    try {
+      const uploaded = await uploadImage(file, "platform-logos");
+      setForm((prev) => ({ ...prev, logoUrl: uploaded.url }));
+    } catch (uploadError) {
+      setFormError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Could not upload the image.",
+      );
+    }
   };
 
   const openCreate = () => {
@@ -331,9 +333,11 @@ export function PlatformTable() {
                 Paste an image URL directly, or upload below.
               </span>
               {form.logoUrl && (
-                <img
+                <SafeImage
                   src={form.logoUrl}
                   alt="Logo preview"
+                  width={128}
+                  height={64}
                   className="h-16 w-fit rounded-xl border border-slate-700 bg-slate-900/60 object-contain p-1.5"
                 />
               )}

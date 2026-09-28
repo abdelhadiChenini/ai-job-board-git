@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import SafeImage from "@/components/SafeImage";
 
 type ExpertCardProps = {
   name: string;
@@ -60,9 +61,11 @@ export function ExpertCard({
     <article className="flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
       {typeof imageUrl === "string" ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <SafeImage
           src={imageUrl}
           alt={name}
+          width={64}
+          height={64}
           className="h-16 w-16 rounded-full object-cover ring-2 ring-blue-500/40"
         />
       ) : (

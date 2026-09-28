@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { removeSavedJob } from "./actions";
+import SafeImage from "@/components/SafeImage";
 
 type ActivityJob = {
   id: string;
@@ -72,9 +73,11 @@ export function Activity({
       >
         {job.platform.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <SafeImage
             src={job.platform.logoUrl}
             alt={`${job.platform.name} logo`}
+            width={32}
+            height={32}
             className="h-8 w-8 shrink-0 rounded-lg border border-white/10 bg-slate-950 object-contain p-0.5"
           />
         ) : (

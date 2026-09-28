@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SaveJobButton } from "./SaveJobButton";
+import SafeImage from "@/components/SafeImage";
 
 type JobCardProps = {
   title: string;
@@ -50,9 +51,11 @@ export function JobCard({
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-800 bg-slate-950">
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <SafeImage
                 src={logoUrl}
                 alt={`${labName} logo`}
+                width={44}
+                height={44}
                 className="h-full w-full object-cover"
               />
             ) : (

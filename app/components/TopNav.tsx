@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import AuthNav from "./AuthNav";
+import SafeImage from "@/components/SafeImage";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -24,9 +25,11 @@ export async function TopNav() {
         >
           {seo?.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <SafeImage
               src={seo.logoUrl}
               alt="Site Logo"
+              width={32}
+              height={32}
               className="h-8 w-auto object-contain"
             />
           ) : (

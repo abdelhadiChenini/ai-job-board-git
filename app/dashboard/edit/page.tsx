@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import DashboardSidebar from "../DashboardSidebar";
+import { uploadImage } from "@/lib/uploadImage";
+import SafeImage from "@/components/SafeImage";
 
 type ProfileFormData = {
   fullName: string;
@@ -77,15 +79,6 @@ function parseSkills(value: string): string[] {
     .split(/[,]+/)
     .map((skill) => skill.trim())
     .filter(Boolean);
-}
-
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("Could not read the selected file."));
-    reader.readAsDataURL(file);
-  });
 }
 
 const yearsOptions = [
@@ -195,13 +188,17 @@ export default function EditProfilePage() {
       return;
     }
 
+    setError(null);
     try {
-      const dataUrl = await fileToDataUrl(file);
-      setPhoto(dataUrl);
-      setError(null);
+      const uploaded = await uploadImage(file, "profile-pictures");
+      setPhoto(uploaded.url);
       setSaved(false);
-    } catch {
-      setError("Could not read the selected file.");
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Could not upload the selected file.",
+      );
     }
   };
 
@@ -313,9 +310,11 @@ export default function EditProfilePage() {
                 <div className="flex items-center gap-4">
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <SafeImage
                       src={photo}
                       alt="Profile preview"
+                      width={64}
+                      height={64}
                       className="h-16 w-16 rounded-full border border-slate-200 object-cover"
                     />
                   ) : (

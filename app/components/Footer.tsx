@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import SafeImage from "@/components/SafeImage";
 
 function LinkedinIcon({ className }: { className?: string }) {
   return (
@@ -145,9 +146,11 @@ export async function Footer() {
             >
               {seoSettings?.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <SafeImage
                   src={seoSettings.logoUrl}
                   alt="Site Logo"
+                  width={32}
+                  height={32}
                   className="h-8 w-auto object-contain"
                 />
               ) : (

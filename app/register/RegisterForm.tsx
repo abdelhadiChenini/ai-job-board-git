@@ -3,6 +3,8 @@
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { uploadImage } from "@/lib/uploadImage";
+import SafeImage from "@/components/SafeImage";
 
 const inputClass =
   "w-full rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all";
@@ -22,14 +24,7 @@ function parseSkills(value: string): string[] {
     .filter(Boolean);
 }
 
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("Could not read the selected file."));
-    reader.readAsDataURL(file);
-  });
-}
+
 
 export function RegisterForm() {
   const router = useRouter();
@@ -63,12 +58,16 @@ export function RegisterForm() {
       return;
     }
 
+    setError(null);
     try {
-      const dataUrl = await fileToDataUrl(file);
-      setPhoto(dataUrl);
-      setError(null);
-    } catch {
-      setError("Could not read the selected file.");
+      const uploaded = await uploadImage(file, "profile-pictures");
+      setPhoto(uploaded.url);
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Could not upload the selected file.",
+      );
     }
   };
 
@@ -235,9 +234,11 @@ export function RegisterForm() {
           <div className="flex items-center gap-4">
             {photo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <SafeImage
                 src={photo}
                 alt="Profile preview"
+                width={64}
+                height={64}
                 className="h-16 w-16 rounded-full border border-slate-700 object-cover"
               />
             ) : (

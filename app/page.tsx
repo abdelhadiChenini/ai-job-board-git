@@ -1,7 +1,10 @@
+import { Suspense } from "react";
 import Hero from "@/app/components/Hero";
+import TrendingOpportunities from "@/app/components/TrendingOpportunities";
 import OpportunityCarousel from "@/components/OpportunityCarousel";
 import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
+import { fetchTrendingOpportunities } from "@/lib/trendingOpportunities";
+import SafeImage from "@/components/SafeImage";
 
 function platformInitials(name: string): string {
   return name
@@ -12,65 +15,37 @@ function platformInitials(name: string): string {
     .join("");
 }
 
-function selectDiverseOpportunities<T extends { platformId: string }>(
-  opportunities: T[],
-): T[] {
-  const usedPlatformIds = new Set<string>();
-  return opportunities
-    .filter((opportunity) => {
-      if (usedPlatformIds.has(opportunity.platformId)) {
-        return false;
-      }
-      usedPlatformIds.add(opportunity.platformId);
-      return true;
-    })
-    .slice(0, 12);
+function TrendingOpportunitiesSkeleton() {
+  return (
+    <div
+      className="mt-16 flex w-full flex-col"
+      role="status"
+      aria-label="Loading trending opportunities"
+    >
+      <div className="mb-6 flex items-end justify-between">
+        <div className="h-8 w-64 animate-pulse rounded-lg bg-white/10" />
+        <div className="flex items-center gap-2">
+          <div className="h-9 w-9 animate-pulse rounded-full bg-slate-800" />
+          <div className="h-9 w-9 animate-pulse rounded-full bg-slate-800" />
+        </div>
+      </div>
+      <div className="mb-6 h-4 w-80 animate-pulse rounded bg-white/10" />
+      <div className="flex gap-6 overflow-hidden pb-4">
+        {[0, 1, 2, 3].map((index) => (
+          <div
+            key={index}
+            className="h-56 w-80 shrink-0 animate-pulse rounded-2xl border border-white/10 bg-slate-900/50"
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
-type SearchParams = {
-  q?: string;
-  category?: string;
-  company?: string;
-  location?: string;
-};
-
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const q = searchParams.q?.trim();
-  const category = searchParams.category?.trim();
-  const company = searchParams.company?.trim();
-  const location = searchParams.location?.trim();
-
-  const where: Prisma.JobOfferWhereInput = {};
-  if (q) {
-    where.OR = [
-      { title: { contains: q } },
-      { description: { contains: q } },
-    ];
-  }
-  if (company) {
-    where.platform = { name: company };
-  }
-  if (category) {
-    where.tags = { array_contains: category };
-  }
-  if (location) {
-    where.jobLocationType = location;
-  }
-
-  const [trendingOpportunityPool, latestOpportunities, platforms] =
+export default async function HomePage() {
+  const [trendingOpportunities, latestOpportunities, platforms] =
     await Promise.all([
-      prisma.jobOffer.findMany({
-        include: {
-          platform: { select: { name: true, slug: true, logoUrl: true } },
-        },
-        where: { ...where, badge: "Trending" },
-        orderBy: { createdAt: "desc" },
-        take: 30,
-      }),
+      fetchTrendingOpportunities({}),
       prisma.jobOffer.findMany({
         include: {
           platform: { select: { name: true, slug: true, logoUrl: true } },
@@ -90,10 +65,6 @@ export default async function HomePage({
         take: 8,
       }),
     ]);
-
-  const trendingOpportunities = selectDiverseOpportunities(
-    trendingOpportunityPool,
-  );
 
   return (
     <div className="max-w-7xl mx-auto w-full px-6">
@@ -122,12 +93,12 @@ export default async function HomePage({
         </p>
       </div>
 
-      <div className="mt-16">
-        <OpportunityCarousel
+      <Suspense fallback={<TrendingOpportunitiesSkeleton />}>
+        <TrendingOpportunities
           title="Trending Opportunities"
-          opportunities={trendingOpportunities}
+          initialOpportunities={trendingOpportunities}
         />
-      </div>
+      </Suspense>
 
       <OpportunityCarousel
         title="Latest Opportunities"
@@ -167,11 +138,11 @@ export default async function HomePage({
                 <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-slate-950 p-2">
                   {platform.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <SafeImage
                       src={platform.logoUrl}
                       alt={`${platform.name} logo`}
-                      loading="lazy"
-                      decoding="async"
+                      width={44}
+                      height={44}
                       className="h-full w-full object-cover rounded-xl"
                     />
                   ) : (

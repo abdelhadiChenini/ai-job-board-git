@@ -5,6 +5,8 @@ import Modal from "../Modal";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 import { RichTextEditor } from "../pages/RichTextEditor";
 import AIAssistantButton from "@/components/admin/AIAssistantButton";
+import { uploadImage } from "@/lib/uploadImage";
+import SafeImage from "@/components/SafeImage";
 
 type ApiPost = {
   id: string;
@@ -76,6 +78,7 @@ export function BlogTable() {
   const [form, setForm] = useState<FormState>(() => toForm({ authorId: "" }));
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -125,20 +128,23 @@ export function BlogTable() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (file: File | null) => {
+  const handleImageUpload = async (file: File | null) => {
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm((prev) => ({
-        ...prev,
-        featuredImage: typeof reader.result === "string" ? reader.result : "",
-      }));
-    };
-    reader.onerror = () => {
-      setForm((prev) => ({ ...prev, featuredImage: "" }));
-    };
-    reader.readAsDataURL(file);
+    setUploadingImage(true);
+    setFormError(null);
+    try {
+      const uploaded = await uploadImage(file, "blog-featured");
+      setForm((prev) => ({ ...prev, featuredImage: uploaded.url }));
+    } catch (uploadError) {
+      setFormError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Could not upload the image.",
+      );
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const openCreate = () => {
@@ -425,9 +431,11 @@ export function BlogTable() {
           <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
             Featured Image
             {form.featuredImage && (
-              <img
+              <SafeImage
                 src={form.featuredImage}
                 alt="Featured image preview"
+                width={640}
+                height={288}
                 className="h-32 w-full rounded-xl border border-slate-700 bg-slate-900/60 object-cover p-1.5"
               />
             )}

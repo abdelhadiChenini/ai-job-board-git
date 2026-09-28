@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import SafeImage from "@/components/SafeImage";
 
 function toTagList(tags: unknown): string[] {
   if (!Array.isArray(tags)) {
@@ -108,9 +109,11 @@ export async function RecommendedForYou({ skills }: { skills: string[] }) {
               <div className="flex items-center gap-3">
                 {job.platform.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <SafeImage
                     src={job.platform.logoUrl}
                     alt={`${job.platform.name} logo`}
+                    width={36}
+                    height={36}
                     className="h-9 w-9 rounded-lg border border-white/10 object-contain bg-slate-950 p-0.5"
                   />
                 ) : (

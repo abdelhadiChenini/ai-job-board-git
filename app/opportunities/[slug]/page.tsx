@@ -8,6 +8,7 @@ import JobCard from "@/app/components/JobCard";
 import { ShareJobButton } from "./ShareJobButton";
 import { NewsletterForm } from "./NewsletterForm";
 import { OpportunityActions } from "./OpportunityActions";
+import SafeImage from "@/components/SafeImage";
 
 export const dynamic = "force-dynamic";
 
@@ -310,9 +311,11 @@ export default async function OpportunityPage({ params }: Params) {
             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-slate-900 p-2">
               {job.platform.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <SafeImage
                   src={job.platform.logoUrl}
                   alt={job.platform.name}
+                  width={44}
+                  height={44}
                   className="h-full w-full object-contain"
                 />
               ) : (

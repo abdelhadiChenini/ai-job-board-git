@@ -5,6 +5,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import { Link as LinkIcon } from "lucide-react";
+import { uploadImage } from "@/lib/uploadImage";
 
 const toolbarBtn =
   "rounded-md px-2.5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-40";
@@ -21,18 +22,15 @@ export function RichTextEditor({
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = (file: File | null) => {
+  const handleImageUpload = async (file: File | null) => {
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const src = typeof reader.result === "string" ? reader.result : "";
-      if (src) editor?.chain().focus().setImage({ src }).run();
-    };
-    reader.onerror = () => {
+    try {
+      const uploaded = await uploadImage(file, "content-images");
+      editor?.chain().focus().setImage({ src: uploaded.url }).run();
+    } catch {
       editor?.chain().focus().run();
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleLink = () => {

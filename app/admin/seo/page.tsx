@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { uploadImage } from "@/lib/uploadImage";
+import SafeImage from "@/components/SafeImage";
 
 type SeoFormData = {
   siteTitle: string;
@@ -59,17 +61,20 @@ export default function AdminSeoPage() {
   const update = (key: keyof SeoFormData, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleImageUpload = (file: File | null) => {
+  const handleImageUpload = async (file: File | null) => {
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      update("logoUrl", typeof reader.result === "string" ? reader.result : "");
-    };
-    reader.onerror = () => {
-      update("logoUrl", "");
-    };
-    reader.readAsDataURL(file);
+    setError(null);
+    try {
+      const uploaded = await uploadImage(file, "site-assets");
+      update("logoUrl", uploaded.url);
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Could not upload the image.",
+      );
+    }
   };
 
   useEffect(() => {
@@ -265,9 +270,11 @@ export default function AdminSeoPage() {
               <label className={labelClass}>
                 Logo
                 {form.logoUrl && (
-                  <img
+                  <SafeImage
                     src={form.logoUrl}
                     alt="Logo preview"
+                    width={160}
+                    height={80}
                     className="h-20 w-fit rounded-xl border border-slate-700 bg-slate-900/60 object-contain p-2"
                   />
                 )}
