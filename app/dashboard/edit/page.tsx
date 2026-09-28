@@ -309,7 +309,7 @@ export default function EditProfilePage() {
               <div className="mt-6 flex flex-col gap-4">
                 <div className="flex items-center gap-4">
                   {photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                     
                     <SafeImage
                       src={photo}
                       alt="Profile preview"

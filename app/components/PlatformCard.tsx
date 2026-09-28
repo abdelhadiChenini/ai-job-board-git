@@ -51,7 +51,7 @@ export function PlatformCard({
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-slate-950 p-2">
             {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
+               
               <SafeImage
                 src={logoUrl}
                 alt={`${name} logo`}

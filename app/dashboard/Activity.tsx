@@ -72,7 +72,7 @@ export function Activity({
         className="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3"
       >
         {job.platform.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
+           
           <SafeImage
             src={job.platform.logoUrl}
             alt={`${job.platform.name} logo`}

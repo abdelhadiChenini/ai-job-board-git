@@ -12,11 +12,12 @@ import SafeImage from "@/components/SafeImage";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: { slug: string } };
+type Params = { params: Promise<{ slug: string }> };
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params: p }: Params): Promise<Metadata> {
+  const params = await p;
   const job = await fetchJob(params.slug);
 
   if (!job) {
@@ -244,7 +245,8 @@ function toTagList(tags: unknown): string[] {
   return Array.isArray(tags) ? tags.map((tag) => String(tag)) : [];
 }
 
-export default async function OpportunityPage({ params }: Params) {
+export default async function OpportunityPage({ params: p }: Params) {
+  const params = await p;
   const job = await fetchJob(params.slug);
 
   if (!job) {
@@ -310,7 +312,7 @@ export default async function OpportunityPage({ params }: Params) {
           <div className="flex items-start gap-5">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-slate-900 p-2">
               {job.platform.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+                 
                 <SafeImage
                   src={job.platform.logoUrl}
                   alt={job.platform.name}

@@ -137,7 +137,7 @@ export default async function HomePage() {
               >
                 <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-slate-950 p-2">
                   {platform.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                     
                     <SafeImage
                       src={platform.logoUrl}
                       alt={`${platform.name} logo`}

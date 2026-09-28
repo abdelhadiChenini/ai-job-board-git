@@ -18,10 +18,11 @@ const listArgs = {
 } satisfies Prisma.JobOfferFindManyArgs;
 
 export default async function AdminOpportunitiesPage({
-  searchParams,
+  searchParams: sp,
 }: {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }) {
+  const searchParams = await sp;
   await requireAdmin();
 
   const currentPage = Math.max(1, Number(searchParams.page) || 1);

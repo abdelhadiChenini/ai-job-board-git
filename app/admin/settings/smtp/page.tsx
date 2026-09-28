@@ -15,10 +15,11 @@ const inputClass =
 const cardClass = "rounded-card border border-white/10 bg-slate-800 p-6 sm:p-8";
 
 export default async function AdminSmtpSettingsPage({
-  searchParams,
+  searchParams: sp,
 }: {
-  searchParams: { saved?: string; error?: string };
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
+  const searchParams = await sp;
   await requireAdmin();
 
   const settings = await prisma.sMTPSettings.findUnique({

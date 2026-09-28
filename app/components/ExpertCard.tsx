@@ -60,7 +60,7 @@ export function ExpertCard({
   return (
     <article className="flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
       {typeof imageUrl === "string" ? (
-        // eslint-disable-next-line @next/next/no-img-element
+         
         <SafeImage
           src={imageUrl}
           alt={name}

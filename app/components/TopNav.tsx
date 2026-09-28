@@ -24,7 +24,7 @@ export async function TopNav() {
           aria-label="AI Job Board home"
         >
           {seo?.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
+             
             <SafeImage
               src={seo.logoUrl}
               alt="Site Logo"

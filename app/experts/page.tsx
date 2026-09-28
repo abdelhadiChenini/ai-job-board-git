@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
-type SearchParams = {
+type SearchParams = Promise<{
   q?: string;
   availability?: string;
   specialty?: string | string[];
-};
+}>;
 
 function toSkillList(skills: unknown): string[] {
   if (!Array.isArray(skills)) {
@@ -26,10 +26,11 @@ function toSkillList(skills: unknown): string[] {
 }
 
 export default async function ExpertsPage({
-  searchParams,
+  searchParams: sp,
 }: {
   searchParams: SearchParams;
 }) {
+  const searchParams = await sp;
   const q = searchParams.q?.trim();
   const availability = searchParams.availability;
   const specialties = Array.isArray(searchParams.specialty)

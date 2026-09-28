@@ -4,9 +4,10 @@ import DOMPurify from "isomorphic-dompurify";
 import { prisma } from "@/lib/prisma";
 import SafeImage from "@/components/SafeImage";
 
-type Params = { params: { slug: string } };
+type Params = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params: p }: Params): Promise<Metadata> {
+  const params = await p;
   const post = await fetchPost(params.slug);
   if (!post) {
     return { title: "Article" };
@@ -39,7 +40,8 @@ function formatDate(date: Date): string {
   });
 }
 
-export default async function BlogPostPage({ params }: Params) {
+export default async function BlogPostPage({ params: p }: Params) {
+  const params = await p;
   const post = await fetchPost(params.slug);
 
   if (!post) {

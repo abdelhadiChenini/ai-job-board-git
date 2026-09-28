@@ -142,7 +142,7 @@ export default async function DashboardPage() {
         <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl backdrop-blur-xl sm:p-8">
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             {photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
+               
               <SafeImage
                 src={photo}
                 alt={fullName}

@@ -58,7 +58,7 @@ export default async function BlogIndexPage() {
               className="block bg-slate-900/40 border border-slate-800 rounded-2xl p-6 transition-colors hover:border-slate-700"
             >
               {post.featuredImage && (
-                // eslint-disable-next-line @next/next/no-img-element
+                 
                 <SafeImage
                   src={post.featuredImage}
                   alt=""

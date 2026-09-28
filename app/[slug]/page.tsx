@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 import { prisma } from "@/lib/prisma";
 
-type Params = { params: { slug: string } };
+type Params = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params: p }: Params): Promise<Metadata> {
+  const params = await p;
   const page = await prisma.page.findUnique({
     where: { slug: params.slug },
   });
@@ -19,7 +20,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   };
 }
 
-export default async function CmsPage({ params }: Params) {
+export default async function CmsPage({ params: p }: Params) {
+  const params = await p;
   const pageData = await prisma.page.findUnique({
     where: { slug: params.slug },
   });

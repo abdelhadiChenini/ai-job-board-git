@@ -145,7 +145,7 @@ export async function Footer() {
               aria-label="AI Job Board home"
             >
               {seoSettings?.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+                 
                 <SafeImage
                   src={seoSettings.logoUrl}
                   alt="Site Logo"

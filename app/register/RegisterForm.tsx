@@ -233,7 +233,7 @@ export function RegisterForm() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
             {photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
+               
               <SafeImage
                 src={photo}
                 alt="Profile preview"

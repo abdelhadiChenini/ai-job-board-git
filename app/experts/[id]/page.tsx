@@ -8,7 +8,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import SafeImage from "@/components/SafeImage";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 function LinkedinIcon(props: { className?: string }) {
   return (
@@ -63,7 +63,8 @@ const getExpert = cache(async (id: string) => {
   );
 });
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+export async function generateMetadata({ params: p }: Params): Promise<Metadata> {
+  const params = await p;
   const profile = await getExpert(params.id);
   if (!profile) {
     return { title: "Expert Profile" };
@@ -76,7 +77,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-export default async function ExpertProfilePage({ params }: Params) {
+export default async function ExpertProfilePage({ params: p }: Params) {
+  const params = await p;
   const session = await getServerSession(authOptions);
   const profile = await getExpert(params.id);
 
@@ -151,7 +153,7 @@ export default async function ExpertProfilePage({ params }: Params) {
         />
         <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center">
           {profile.profilePicture ? (
-            // eslint-disable-next-line @next/next/no-img-element
+             
             <SafeImage
               src={profile.profilePicture}
               alt={profile.fullName}

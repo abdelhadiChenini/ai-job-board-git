@@ -113,10 +113,11 @@ function FilterGroup({
 }
 
 export default async function OpportunitiesPage({
-  searchParams,
+  searchParams: sp,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
+  const searchParams = await sp;
   const q = searchParams.q?.trim();
   const category = searchParams.category?.trim();
   const region = searchParams.region?.trim();

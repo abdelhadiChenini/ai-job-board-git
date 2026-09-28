@@ -108,7 +108,7 @@ export async function RecommendedForYou({ skills }: { skills: string[] }) {
             >
               <div className="flex items-center gap-3">
                 {job.platform.logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
+                   
                   <SafeImage
                     src={job.platform.logoUrl}
                     alt={`${job.platform.name} logo`}
