@@ -3,9 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ??
-  "https://github.com/abdelhadiChenini/ai-job-board-git";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ameelai.com";
 
 type ChangeFrequency = NonNullable<
   MetadataRoute.Sitemap[number]["changeFrequency"]
@@ -25,7 +23,7 @@ const staticRoutes: Array<{
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [jobOffers, blogPosts] = await Promise.all([
+  const [jobOffers, blogPosts, experts] = await Promise.all([
     prisma.jobOffer.findMany({
       where: { slug: { not: null } },
       select: { slug: true, updatedAt: true },
@@ -34,30 +32,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       where: { published: true },
       select: { slug: true, updatedAt: true },
     }),
+    prisma.expertProfile.findMany({
+      where: { isPublic: true },
+      select: { id: true, updatedAt: true },
+    }),
   ]);
 
   const now = new Date();
 
   const statics: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
-    url: `${SITE_URL}${route.path}`,
+    url: `${baseUrl}${route.path}`,
     lastModified: now,
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
 
   const jobs: MetadataRoute.Sitemap = jobOffers.map((job) => ({
-    url: `${SITE_URL}/opportunities/${job.slug}`,
+    url: `${baseUrl}/opportunities/${job.slug}`,
     lastModified: job.updatedAt,
     changeFrequency: "daily",
     priority: 0.9,
   }));
 
   const blogs: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${SITE_URL}/blog/${post.slug}`,
+    url: `${baseUrl}/blog/${post.slug}`,
     lastModified: post.updatedAt,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
 
-  return [...statics, ...jobs, ...blogs];
+  const expertEntries: MetadataRoute.Sitemap = experts.map((expert) => ({
+    url: `${baseUrl}/experts/${expert.id}`,
+    lastModified: expert.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  return [...statics, ...jobs, ...blogs, ...expertEntries];
 }
