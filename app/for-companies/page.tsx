@@ -302,7 +302,7 @@ export default function ForCompaniesPage() {
               "radial-gradient(900px 480px at 20% -10%, rgba(56,189,248,0.16), transparent 60%), radial-gradient(700px 380px at 90% 10%, rgba(16,185,129,0.1), transparent 60%)",
           }}
         />
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 md:px-12 lg:px-20 lg:py-24">
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div className="flex flex-col items-start gap-6">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-slate-200">
@@ -392,7 +392,7 @@ export default function ForCompaniesPage() {
       </section>
 
       <section className="full-bleed w-full border-y border-slate-800 bg-slate-900 py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-12 lg:px-20">
           <div className="flex flex-col gap-4">
             <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
               <span
@@ -435,7 +435,7 @@ export default function ForCompaniesPage() {
         id="process"
         className="full-bleed w-full scroll-mt-20 bg-slate-950 py-20"
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-12 lg:px-20">
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div className="flex flex-col items-start gap-4">
               <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
@@ -479,7 +479,7 @@ export default function ForCompaniesPage() {
       </section>
 
       <section className="full-bleed w-full border-t border-slate-800 bg-slate-900 py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-12 lg:px-20">
           <div className="flex flex-col gap-3">
             <h2 className="bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent lg:text-4xl">
               Multidimensional talent for complex model training.
@@ -511,7 +511,7 @@ export default function ForCompaniesPage() {
         </div>
       </section>
 
-      <section className="full-bleed w-full bg-slate-950 px-4 py-16 sm:px-6 lg:px-8">
+      <section className="full-bleed w-full bg-slate-950 px-4 py-16 sm:px-6 md:px-12 lg:px-20">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-8 rounded-3xl border border-blue-900/40 bg-gradient-to-br from-slate-900 to-slate-950 p-10 text-center shadow-2xl md:flex-row md:text-left">
           <div className="flex flex-col items-center gap-3 md:items-start">
             <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">

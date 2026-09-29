@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CompaniesPage() {
   return (
-    <section className="relative flex min-h-[70vh] w-full items-center justify-center overflow-hidden bg-slate-950 px-4">
+    <section className="relative flex min-h-[70vh] w-full items-center justify-center overflow-hidden bg-slate-950">
       <div
         className="pointer-events-none absolute inset-0"
         aria-hidden="true"

@@ -14,7 +14,7 @@ const directContacts = [
 
 export default function ContactPage() {
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl">
       <div className="max-w-2xl">
         <p className="inline-flex rounded-full border border-white/10 bg-slate-900/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-blue-300">
           We&apos;d love to hear from you

@@ -19,7 +19,7 @@ export default async function FaqPage() {
 
   return (
     <>
-      <section className="flex flex-col items-center gap-3 py-10 text-center sm:py-16">
+      <section className="flex flex-col items-center gap-3 pb-10 text-center sm:pb-16">
         <p className="rounded-full border border-white/10 bg-navy-light px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-blue-300">
           Need help?
         </p>

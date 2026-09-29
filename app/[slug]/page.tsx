@@ -31,7 +31,7 @@ export default async function CmsPage({ params: p }: Params) {
   }
 
   return (
-    <div className="min-h-screen px-6 py-20 mx-auto max-w-4xl">
+    <div className="mx-auto min-h-screen w-full max-w-4xl">
       <h1 className="mb-8 text-4xl font-bold text-slate-100">
         {pageData.title}
       </h1>

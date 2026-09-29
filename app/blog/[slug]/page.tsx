@@ -68,7 +68,7 @@ export default async function BlogPostPage({ params: p }: Params) {
   };
 
   return (
-    <article className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-10">
+    <article className="mx-auto flex w-full max-w-3xl flex-col gap-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

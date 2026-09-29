@@ -247,7 +247,7 @@ export default function EditProfilePage() {
   const retryLoad = useCallback(() => setAttempt((a) => a + 1), []);
 
   return (
-    <div className="flex flex-col gap-6 py-8 lg:flex-row lg:gap-8">
+    <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
       <DashboardSidebar />
 
       <div className="min-w-0 flex-1">

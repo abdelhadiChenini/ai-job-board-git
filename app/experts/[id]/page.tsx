@@ -141,7 +141,7 @@ export default async function ExpertProfilePage({ params: p }: Params) {
         null;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 py-10">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
       <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-blue-600/25 via-slate-900 to-emerald-500/15 p-6 sm:p-10">
         <div
           className="pointer-events-none absolute inset-0"

@@ -89,7 +89,7 @@ export default async function PlatformsPage() {
       </section>
 
       <section className="full-bleed w-full border-t border-slate-800 bg-slate-950 py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-12 lg:px-20">
           <div className="flex flex-col gap-2">
             <h2 className="bg-gradient-to-r from-white via-accent to-emerald-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
               Explore AI Work Platforms
@@ -128,7 +128,7 @@ export default async function PlatformsPage() {
       </section>
 
       <section className="full-bleed w-full bg-slate-950 py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-12 lg:px-20">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 px-6 py-16 text-center sm:px-16">
             <div
               className="pointer-events-none absolute inset-0"

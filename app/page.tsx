@@ -67,7 +67,7 @@ export default async function HomePage() {
     ]);
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-6">
+    <div className="mx-auto w-full max-w-7xl">
       <Hero />
 
       <div

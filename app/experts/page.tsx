@@ -83,7 +83,7 @@ export default async function ExpertsPage({
 
   return (
     <>
-      <section className="relative overflow-hidden py-16 sm:py-20">
+      <section className="relative overflow-hidden pb-16 sm:pb-20">
         <div
           className="pointer-events-none absolute inset-0"
           aria-hidden="true"

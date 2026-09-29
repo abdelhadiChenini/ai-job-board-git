@@ -360,7 +360,7 @@ export default async function OpportunityPage({ params: p }: Params) {
       />
 
       <section className="full-bleed w-full border-b border-slate-800 bg-slate-950 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-12 lg:px-20">
           <Link
             href="/opportunities"
             className="mb-6 inline-block text-sm text-blue-400 hover:text-blue-300"
@@ -397,7 +397,7 @@ export default async function OpportunityPage({ params: p }: Params) {
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-3 lg:px-8">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="mb-8 grid grid-cols-1 gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 sm:grid-cols-3 sm:divide-x sm:gap-0 sm:divide-slate-800">
             <div className="min-w-0">
@@ -476,7 +476,7 @@ export default async function OpportunityPage({ params: p }: Params) {
       </div>
 
       {(related.length > 0 || trending.length > 0) && (
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl">
           {related.length > 0 && (
             <div className="mb-12">
               <h2 className="mb-6 text-2xl font-bold text-slate-100">Related Opportunities</h2>
@@ -525,7 +525,7 @@ export default async function OpportunityPage({ params: p }: Params) {
         </section>
       )}
 
-      <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-4xl">
         <div className="my-16 rounded-3xl border border-blue-900/40 bg-gradient-to-r from-slate-900 to-slate-950 p-10 text-center">
           <h2 className="text-3xl font-bold text-slate-100">Don&apos;t miss the next opportunity</h2>
           <p className="mx-auto mt-3 max-w-xl text-slate-400">
