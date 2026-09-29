@@ -399,18 +399,18 @@ export default async function OpportunityPage({ params: p }: Params) {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-3 lg:px-8">
         <div className="lg:col-span-2">
-          <div className="mb-8 grid grid-cols-3 divide-x divide-slate-800 rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-            <div>
+          <div className="mb-8 grid grid-cols-1 gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 sm:grid-cols-3 sm:divide-x sm:gap-0 sm:divide-slate-800">
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase text-slate-500">Work Type</p>
-              <p className="mt-1 font-medium text-slate-200">{job.jobLocationType}</p>
+              <p className="mt-1 break-words font-medium text-slate-200">{job.jobLocationType}</p>
             </div>
-            <div className="pl-6">
+            <div className="min-w-0 sm:pl-6">
               <p className="text-xs font-semibold uppercase text-slate-500">Location</p>
-              <p className="mt-1 font-medium text-slate-200">{location}</p>
+              <p className="mt-1 break-words font-medium text-slate-200">{location}</p>
             </div>
-            <div className="pl-6">
+            <div className="min-w-0 sm:pl-6">
               <p className="text-xs font-semibold uppercase text-slate-500">Compensation</p>
-              <p className="mt-1 font-medium text-slate-200">{formatRate(job)}</p>
+              <p className="mt-1 break-words font-medium text-slate-200">{formatRate(job)}</p>
             </div>
           </div>
 

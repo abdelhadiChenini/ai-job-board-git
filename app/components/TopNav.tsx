@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import AuthNav from "./AuthNav";
+import MobileNavMenu from "./MobileNavMenu";
 import SafeImage from "@/components/SafeImage";
 
 const navItems = [
@@ -58,6 +59,7 @@ export async function TopNav() {
 
         <div className="ml-auto flex shrink-0 items-center gap-3 lg:ml-0">
           <AuthNav />
+          <MobileNavMenu items={navItems} />
         </div>
       </div>
     </nav>
