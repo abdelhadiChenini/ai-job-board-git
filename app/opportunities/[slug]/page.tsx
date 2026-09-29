@@ -148,6 +148,65 @@ function toCountryCode(region: string | null): string | null {
   return /^[A-Z]{2}$/.test(value) ? value : null;
 }
 
+const REGION_COUNTRY_NAMES: Record<string, string> = {
+  us: "United States",
+  usa: "United States",
+  "united states": "United States",
+  "united states of america": "United States",
+  eu: "European Union",
+  europe: "European Union",
+  uk: "United Kingdom",
+  "united kingdom": "United Kingdom",
+  uae: "United Arab Emirates",
+  "saudi arabia": "Saudi Arabia",
+  ksa: "Saudi Arabia",
+  india: "India",
+};
+
+const WORLDWIDE_REGIONS = new Set([
+  "",
+  "global",
+  "globals",
+  "world",
+  "worldwide",
+  "anywhere",
+  "international",
+  "remote",
+]);
+
+type ApplicantLocationRequirement =
+  | { "@type": "Country"; name: string }
+  | Array<{ "@type": "Country"; name: string }>;
+
+function toApplicantLocationRequirements(
+  region: string | null,
+): ApplicantLocationRequirement {
+  const parts = (region ?? "")
+    .split(/[,/|]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const names: string[] = [];
+  const seen = new Set<string>();
+
+  for (const part of parts) {
+    const key = part.toLowerCase();
+    if (WORLDWIDE_REGIONS.has(key) || seen.has(key)) continue;
+    seen.add(key);
+    names.push(REGION_COUNTRY_NAMES[key] ?? part);
+  }
+
+  if (names.length === 0) {
+    return { "@type": "Country", name: "World" };
+  }
+
+  if (names.length === 1) {
+    return { "@type": "Country", name: names[0] };
+  }
+
+  return names.map((name) => ({ "@type": "Country", name }));
+}
+
 function buildJsonLd(
   job: NonNullable<Awaited<ReturnType<typeof fetchJob>>>,
   path: string,
@@ -187,6 +246,7 @@ function buildJsonLd(
       ...(job.platform.websiteUrl ? { sameAs: job.platform.websiteUrl } : {}),
     },
     jobLocationType: toJobLocationType(job.jobLocationType),
+    applicantLocationRequirements: toApplicantLocationRequirements(job.region),
     ...(countryCode
       ? {
           jobLocation: {
@@ -256,8 +316,7 @@ export default async function OpportunityPage({ params: p }: Params) {
   const tags = toTagList(job.tags);
   const jsonLd = buildJsonLd(job, `/opportunities/${job.slug}`);
   const { related, trending } = await fetchRelatedAndTrending(job);
-  const location =
-    job.region || (job.jobLocationType === "Remote" ? "Remote" : "Global");
+  const location = job.region?.trim() || "Global";
 
   const session = await getServerSession(authOptions);
   const viewerId = session?.user?.id;
