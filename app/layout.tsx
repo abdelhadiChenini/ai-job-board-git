@@ -77,7 +77,7 @@ export default async function RootLayout({
         <Providers>
           <MaintenanceGate isMaintenanceMode={isMaintenanceMode}>
             <TopNav />
-            <div className="w-full px-6 py-8 md:px-12 lg:px-20">{children}</div>
+            <div className="w-full px-4 py-6 sm:px-6 sm:py-8 md:px-12 lg:px-20">{children}</div>
             <Footer />
           </MaintenanceGate>
         </Providers>
