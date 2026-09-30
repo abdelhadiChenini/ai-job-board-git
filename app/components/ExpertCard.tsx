@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Sparkles } from "lucide-react";
 import SafeImage from "@/components/SafeImage";
 
 type ExpertCardProps = {
@@ -8,6 +9,7 @@ type ExpertCardProps = {
   profileUrl: string;
   imageUrl?: string | null;
   maxSkills?: number;
+  isFeatured?: boolean;
 };
 
 function profileInitials(name: string): string {
@@ -54,11 +56,25 @@ export function ExpertCard({
   profileUrl,
   imageUrl,
   maxSkills = 3,
+  isFeatured = false,
 }: ExpertCardProps) {
   const isMailLink = profileUrl.startsWith("mailto:");
 
   return (
-    <article className="flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+    <article
+      className={
+        isFeatured
+          ? "relative flex flex-col items-center gap-4 rounded-2xl border border-amber-400/40 bg-gradient-to-b from-amber-400/10 to-slate-900/50 p-6 pt-7 text-center text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-300/60 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+          : "relative flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center text-slate-200 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-800/50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+      }
+    >
+      {isFeatured && (
+        <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-amber-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300 ring-1 ring-inset ring-amber-400/40">
+          <Sparkles aria-hidden="true" className="h-3 w-3" />
+          Pro
+        </span>
+      )}
+
       {typeof imageUrl === "string" ? (
          
         <SafeImage
@@ -66,7 +82,11 @@ export function ExpertCard({
           alt={name}
           width={64}
           height={64}
-          className="h-16 w-16 rounded-full object-cover ring-2 ring-blue-500/40"
+          className={
+            isFeatured
+              ? "h-16 w-16 rounded-full object-cover ring-2 ring-amber-400/60"
+              : "h-16 w-16 rounded-full object-cover ring-2 ring-blue-500/40"
+          }
         />
       ) : (
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-emerald-500 text-2xl font-bold text-white">

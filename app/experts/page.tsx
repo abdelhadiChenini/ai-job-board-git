@@ -75,8 +75,9 @@ export default async function ExpertsPage({
       headline: true,
       skills: true,
       profilePicture: true,
+      user: { select: { isFeatured: true } },
     },
-    orderBy: { fullName: "asc" },
+    orderBy: [{ user: { isFeatured: "desc" } }, { fullName: "asc" }],
   });
 
   const hasFilters = Boolean(q || availability || specialties.length > 0);
@@ -189,6 +190,7 @@ export default async function ExpertsPage({
                   skills={toSkillList(expert.skills)}
                   imageUrl={expert.profilePicture}
                   profileUrl={`/experts/${expert.id}`}
+                  isFeatured={expert.user.isFeatured}
                 />
               ))}
             </div>

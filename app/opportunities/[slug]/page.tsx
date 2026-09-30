@@ -4,6 +4,11 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  canApplyToJob,
+  formatUnlockCountdown,
+  type ApplyBlockInfo,
+} from "@/lib/subscription";
 import JobCard from "@/app/components/JobCard";
 import { ShareJobButton } from "./ShareJobButton";
 import { NewsletterForm } from "./NewsletterForm";
@@ -346,6 +351,28 @@ export default async function OpportunityPage({ params: p }: Params) {
     savedIds = new Set(savedRows.map((row) => row.opportunityId));
   }
 
+  // Users who already applied keep full access — the paywall only gates the
+  // first application, so a lock appearing later must not strand them.
+  let applyBlock: ApplyBlockInfo | null = null;
+  if (viewerId && !applied) {
+    const eligibility = await canApplyToJob(viewerId, job.id);
+
+    if (!eligibility.allowed) {
+      applyBlock =
+        eligibility.reason === "early_access"
+          ? {
+              reason: "early_access",
+              unlocksAt: eligibility.unlocksAt.toISOString(),
+              countdown: formatUnlockCountdown(eligibility.unlocksAt, new Date()),
+            }
+          : {
+              reason: "daily_limit",
+              used: eligibility.used,
+              limit: eligibility.limit,
+            };
+    }
+  }
+
   const loginHref = `/login?callbackUrl=${encodeURIComponent(
     `/opportunities/${job.slug}`,
   )}`;
@@ -441,6 +468,7 @@ export default async function OpportunityPage({ params: p }: Params) {
                 affiliateUrl={job.affiliateUrl}
                 initialSaved={saved}
                 initialApplied={applied}
+                applyBlock={applyBlock}
               />
             ) : (
               <>
