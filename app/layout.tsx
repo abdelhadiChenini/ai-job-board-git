@@ -7,6 +7,7 @@ import Footer from "@/app/components/Footer";
 import TopNav from "@/app/components/TopNav";
 import Providers from "./Providers";
 import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
 import MaintenanceGate from "@/app/components/MaintenanceGate";
 
 const DEFAULT_TITLE = "AI Job Board";
@@ -17,7 +18,21 @@ const fonts = `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
   Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji"`;
 
 async function getSeo() {
-  return prisma.seoSetting.findUnique({ where: { id: "global" } });
+  return safeRead(
+    "seo settings",
+    () => prisma.seoSetting.findUnique({ where: { id: "global" } }),
+    null,
+  );
+}
+
+async function getMaintenanceMode(): Promise<boolean> {
+  const settings = await safeRead(
+    "maintenance mode",
+    () => prisma.siteSettings.findUnique({ where: { id: 1 } }),
+    null,
+  );
+
+  return settings?.isMaintenanceMode ?? false;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,12 +68,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const [seo, globalSettings] = await Promise.all([
+  const [seo, isMaintenanceMode] = await Promise.all([
     getSeo(),
-    prisma.siteSettings.findUnique({ where: { id: 1 } }),
+    getMaintenanceMode(),
   ]);
-
-  const isMaintenanceMode = globalSettings?.isMaintenanceMode ?? false;
 
   return (
     <html lang="en" dir="ltr">

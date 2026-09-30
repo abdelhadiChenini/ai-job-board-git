@@ -13,12 +13,14 @@ function toSafeUser(user: {
   id: string;
   email: string;
   role: string;
+  isFeatured: boolean;
   expertProfile?: { verificationStatus: string } | null;
 }) {
   return {
     id: user.id,
     email: user.email,
     role: user.role,
+    isFeatured: user.isFeatured,
     verificationStatus: user.expertProfile?.verificationStatus ?? null,
   };
 }
@@ -43,6 +45,7 @@ export async function GET(request: NextRequest) {
       id: true,
       email: true,
       role: true,
+      isFeatured: true,
       createdAt: true,
       updatedAt: true,
       expertProfile: {

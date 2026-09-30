@@ -1,5 +1,6 @@
 import SearchBar from "@/components/SearchBar";
 import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
 import { Sparkles } from "lucide-react";
 
 const trendTags = [
@@ -21,13 +22,23 @@ const heroStats = [
 
 export async function Hero() {
   const [platforms, jobs] = await Promise.all([
-    prisma.aIPlatform.findMany({
-      select: { name: true },
-      orderBy: { name: "asc" },
-    }),
-    prisma.jobOffer.findMany({
-      select: { category: true, region: true },
-    }),
+    safeRead(
+      "hero platforms",
+      () =>
+        prisma.aIPlatform.findMany({
+          select: { name: true },
+          orderBy: { name: "asc" },
+        }),
+      [],
+    ),
+    safeRead(
+      "hero job facets",
+      () =>
+        prisma.jobOffer.findMany({
+          select: { category: true, region: true },
+        }),
+      [],
+    ),
   ]);
 
   const companies = platforms.map((platform) => platform.name).sort();

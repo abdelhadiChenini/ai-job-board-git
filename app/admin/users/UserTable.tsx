@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { Star } from "lucide-react";
 import Modal from "../Modal";
-import { updateExpertStatus } from "./actions";
+import { updateExpertStatus, setFeatured } from "./actions";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 
 type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
@@ -11,6 +12,7 @@ type ApiUser = {
   id: string;
   email: string;
   role: string;
+  isFeatured: boolean;
   verificationStatus: VerificationStatus | null;
   createdAt: string;
   updatedAt: string;
@@ -196,6 +198,35 @@ export function UserTable() {
     }
   };
 
+  const toggleFeatured = async (user: ApiUser) => {
+    const next = !user.isFeatured;
+    setBusy(true);
+    setTableError(null);
+
+    // Optimistic so the toggle reacts instantly; `load()` reconciles on success
+    // and the catch rolls back.
+    setUsers((prev) =>
+      prev.map((row) =>
+        row.id === user.id ? { ...row, isFeatured: next } : row,
+      ),
+    );
+
+    try {
+      const result = await setFeatured(user.id, next);
+      if (result && !result.ok) {
+        setTableError(result.error ?? "Could not update the featured status.");
+        await load();
+        return;
+      }
+      await load();
+    } catch {
+      setTableError("Network error while updating the featured status.");
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <section className={cardClass}>
       <div className="mb-4 flex items-center justify-between gap-4">
@@ -284,6 +315,29 @@ export function UserTable() {
                         )}
                       </span>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => void toggleFeatured(user)}
+                      disabled={busy}
+                      aria-pressed={user.isFeatured}
+                      title={
+                        user.isFeatured
+                          ? "Remove the Pro badge from the expert directory"
+                          : "Show this expert as featured in the directory"
+                      }
+                      className={
+                        user.isFeatured
+                          ? "mr-3 inline-flex items-center gap-1 align-middle text-sm font-semibold text-amber-400 hover:text-amber-300 disabled:opacity-60"
+                          : "mr-3 inline-flex items-center gap-1 align-middle text-sm font-semibold text-slate-500 hover:text-amber-300 disabled:opacity-60"
+                      }
+                    >
+                      <Star
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5"
+                        fill={user.isFeatured ? "currentColor" : "none"}
+                      />
+                      {user.isFeatured ? "Featured" : "Feature"}
+                    </button>
                     <button
                       type="button"
                       onClick={() => openEdit(user)}

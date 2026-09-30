@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
 import SafeImage from "@/components/SafeImage";
 
 export const metadata: Metadata = {
@@ -18,18 +19,23 @@ function formatDate(date: Date): string {
 }
 
 export default async function BlogIndexPage() {
-  const posts = await prisma.blogPost.findMany({
-    where: { published: true },
-    orderBy: { createdAt: "desc" },
-    select: {
-      slug: true,
-      title: true,
-      excerpt: true,
-      publishedAt: true,
-      createdAt: true,
-      featuredImage: true,
-    },
-  });
+  const posts = await safeRead(
+    "published blog posts",
+    () =>
+      prisma.blogPost.findMany({
+        where: { published: true },
+        orderBy: { createdAt: "desc" },
+        select: {
+          slug: true,
+          title: true,
+          excerpt: true,
+          publishedAt: true,
+          createdAt: true,
+          featuredImage: true,
+        },
+      }),
+    [],
+  );
 
   return (
     <div className="mx-auto w-full max-w-7xl">

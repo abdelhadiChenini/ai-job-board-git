@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
 import AuthNav from "./AuthNav";
 import MobileNavMenu from "./MobileNavMenu";
 import SafeImage from "@/components/SafeImage";
@@ -14,7 +15,11 @@ const navItems = [
 ];
 
 export async function TopNav() {
-  const seo = await prisma.seoSetting.findUnique({ where: { id: "global" } });
+  const seo = await safeRead(
+    "top nav logo",
+    () => prisma.seoSetting.findUnique({ where: { id: "global" } }),
+    null,
+  );
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/80 backdrop-blur-md">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PlatformCard from "@/app/components/PlatformCard";
 import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
 
 export const metadata: Metadata = {
   title: "AI Platforms",
@@ -28,18 +29,23 @@ function collectTags(offers: { tags: unknown }[]): string[] {
 }
 
 export default async function PlatformsPage() {
-  const platforms = await prisma.aIPlatform.findMany({
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      websiteUrl: true,
-      description: true,
-      logoUrl: true,
-      jobOffers: { select: { tags: true } },
-    },
-    orderBy: { name: "asc" },
-  });
+  const platforms = await safeRead(
+    "platforms list",
+    () =>
+      prisma.aIPlatform.findMany({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          websiteUrl: true,
+          description: true,
+          logoUrl: true,
+          jobOffers: { select: { tags: true } },
+        },
+        orderBy: { name: "asc" },
+      }),
+    [],
+  );
 
   return (
     <>

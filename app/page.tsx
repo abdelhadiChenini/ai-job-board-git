@@ -3,6 +3,7 @@ import Hero from "@/app/components/Hero";
 import TrendingOpportunities from "@/app/components/TrendingOpportunities";
 import OpportunityCarousel from "@/components/OpportunityCarousel";
 import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
 import { fetchTrendingOpportunities } from "@/lib/trendingOpportunities";
 import SafeImage from "@/components/SafeImage";
 
@@ -45,25 +46,39 @@ function TrendingOpportunitiesSkeleton() {
 export default async function HomePage() {
   const [trendingOpportunities, latestOpportunities, platforms] =
     await Promise.all([
-      fetchTrendingOpportunities({}),
-      prisma.jobOffer.findMany({
-        include: {
-          platform: { select: { name: true, slug: true, logoUrl: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 12,
-      }),
-      prisma.aIPlatform.findMany({
-        select: {
-          id: true,
-          name: true,
-          websiteUrl: true,
-          description: true,
-          logoUrl: true,
-        },
-        orderBy: { name: "asc" },
-        take: 8,
-      }),
+      safeRead(
+        "homepage trending opportunities",
+        () => fetchTrendingOpportunities({}),
+        [],
+      ),
+      safeRead(
+        "homepage latest opportunities",
+        () =>
+          prisma.jobOffer.findMany({
+            include: {
+              platform: { select: { name: true, slug: true, logoUrl: true } },
+            },
+            orderBy: { createdAt: "desc" },
+            take: 12,
+          }),
+        [],
+      ),
+      safeRead(
+        "homepage platforms",
+        () =>
+          prisma.aIPlatform.findMany({
+            select: {
+              id: true,
+              name: true,
+              websiteUrl: true,
+              description: true,
+              logoUrl: true,
+            },
+            orderBy: { name: "asc" },
+            take: 8,
+          }),
+        [],
+      ),
     ]);
 
   return (

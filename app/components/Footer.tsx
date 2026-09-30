@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
 import SafeImage from "@/components/SafeImage";
 
 function LinkedinIcon({ className }: { className?: string }) {
@@ -51,13 +52,21 @@ const FALLBACKS: Record<string, string> = {
 type Column = { title: string; links: { label: string; href: string }[] };
 
 export async function Footer() {
-  const settings = await prisma.siteSetting.findMany({
-    where: { key: { in: [...SETTING_KEYS] } },
-  });
-
-  const seoSettings = await prisma.seoSetting.findUnique({
-    where: { id: "global" },
-  });
+  const [settings, seoSettings] = await Promise.all([
+    safeRead(
+      "footer site settings",
+      () =>
+        prisma.siteSetting.findMany({
+          where: { key: { in: [...SETTING_KEYS] } },
+        }),
+      [],
+    ),
+    safeRead(
+      "footer seo settings",
+      () => prisma.seoSetting.findUnique({ where: { id: "global" } }),
+      null,
+    ),
+  ]);
 
   const get = (key: string) =>
     settings.find((setting) => setting.key === key)?.value ?? null;

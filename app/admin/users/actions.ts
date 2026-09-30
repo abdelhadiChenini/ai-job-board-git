@@ -35,3 +35,28 @@ export async function updateExpertStatus(
   revalidatePath("/experts");
   return { ok: true };
 }
+
+export async function setFeatured(
+  userId: string,
+  isFeatured: boolean,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await getAdminSession();
+
+  if (!session || session.user?.role !== "ADMIN") {
+    return { ok: false, error: "Unauthorized." };
+  }
+
+  if (!userId) {
+    return { ok: false, error: "Missing user id." };
+  }
+
+  try {
+    await prisma.user.update({ where: { id: userId }, data: { isFeatured } });
+  } catch {
+    return { ok: false, error: "User not found." };
+  }
+
+  revalidatePath("/admin/users");
+  revalidatePath("/experts");
+  return { ok: true };
+}
