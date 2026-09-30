@@ -19,7 +19,6 @@ export default defineConfig({
       PAYPAL_CLIENT_SECRET: "test-client-secret",
       PAYPAL_PLAN_ID: "P-TESTPLAN",
       PAYPAL_WEBHOOK_ID: "WH-TEST",
-      PAYPAL_ENV: "sandbox",
     },
   },
 });

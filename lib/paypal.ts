@@ -2,11 +2,15 @@
  * Minimal PayPal REST client for Subscriptions.
  *
  * Secrets are only ever sent to PayPal over TLS and are never logged or
- * returned to the client â€” failures surface as generic errors.
+ * returned to the client — the client still receives a generic message. The one
+ * exception is PayPal's *own* error body on an OAuth failure, which is written
+ * to the server log: `invalid_client` versus `INVALID_REQUEST` versus a bare 502
+ * is the only thing that separates a bad secret from a misrouted host, and
+ * collapsing them into one generic 502 is what made the last two deploys
+ * undiagnosable from the outside.
  */
 
-const SANDBOX_BASE = "https://api-m.sandbox.paypal.com";
-const LIVE_BASE = "https://api-m.paypal.com";
+const PAYPAL_BASE_URL = "https://api-m.paypal.com";
 
 export class PayPalError extends Error {
   readonly status: number;
@@ -57,11 +61,22 @@ export function getPayPalConfig() {
 }
 
 /**
- * Defaults to sandbox. Production traffic requires an explicit
- * `PAYPAL_ENV=live`, so a half-configured deploy can never take live payments.
+ * Pinned to the live API, with no sandbox fallback.
+ *
+ * This used to read `PAYPAL_ENV` and default to sandbox, on the reasoning that
+ * a half-configured deploy should never take live payments. The cost was worse
+ * than the risk it guarded: a deploy holding live credentials but no
+ * `PAYPAL_ENV=live` sent them to `api-m.sandbox.paypal.com`, which rejects a
+ * live client id with `401 invalid_client`, and that 401 was re-thrown as a 502.
+ * The symptom was indistinguishable from a wrong secret, so the obvious fix
+ * (rotating credentials) could never have worked.
+ *
+ * Routing is now explicit and unconditional. The consequence to be aware of:
+ * this client can no longer reach the sandbox at all, so subscription flows
+ * cannot be exercised end to end against sandbox credentials.
  */
 export function getPayPalBaseUrl(): string {
-  return process.env.PAYPAL_ENV === "live" ? LIVE_BASE : SANDBOX_BASE;
+  return PAYPAL_BASE_URL;
 }
 
 async function getAccessToken(): Promise<string> {
@@ -71,11 +86,17 @@ async function getAccessToken(): Promise<string> {
     throw new PayPalError("PayPal credentials are not configured.", 500);
   }
 
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString(
-    "base64",
-  );
+  // `.trim()` is applied again here, not just in `readEnv`, because this is the
+  // only place the value becomes a credential. A trailing newline in a secret —
+  // a very common artefact of pasting into a host's env var editor — produces
+  // a syntactically valid but wrong Basic header, and PayPal answers that with
+  // a plain 401. The invariant belongs next to the encoding.
+  const credentials = Buffer.from(
+    `${clientId.trim()}:${clientSecret.trim()}`,
+  ).toString("base64");
 
-  const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
+  const tokenUrl = `${getPayPalBaseUrl()}/v1/oauth2/token`;
+  const response = await fetch(tokenUrl, {
     method: "POST",
     headers: {
       Authorization: `Basic ${credentials}`,
@@ -86,6 +107,15 @@ async function getAccessToken(): Promise<string> {
   });
 
   if (!response.ok) {
+    // PayPal's body is the diagnosis: it names `invalid_client` for a bad or
+    // whitespace-padded secret, `invalid_request` for a malformed header, and
+    // carries a `debug_id` support can trace. None of it contains the client id
+    // or secret, so it is safe to log, and the client still gets a generic 502.
+    console.error(
+      `[paypal] OAuth token request to ${tokenUrl} failed: ${response.status} ${response.statusText} —`,
+      await response.text(),
+    );
+
     throw new PayPalError("Could not authenticate with PayPal.", 502);
   }
 
