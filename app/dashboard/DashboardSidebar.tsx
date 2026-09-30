@@ -7,6 +7,7 @@ import { signOut, useSession } from "next-auth/react";
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/edit", label: "Edit Profile" },
+  { href: "/dashboard/subscription", label: "Subscription" },
 ];
 
 export function DashboardSidebar() {

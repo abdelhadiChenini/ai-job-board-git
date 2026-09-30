@@ -99,6 +99,31 @@ export type PayPalSubscription = {
 };
 
 /**
+ * Subscription facts the dashboard needs beyond status.
+ *
+ * `billing_info` is not returned by a default `GET`, so it has to be requested
+ * explicitly. `next_billing_time` is the moment the current paid period ends,
+ * which is the closest thing PayPal offers to an expiry date — an already
+ * cancelled subscription has none, because access simply runs out.
+ */
+export type PayPalSubscriptionDetails = PayPalSubscription & {
+  billing_info?: {
+    next_billing_time?: string;
+    last_payment_time?: string;
+  };
+};
+
+export async function getSubscriptionDetails(
+  subscriptionId: string,
+): Promise<PayPalSubscriptionDetails> {
+  return paypalFetch<PayPalSubscriptionDetails>(
+    `/v1/billing/subscriptions/${encodeURIComponent(
+      subscriptionId,
+    )}?fields=status,billing_info`,
+  );
+}
+
+/**
  * Statuses that mean the customer has (or still has) paid access. PayPal keeps
  * the `CANCELLED` subscription readable and entitled until the period already
  * paid for runs out, at which point it becomes `EXPIRED`. Only `EXPIRED` — plus

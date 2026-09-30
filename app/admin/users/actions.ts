@@ -98,5 +98,6 @@ export async function setUserPlan(
   }
 
   revalidatePath("/admin/users");
+  revalidatePath("/admin/subscriptions");
   return { ok: true };
 }
