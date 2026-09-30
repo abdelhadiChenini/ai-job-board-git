@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Lock, Sparkles, Zap } from "lucide-react";
+import { Lock, Zap } from "lucide-react";
 import {
   saveJob,
   removeSavedJob,
   markApplied,
 } from "@/app/dashboard/actions";
+import UpgradeButton from "@/app/components/UpgradeButton";
 import type { ApplyBlockInfo } from "@/lib/subscription";
 
 type Props = {
@@ -129,15 +130,7 @@ export function OpportunityActions({
       {isBlocked && block ? (
         <>
           <BlockedPanel block={block} />
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 py-3 font-semibold text-slate-400"
-          >
-            <Sparkles aria-hidden="true" className="h-4 w-4" />
-            Upgrade to Pro
-          </button>
+          <UpgradeButton />
         </>
       ) : (
         <button

@@ -24,6 +24,7 @@
     }
   },
   "dependencies": {
+    "@paypal/react-paypal-js": "^10.5.2",
     "@prisma/client": "^5.22.0",
     "@tiptap/extension-image": "^3.31.3",
     "@tiptap/react": "^3.31.3",

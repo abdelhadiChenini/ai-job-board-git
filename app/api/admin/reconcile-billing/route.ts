@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/admin";
@@ -12,6 +13,54 @@ const DEFAULT_BATCH = 25;
 const MAX_REPORTED_REVOKED = 50;
 
 const UNAUTHORIZED = NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+
+/**
+ * Constant-time secret comparison.
+ *
+ * A plain `===` returns as soon as it finds a differing byte, which leaks the
+ * secret's prefix through response timing. `timingSafeEqual` compares in
+ * fixed time instead. The length check has to come first because that function
+ * throws on a length mismatch.
+ */
+function secretsMatch(provided: string, expected: string): boolean {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  return timingSafeEqual(a, b);
+}
+
+/**
+ * Two ways in:
+ *
+ * - `Authorization: Bearer <RECONCILIATION_SECRET>`, used by the scheduled
+ *   GitHub Actions job, which has no session.
+ * - A valid admin session, so the sweep can be triggered by hand from the
+ *   admin UI during an incident.
+ *
+ * An unset secret denies everyone rather than allowing everyone, so a deploy
+ * that forgets the env var disables the cron instead of exposing the endpoint.
+ */
+function isAuthorized(request: Request): boolean {
+  const expected = process.env.RECONCILIATION_SECRET;
+
+  if (expected) {
+    const bearer = request.headers
+      .get("authorization")
+      ?.replace(/^Bearer\s+/i, "")
+      .trim();
+    const direct = request.headers.get("x-reconciliation-secret")?.trim();
+
+    if ((bearer && secretsMatch(bearer, expected)) || (direct && secretsMatch(direct, expected))) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 type Revoked = {
   userId: string;
@@ -42,7 +91,9 @@ type Skipped = {
  */
 export async function POST(request: Request) {
   const session = await getAdminSession();
-  if (!session) {
+  const secretConfigured = Boolean(process.env.RECONCILIATION_SECRET);
+
+  if (!isAuthorized(request) && !session) {
     return UNAUTHORIZED;
   }
 
@@ -155,5 +206,8 @@ export async function POST(request: Request) {
     skipped: skipped.length,
     revoked: revoked.slice(0, MAX_REPORTED_REVOKED),
     skippedDetails: skipped.slice(0, MAX_REPORTED_REVOKED),
+    // Surfaces a misconfigured deploy: this run was authorised by session, and
+    // the scheduled job would have been rejected.
+    ...(secretConfigured ? {} : { warning: "RECONCILIATION_SECRET is not set." }),
   });
 }

@@ -12,6 +12,34 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
+ * Resolves a client-supplied path against the configured site origin.
+ *
+ * Only same-site paths are accepted. Passing the URL through unvalidated would
+ * let a signed-in user mint a PayPal approval link that bounces the customer to
+ * a site of their choosing — an open redirect on a payment flow, which is a
+ * convincing phishing primitive. Requiring a leading `/` and rejecting `//`
+ * closes both the absolute-URL and protocol-relative forms.
+ */
+function resolveSiteUrl(): string | null {
+  const base = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
+  return base || null;
+}
+
+function absoluteUrl(base: string, path: unknown): string | null {
+  if (typeof path !== "string") {
+    return null;
+  }
+
+  const trimmed = path.trim();
+
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
+    return null;
+  }
+
+  return `${base}${trimmed}`;
+}
+
+/**
  * Starts a PayPal subscription and returns the id plus the approval URL.
  *
  * The plan is NOT upgraded here. Only a verified `BILLING.SUBSCRIPTION.ACTIVATED`
@@ -54,7 +82,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { returnUrl?: unknown; cancelUrl?: unknown } = {};
+  let body: { returnPath?: unknown; cancelPath?: unknown } = {};
 
   try {
     body = (await request.json()) as typeof body;
@@ -65,9 +93,21 @@ export async function POST(request: Request) {
     );
   }
 
-  if (typeof body.returnUrl !== "string" || typeof body.cancelUrl !== "string") {
+  const siteUrl = resolveSiteUrl();
+
+  if (!siteUrl) {
     return NextResponse.json(
-      { error: "returnUrl and cancelUrl are required." },
+      { error: "PayPal is not configured on this server." },
+      { status: 503 },
+    );
+  }
+
+  const returnUrl = absoluteUrl(siteUrl, body.returnPath);
+  const cancelUrl = absoluteUrl(siteUrl, body.cancelPath);
+
+  if (!returnUrl || !cancelUrl) {
+    return NextResponse.json(
+      { error: "returnPath and cancelPath must be same-site paths." },
       { status: 400 },
     );
   }
@@ -76,8 +116,8 @@ export async function POST(request: Request) {
     const subscription = await createSubscription({
       planId,
       customId: session.user.id,
-      returnUrl: body.returnUrl,
-      cancelUrl: body.cancelUrl,
+      returnUrl,
+      cancelUrl,
     });
 
     const approveUrl =

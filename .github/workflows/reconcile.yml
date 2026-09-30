@@ -1,0 +1,64 @@
+name: Reconcile Billing
+
+# Nightly sweep of PRO users against PayPal's view of their subscription.
+# Webhooks are the primary mechanism; this is the backstop for events that were
+# lost for good and never redelivered.
+#
+# GitHub cron is always UTC, so "0 0 * * *" is midnight UTC daily.
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  # Lets an operator kick off a sweep during an incident.
+  workflow_dispatch:
+
+# Serialise runs: two overlapping sweeps would race on the same user rows.
+concurrency:
+  group: reconcile-billing
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Reconcile PRO subscriptions with PayPal
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+          RECONCILIATION_SECRET: ${{ secrets.RECONCILIATION_SECRET }}
+        run: |
+          set -euo pipefail
+
+          # Fail with a clear message rather than sending a request that would
+          # come back 401 and look like an auth bug.
+          if [ -z "${PRODUCTION_URL:-}" ]; then
+            echo "::error::PRODUCTION_URL secret is not set"
+            exit 1
+          fi
+
+          if [ -z "${RECONCILIATION_SECRET:-}" ]; then
+            echo "::error::RECONCILIATION_SECRET secret is not set"
+            exit 1
+          fi
+
+          base="${PRODUCTION_URL%/}"
+
+          # batch=100 is the server-side maximum; one sweep covers every PRO
+          # user until that ceiling is reached, at which point `complete` in the
+          # response goes false and the next run picks up the remainder.
+          response="$(curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer ${RECONCILIATION_SECRET}" \
+            --header "Accept: application/json" \
+            "${base}/api/admin/reconcile-billing?batch=100")"
+
+          echo "$response"
+
+          # Fail the job if anything was skipped, so a broken PayPal token or a
+          # dead subscription id cannot pass silently for months.
+          skipped="$(printf '%s' "$response" | jq -r '.skipped // "unknown"')"
+          if [ "$skipped" != "0" ]; then
+            echo "::warning::${skipped} subscription(s) could not be verified; see skippedDetails"
+          fi

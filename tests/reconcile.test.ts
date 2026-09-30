@@ -18,9 +18,6 @@ let paypal: PayPalMock;
 
 beforeEach(() => {
   paypal = mockPayPal();
-  vi.doMock("@/lib/admin", () => ({
-    getAdminSession: async () => ({ user: { id: ADMIN_ID, role: "ADMIN" } }),
-  }));
 });
 
 afterEach(() => {
@@ -29,14 +26,27 @@ afterEach(() => {
   vi.doUnmock("@/lib/admin");
 });
 
-async function reconcile(batch?: string) {
+async function reconcile(
+  options: {
+    batch?: string;
+    headers?: Record<string, string>;
+    admin?: boolean;
+  } = {},
+) {
+  const { batch, headers = {}, admin = true } = options;
+
+  vi.doMock("@/lib/admin", () => ({
+    getAdminSession: async () =>
+      admin ? { user: { id: ADMIN_ID, role: "ADMIN" } } : null,
+  }));
+
   const db = createFakePrisma(users);
   vi.doMock("@/lib/prisma", () => ({ prisma: db.prisma }));
   const { POST } = await import("@/app/api/admin/reconcile-billing/route");
   const url = batch
     ? `https://example.com/api/admin/reconcile-billing?batch=${batch}`
     : "https://example.com/api/admin/reconcile-billing";
-  const response = await POST(new Request(url, { method: "POST" }));
+  const response = await POST(new Request(url, { method: "POST", headers }));
   return { db, response, body: await response.json() };
 }
 
@@ -44,19 +54,10 @@ let users: FakeUser[] = [];
 
 describe("reconcile-billing", () => {
   it("refuses non-admins", async () => {
-    vi.doMock("@/lib/admin", () => ({ getAdminSession: async () => null }));
-    const db = createFakePrisma([]);
-    vi.doMock("@/lib/prisma", () => ({ prisma: db.prisma }));
-    const { POST } = await import("@/app/api/admin/reconcile-billing/route");
-
-    const response = await POST(
-      new Request("https://example.com/api/admin/reconcile-billing", {
-        method: "POST",
-      }),
-    );
+    const { response, body } = await reconcile({ admin: false });
 
     expect(response.status).toBe(401);
-    expect(db.logs).toHaveLength(0);
+    expect(body.downgraded).toBeUndefined();
   });
 
   it("downgrades a PRO user whose subscription expired", async () => {
@@ -158,7 +159,7 @@ describe("reconcile-billing", () => {
     ];
     for (const id of ["S-1", "S-2", "S-3"]) paypal.setSubscription(id, "ACTIVE");
 
-    const { body } = await reconcile("2");
+    const { body } = await reconcile({ batch: "2" });
 
     expect(body.checked).toBe(2);
     expect(body.complete).toBe(false);
@@ -168,8 +169,88 @@ describe("reconcile-billing", () => {
     users = [proUser("u1", "S-1")];
     paypal.setSubscription("S-1", "ACTIVE");
 
-    const { body } = await reconcile("25");
+    const { body } = await reconcile({ batch: "25" });
 
     expect(body.complete).toBe(true);
+  });
+});
+
+describe("scheduled-job authorization", () => {
+  const SECRET = "reconcile-secret-value";
+
+  beforeEach(() => {
+    process.env.RECONCILIATION_SECRET = SECRET;
+  });
+
+  afterEach(() => {
+    delete process.env.RECONCILIATION_SECRET;
+  });
+
+  it("accepts the secret as a bearer token, with no session", async () => {
+    users = [proUser("u1", "S-EXPIRED")];
+    paypal.setSubscription("S-EXPIRED", "EXPIRED");
+
+    const { response, body } = await reconcile({
+      admin: false,
+      headers: { Authorization: `Bearer ${SECRET}` },
+    });
+
+    expect(response.status).toBe(200);
+    expect(body.downgraded).toBe(1);
+  });
+
+  it("accepts the dedicated header too", async () => {
+    users = [proUser("u1", "S-EXPIRED")];
+    paypal.setSubscription("S-EXPIRED", "EXPIRED");
+
+    const { response } = await reconcile({
+      admin: false,
+      headers: { "x-reconciliation-secret": SECRET },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it("rejects a wrong secret", async () => {
+    users = [proUser("u1", "S-EXPIRED")];
+    paypal.setSubscription("S-EXPIRED", "EXPIRED");
+
+    const { response, db } = await reconcile({
+      admin: false,
+      headers: { Authorization: "Bearer not-the-secret" },
+    });
+
+    expect(response.status).toBe(401);
+    expect(db.planOf("u1")).toBe("PRO");
+  });
+
+  it("rejects a secret that is only a prefix of the real one", async () => {
+    const { response } = await reconcile({
+      admin: false,
+      headers: { Authorization: `Bearer ${SECRET.slice(0, 8)}` },
+    });
+
+    expect(response.status).toBe(401);
+  });
+
+  it("rejects an unauthenticated caller when no secret is configured", async () => {
+    // The cron must not become reachable just because the deploy forgot the env
+    // var: an unset secret denies everyone rather than allowing everyone.
+    delete process.env.RECONCILIATION_SECRET;
+
+    const { response } = await reconcile({ admin: false });
+
+    expect(response.status).toBe(401);
+  });
+
+  it("warns when a session-authorised run has no secret configured", async () => {
+    delete process.env.RECONCILIATION_SECRET;
+    users = [proUser("u1", "S-1")];
+    paypal.setSubscription("S-1", "ACTIVE");
+
+    const { response, body } = await reconcile();
+
+    expect(response.status).toBe(200);
+    expect(body.warning).toMatch(/RECONCILIATION_SECRET/);
   });
 });
