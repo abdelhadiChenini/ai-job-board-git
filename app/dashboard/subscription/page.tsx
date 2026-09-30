@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
+import { Check } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { normalizePlan } from "@/lib/subscription";
+import {
+  EARLY_ACCESS_WINDOW_HOURS,
+  FREE_DAILY_APPLICATION_LIMIT,
+  normalizePlan,
+} from "@/lib/subscription";
 import { getSubscriptionDetails, PayPalError } from "@/lib/paypal";
 import DashboardSidebar from "../DashboardSidebar";
 import UpgradeButton from "@/app/components/UpgradeButton";
@@ -13,6 +19,15 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+
+const PRO_PRICE = "$10";
+
+const PRO_BENEFITS = [
+  `Unlimited applications, instead of ${FREE_DAILY_APPLICATION_LIMIT} per day`,
+  `New roles ${EARLY_ACCESS_WINDOW_HOURS} hours before anyone else`,
+  'A "Pro" badge in the expert directory',
+  "Priority support",
+] as const;
 
 const PLAN_LABEL: Record<"FREE" | "PRO", string> = {
   FREE: "Free",
@@ -192,7 +207,13 @@ export default async function DashboardSubscriptionPage() {
           </section>
 
           {plan === "FREE" && (
-            <section className={card}>
+            <section
+              className={`${card} border-accent/30`}
+              style={{
+                backgroundImage:
+                  "radial-gradient(600px 320px at 85% -20%, rgba(56,189,248,0.12), transparent 60%)",
+              }}
+            >
               <p className={label}>Upgrade</p>
               <h2 className="mt-1 text-xl font-bold text-white">
                 Get unlimited applications
@@ -201,9 +222,36 @@ export default async function DashboardSubscriptionPage() {
                 Pro removes the daily application limit and gives you early
                 access to newly posted roles.
               </p>
-              <div className="mt-5">
+
+              <ul className="mt-5 flex flex-col gap-2">
+                {PRO_BENEFITS.map((benefit) => (
+                  <li
+                    key={benefit}
+                    className="flex items-start gap-2 text-sm text-slate-300"
+                  >
+                    <Check
+                      aria-hidden="true"
+                      className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                    />
+                    {benefit}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6">
                 <UpgradeButton />
               </div>
+
+              <p className="mt-4 text-center text-xs text-slate-500">
+                {PRO_PRICE}/month, billed through PayPal. Cancel any time.
+              </p>
+
+              <Link
+                href="/pricing"
+                className="mt-4 block text-center text-sm font-semibold text-accent transition-colors hover:text-accent/80"
+              >
+                View Pro plans
+              </Link>
             </section>
           )}
 

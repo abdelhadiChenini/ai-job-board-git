@@ -12,6 +12,7 @@ const navItems = [
   { label: "Experts", href: "/experts" },
   { label: "For Companies", href: "/for-companies" },
   { label: "Blog", href: "/blog" },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 export async function TopNav() {
@@ -50,7 +51,7 @@ export async function TopNav() {
           )}
         </Link>
 
-        <div className="hidden flex-1 items-center justify-center gap-8 lg:flex">
+        <div className="hidden flex-1 items-center justify-center gap-6 lg:flex xl:gap-8">
           {navItems.map((item) => (
             <Link
               key={item.label}

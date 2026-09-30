@@ -101,6 +101,7 @@ export async function Footer() {
         { label: "Blog", href: "/blog" },
         { label: "Guides", href: "/guides" },
         { label: "FAQ", href: "/faq" },
+        { label: "Pricing", href: "/pricing" },
         { label: "Support", href: "/contact" },
       ],
     },
@@ -109,7 +110,6 @@ export async function Footer() {
       links: [
         { label: "Post a Job", href: "/for-companies" },
         { label: "Hire Experts", href: "/for-companies" },
-        { label: "Pricing", href: "/for-companies" },
         { label: "Contact Us", href: "/contact" },
       ],
     },

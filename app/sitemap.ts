@@ -18,6 +18,7 @@ const staticRoutes: Array<{
   { path: "/experts", changeFrequency: "weekly", priority: 0.8 },
   { path: "/platforms", changeFrequency: "weekly", priority: 0.7 },
   { path: "/faq", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/pricing", changeFrequency: "monthly", priority: 0.7 },
   { path: "/register", changeFrequency: "monthly", priority: 0.4 },
   { path: "/login", changeFrequency: "monthly", priority: 0.3 },
 ];
