@@ -18,11 +18,40 @@ export class PayPalError extends Error {
   }
 }
 
+/**
+ * Environment variables have been named inconsistently across this project's
+ * deployments — the local and Hostinger setups use `PAYPAL_SECRET` and
+ * `NEXT_PUBLIC_PAYPAL_PLAN_ID`, while `.env.example` and the test config use
+ * `PAYPAL_CLIENT_SECRET` and `PAYPAL_PLAN_ID`. Reading only one spelling meant a
+ * correctly configured host still failed the `if (!planId)` guard in
+ * `create-subscription` and answered checkout with a 503.
+ *
+ * Each value below therefore accepts both names. The canonical (documented) name
+ * is preferred so `.env.example` stays authoritative, and the alternate is a
+ * fallback rather than a replacement — this keeps the existing working
+ * deployments working without a coordinated rename.
+ *
+ * `PAYPAL_SECRET` is a secret and stays server-only. The plan ID is not
+ * sensitive (it appears in PayPal's own client-side samples), so reading
+ * `NEXT_PUBLIC_PAYPAL_PLAN_ID` as a fallback is safe.
+ */
+function readEnv(...names: string[]): string | undefined {
+  for (const name of names) {
+    const value = process.env[name];
+
+    if (typeof value === "string" && value.trim() !== "") {
+      return value.trim();
+    }
+  }
+
+  return undefined;
+}
+
 export function getPayPalConfig() {
-  const clientId = process.env.PAYPAL_CLIENT_ID;
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-  const planId = process.env.PAYPAL_PLAN_ID;
-  const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+  const clientId = readEnv("PAYPAL_CLIENT_ID", "NEXT_PUBLIC_PAYPAL_CLIENT_ID");
+  const clientSecret = readEnv("PAYPAL_CLIENT_SECRET", "PAYPAL_SECRET");
+  const planId = readEnv("PAYPAL_PLAN_ID", "NEXT_PUBLIC_PAYPAL_PLAN_ID");
+  const webhookId = readEnv("PAYPAL_WEBHOOK_ID");
 
   return { clientId, clientSecret, planId, webhookId };
 }
