@@ -126,7 +126,8 @@ model User {
   expertProfile ExpertProfile?
   savedOpportunities   SavedOpportunity[]
   appliedOpportunities AppliedOpportunity[]
-  planChangeLogs       PlanChangeLog[]
+  planChangeLogs       PlanChangeLog[] @relation("PlanChangeSubject")
+  planChangesPerformed PlanChangeLog[] @relation("PlanChangeActor")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -135,16 +136,22 @@ model User {
 }
 
 model PlanChangeLog {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  oldPlan   String   @map("old_plan")
-  newPlan   String   @map("new_plan")
-  changedBy String   @map("changed_by")
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(cuid())
+  userId      String?  @map("user_id")
+  oldPlan     String   @map("old_plan")
+  newPlan     String   @map("new_plan")
+  changedBy   String   @map("changed_by")
+  changedById String?  @map("changed_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // SetNull rather than Cascade: billing records must outlive the account they
+  // refer to, so deleting a user (or an admin) blanks the link instead of
+  // destroying the audit row. The `changedBy` label survives either way.
+  user          User? @relation("PlanChangeSubject", fields: [userId], references: [id], onDelete: SetNull)
+  changedByUser User? @relation("PlanChangeActor", fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([changedById])
   @@index([createdAt])
   @@map("plan_change_logs")
 }

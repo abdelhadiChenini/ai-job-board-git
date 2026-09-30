@@ -8,6 +8,12 @@ export const EARLY_ACCESS_WINDOW_MS = EARLY_ACCESS_WINDOW_HOURS * 60 * 60 * 1000
 
 export type Plan = "FREE" | "PRO";
 
+export type PlanChangeSource = "admin" | "webhook";
+
+export type ApplyPlanChangeResult =
+  | { ok: true; changed: boolean }
+  | { ok: false; error: string };
+
 export type ApplyBlockReason = "early_access" | "daily_limit";
 
 /**
@@ -92,6 +98,54 @@ export async function canApplyToJob(
   }
 
   return { allowed: true };
+}
+
+/**
+ * Single write path for plan changes, shared by the admin override and the
+ * PayPal webhook so the two can never drift apart. Writes the user row and its
+ * audit row in one transaction, and treats a no-op change as success without
+ * logging — which also makes redelivered webhooks idempotent.
+ */
+export async function applyPlanChange(params: {
+  userId: string;
+  plan: Plan;
+  changedBy: PlanChangeSource;
+  changedById?: string | null;
+  paypalSubscriptionId?: string | null;
+}): Promise<ApplyPlanChangeResult> {
+  const { userId, plan, changedBy, changedById = null } = params;
+
+  const previous = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { plan: true },
+  });
+
+  if (!previous) {
+    return { ok: false, error: "User not found." };
+  }
+
+  const oldPlan = normalizePlan(previous.plan);
+
+  if (oldPlan === plan) {
+    return { ok: true, changed: false };
+  }
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        plan,
+        ...(params.paypalSubscriptionId !== undefined
+          ? { paypalSubscriptionId: params.paypalSubscriptionId }
+          : {}),
+      },
+    }),
+    prisma.planChangeLog.create({
+      data: { userId, oldPlan, newPlan: plan, changedBy, changedById },
+    }),
+  ]);
+
+  return { ok: true, changed: true };
 }
 
 export function formatUnlockCountdown(unlocksAt: Date, now: Date): string {
