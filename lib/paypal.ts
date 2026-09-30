@@ -71,7 +71,7 @@ async function getAccessToken(): Promise<string> {
 
 async function paypalFetch<T>(
   path: string,
-  init: RequestInit,
+  init: RequestInit = {},
 ): Promise<T> {
   const token = await getAccessToken();
 
@@ -97,6 +97,27 @@ export type PayPalSubscription = {
   status: string;
   links?: { href: string; rel: string }[];
 };
+
+/**
+ * Statuses that mean the customer has (or still has) paid access. PayPal keeps
+ * the `CANCELLED` subscription readable and entitled until the period already
+ * paid for runs out, at which point it becomes `EXPIRED`. Only `EXPIRED` — plus
+ * `SUSPENDED`, which PayPal applies after failed payment recovery — means the
+ * paid access is really gone.
+ */
+export const ACTIVE_SUBSCRIPTION_STATUSES: ReadonlySet<string> = new Set([
+  "ACTIVE",
+  "APPROVAL_PENDING",
+  "CANCELLED",
+]);
+
+export async function getSubscription(
+  subscriptionId: string,
+): Promise<PayPalSubscription> {
+  return paypalFetch<PayPalSubscription>(
+    `/v1/billing/subscriptions/${encodeURIComponent(subscriptionId)}`,
+  );
+}
 
 export async function createSubscription(params: {
   planId: string;

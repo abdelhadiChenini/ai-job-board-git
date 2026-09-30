@@ -8,10 +8,20 @@ export const EARLY_ACCESS_WINDOW_MS = EARLY_ACCESS_WINDOW_HOURS * 60 * 60 * 1000
 
 export type Plan = "FREE" | "PRO";
 
-export type PlanChangeSource = "admin" | "webhook";
+export type PlanChangeSource = "admin" | "webhook" | "reconcile";
 
 export type ApplyPlanChangeResult =
-  | { ok: true; changed: boolean }
+  | {
+      ok: true;
+      changed: boolean;
+      /**
+       * Set when the change was intentionally not applied because a guard did
+       * not hold — e.g. a webhook for a subscription the user has since
+       * replaced. Callers should treat this as "nothing to do", not as a
+       * failure: retrying cannot change the outcome and would loop forever.
+       */
+      skipReason?: "subscription_mismatch";
+    }
   | { ok: false; error: string };
 
 export type ApplyBlockReason = "early_access" | "daily_limit";
@@ -101,10 +111,20 @@ export async function canApplyToJob(
 }
 
 /**
- * Single write path for plan changes, shared by the admin override and the
- * PayPal webhook so the two can never drift apart. Writes the user row and its
- * audit row in one transaction, and treats a no-op change as success without
- * logging — which also makes redelivered webhooks idempotent.
+ * Single write path for plan changes, shared by the admin override, the PayPal
+ * webhook and the reconciliation job so they can never drift apart. Writes the
+ * user row and its audit row in one transaction.
+ *
+ * Two behaviours matter for correctness:
+ *
+ * - A no-op plan change is success without logging. This is also what makes
+ *   redelivered webhooks idempotent.
+ * - `requireSubscriptionId` is an optimistic-concurrency guard evaluated inside
+ *   the same transaction as the read. A customer who cancels and re-subscribes
+ *   will receive an `EXPIRED` webhook for the *old* subscription; without this
+ *   guard that stale event would revoke the access they just paid for. The guard
+ *   compares the user's stored id to the id in the event, so only the
+ *   subscription that actually granted access can change the plan.
  */
 export async function applyPlanChange(params: {
   userId: string;
@@ -112,40 +132,60 @@ export async function applyPlanChange(params: {
   changedBy: PlanChangeSource;
   changedById?: string | null;
   paypalSubscriptionId?: string | null;
+  requireSubscriptionId?: string | null;
 }): Promise<ApplyPlanChangeResult> {
   const { userId, plan, changedBy, changedById = null } = params;
 
   const previous = await prisma.user.findUnique({
     where: { id: userId },
-    select: { plan: true },
+    select: { plan: true, paypalSubscriptionId: true },
   });
 
   if (!previous) {
     return { ok: false, error: "User not found." };
   }
 
-  const oldPlan = normalizePlan(previous.plan);
+  if (
+    params.requireSubscriptionId !== undefined &&
+    previous.paypalSubscriptionId !== params.requireSubscriptionId
+  ) {
+    return { ok: true, changed: false, skipReason: "subscription_mismatch" };
+  }
 
-  if (oldPlan === plan) {
+  const oldPlan = normalizePlan(previous.plan);
+  const planChanged = oldPlan !== plan;
+  const subscriptionIdChanged =
+    params.paypalSubscriptionId !== undefined &&
+    previous.paypalSubscriptionId !== params.paypalSubscriptionId;
+
+  if (!planChanged && !subscriptionIdChanged) {
     return { ok: true, changed: false };
   }
 
-  await prisma.$transaction([
-    prisma.user.update({
+  // Interactive form rather than the array form: Prisma's generated types pin
+  // the array form to a two-element tuple, and the log is conditional here.
+  // Either way the user row and its audit row commit together or not at all.
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
       where: { id: userId },
       data: {
-        plan,
+        ...(planChanged ? { plan } : {}),
         ...(params.paypalSubscriptionId !== undefined
           ? { paypalSubscriptionId: params.paypalSubscriptionId }
           : {}),
       },
-    }),
-    prisma.planChangeLog.create({
-      data: { userId, oldPlan, newPlan: plan, changedBy, changedById },
-    }),
-  ]);
+    });
 
-  return { ok: true, changed: true };
+    // Clearing a stale subscription id is not itself a plan change, so it
+    // writes the user row without adding a FREE -> FREE audit row.
+    if (planChanged) {
+      await tx.planChangeLog.create({
+        data: { userId, oldPlan, newPlan: plan, changedBy, changedById },
+      });
+    }
+  });
+
+  return { ok: true, changed: planChanged };
 }
 
 export function formatUnlockCountdown(unlocksAt: Date, now: Date): string {

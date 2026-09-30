@@ -80,16 +80,33 @@ export async function POST(request: Request) {
     );
   }
 
+  const expiring = eventType === "BILLING.SUBSCRIPTION.EXPIRED";
+
   try {
     const result = await applyPlanChange({
       userId,
       plan,
       changedBy: "webhook",
-      paypalSubscriptionId: event.resource?.id ?? null,
+      // Activation records the new subscription, which supersedes any previous
+      // one. Expiration instead clears the field, but only when the expiring
+      // subscription is the one currently granting access.
+      paypalSubscriptionId: expiring ? null : (event.resource?.id ?? null),
+      ...(expiring ? { requireSubscriptionId: event.resource?.id ?? null } : {}),
     });
 
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 404 });
+    }
+
+    // A stale expiration for a replaced subscription is not an error: the user
+    // still holds the newer one, so acknowledge with 200 and make no change.
+    if (result.skipReason === "subscription_mismatch") {
+      return NextResponse.json({
+        received: true,
+        handled: true,
+        changed: false,
+        reason: result.skipReason,
+      });
     }
 
     return NextResponse.json({ received: true, handled: true, changed: result.changed });
