@@ -15,6 +15,7 @@ function toSafeUser(user: {
   role: string;
   plan: string;
   isFeatured: boolean;
+  paypalSubscriptionId: string | null;
   expertProfile?: { verificationStatus: string } | null;
 }) {
   return {
@@ -25,6 +26,7 @@ function toSafeUser(user: {
     // ever receives a value its <select> can render.
     plan: user.plan === "PRO" ? "PRO" : "FREE",
     isFeatured: user.isFeatured,
+    paypalSubscriptionId: user.paypalSubscriptionId,
     verificationStatus: user.expertProfile?.verificationStatus ?? null,
   };
 }
@@ -51,6 +53,7 @@ export async function GET(request: NextRequest) {
       role: true,
       plan: true,
       isFeatured: true,
+      paypalSubscriptionId: true,
       createdAt: true,
       updatedAt: true,
       expertProfile: {

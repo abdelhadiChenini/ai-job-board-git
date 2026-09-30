@@ -126,11 +126,27 @@ model User {
   expertProfile ExpertProfile?
   savedOpportunities   SavedOpportunity[]
   appliedOpportunities AppliedOpportunity[]
+  planChangeLogs       PlanChangeLog[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model PlanChangeLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  oldPlan   String   @map("old_plan")
+  newPlan   String   @map("new_plan")
+  changedBy String   @map("changed_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("plan_change_logs")
 }
 
 model ExpertProfile {

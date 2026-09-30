@@ -15,6 +15,7 @@ type ApiUser = {
   role: string;
   plan: Plan;
   isFeatured: boolean;
+  paypalSubscriptionId: string | null;
   verificationStatus: VerificationStatus | null;
   createdAt: string;
   updatedAt: string;
@@ -312,25 +313,35 @@ export function UserTable() {
                 <tr key={user.id} className="border-t border-slate-700/60">
                   <td className="py-3 pr-4 text-white">{user.email}</td>
                   <td className="py-3 pr-4">
-                    <select
-                      aria-label={`Subscription plan for ${user.email}`}
-                      value={user.plan}
-                      disabled={busy}
-                      onChange={(event) =>
-                        void changePlan(
-                          user,
-                          event.currentTarget.value as Plan,
-                        )
-                      }
-                      className={
-                        user.plan === "PRO"
-                          ? "rounded-full border border-amber-400/40 bg-amber-400/15 px-2.5 py-1 text-xs font-semibold text-amber-300 focus:outline-none disabled:opacity-60"
-                          : "rounded-full border border-slate-700 bg-slate-500/15 px-2.5 py-1 text-xs font-semibold text-slate-400 focus:outline-none disabled:opacity-60"
-                      }
-                    >
-                      <option value="FREE">FREE</option>
-                      <option value="PRO">PRO</option>
-                    </select>
+                    <div className="flex flex-col items-start gap-1">
+                      <select
+                        aria-label={`Subscription plan for ${user.email}`}
+                        value={user.plan}
+                        disabled={busy}
+                        onChange={(event) =>
+                          void changePlan(
+                            user,
+                            event.currentTarget.value as Plan,
+                          )
+                        }
+                        className={
+                          user.plan === "PRO"
+                            ? "rounded-full border border-amber-400/40 bg-amber-400/15 px-2.5 py-1 text-xs font-semibold text-amber-300 focus:outline-none disabled:opacity-60"
+                            : "rounded-full border border-slate-700 bg-slate-500/15 px-2.5 py-1 text-xs font-semibold text-slate-400 focus:outline-none disabled:opacity-60"
+                        }
+                      >
+                        <option value="FREE">FREE</option>
+                        <option value="PRO">PRO</option>
+                      </select>
+                      {user.paypalSubscriptionId && (
+                        <span
+                          title={user.paypalSubscriptionId}
+                          className="max-w-[13rem] truncate font-mono text-[11px] text-slate-500"
+                        >
+                          {user.paypalSubscriptionId}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 pr-4">{statusBadge(user)}</td>
                   <td className="py-3 pr-4">
