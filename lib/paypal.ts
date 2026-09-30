@@ -12,13 +12,27 @@
 
 const PAYPAL_BASE_URL = "https://api-m.paypal.com";
 
+/**
+ * `details` is PayPal's own response body, verbatim.
+ *
+ * It is the *upstream* error, never ours: the OAuth and billing error bodies
+ * PayPal returns do not echo the client secret, and the one value they can echo
+ * back is the plan id, which is already public in the client bundle. That makes
+ * it safe to hand to a signed-in caller, and it is the difference between
+ * diagnosing a checkout failure from a browser console and needing an SSH
+ * session on the host. It is deliberately a raw string rather than parsed JSON:
+ * a 502 from a proxy or a DNS-level failure in front of PayPal comes back as
+ * HTML, and that HTML is the most diagnostic thing available.
+ */
 export class PayPalError extends Error {
   readonly status: number;
+  readonly details?: string;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, details?: string) {
     super(message);
     this.name = "PayPalError";
     this.status = status;
+    this.details = details;
   }
 }
 
@@ -107,16 +121,20 @@ async function getAccessToken(): Promise<string> {
   });
 
   if (!response.ok) {
+    // Read once and reuse: a Response body can only be consumed a single time,
+    // and this string is both the log line and the payload for the client.
+    const body = await response.text();
+
     // PayPal's body is the diagnosis: it names `invalid_client` for a bad or
     // whitespace-padded secret, `invalid_request` for a malformed header, and
     // carries a `debug_id` support can trace. None of it contains the client id
     // or secret, so it is safe to log, and the client still gets a generic 502.
     console.error(
       `[paypal] OAuth token request to ${tokenUrl} failed: ${response.status} ${response.statusText} —`,
-      await response.text(),
+      body,
     );
 
-    throw new PayPalError("Could not authenticate with PayPal.", 502);
+    throw new PayPalError("Could not authenticate with PayPal.", 502, body);
   }
 
   const data = (await response.json()) as { access_token?: string };
@@ -145,7 +163,15 @@ async function paypalFetch<T>(
   });
 
   if (!response.ok) {
-    throw new PayPalError("PayPal request failed.", response.status);
+    // Same reasoning as the OAuth failure: this is the branch that reports a
+    // rejected subscription creation, and `RESOURCE_NOT_FOUND` /
+    // `UNPROCESSABLE_ENTITY` on a plan id is exactly the diagnostic that was
+    // previously swallowed into a bare 502.
+    throw new PayPalError(
+      "PayPal request failed.",
+      response.status,
+      await response.text(),
+    );
   }
 
   return (await response.json()) as T;

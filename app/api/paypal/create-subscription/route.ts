@@ -130,14 +130,29 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof PayPalError) {
+      // `details` is PayPal's own body, surfaced so the upstream failure can be
+      // read from a browser console instead of an SSH session. The `error` copy
+      // stays user-facing and generic; only the diagnostic field is raw. The
+      // caller is already authenticated (see the session guard above).
       return NextResponse.json(
-        { error: "Could not start the PayPal subscription. Try again." },
+        {
+          error: "Could not start the PayPal subscription. Try again.",
+          details: error.details ?? null,
+        },
         { status: error.status === 500 ? 503 : 502 },
       );
     }
 
+    // A request that never reached PayPal — DNS, TLS, or blocked egress — throws
+    // a TypeError rather than a PayPalError, so there is no body to read. Its
+    // message is the only clue that the host cannot reach the live API at all,
+    // which is a different fault entirely from bad credentials and was
+    // previously indistinguishable from them.
     return NextResponse.json(
-      { error: "Could not start the PayPal subscription. Try again." },
+      {
+        error: "Could not start the PayPal subscription. Try again.",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 502 },
     );
   }

@@ -34,7 +34,12 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? "";
 // widening schedule until the webhook catches up.
 const REFRESH_SCHEDULE_MS = [1_500, 3_000, 6_000, 10_000, 20_000];
 
-type CreateResponse = { id?: string; error?: string };
+type CreateResponse = {
+  id?: string;
+  error?: string;
+  /** PayPal's raw upstream body, forwarded by the route purely for diagnosis. */
+  details?: string | null;
+};
 
 export default function UpgradeButton() {
   const router = useRouter();
@@ -62,10 +67,30 @@ export default function UpgradeButton() {
       body: JSON.stringify({ returnPath: here, cancelPath: here }),
     });
 
-    const data = (await response.json()) as CreateResponse;
+    // Read as text first so a non-JSON body is still diagnosable. A proxy or
+    // host-level error page can answer before this route ever runs, and
+    // `response.json()` would throw on it, losing the only evidence of what did.
+    const raw = await response.text();
+    let data: CreateResponse | null = null;
 
-    if (!response.ok || !data.id) {
-      throw new Error(data.error ?? "Could not start checkout.");
+    try {
+      data = JSON.parse(raw) as CreateResponse;
+    } catch {
+      console.error(
+        `[paypal] create-subscription answered ${response.status} with a non-JSON body:`,
+        raw,
+      );
+    }
+
+    if (!response.ok || !data?.id) {
+      if (data?.details) {
+        console.error(
+          "[paypal] upstream PayPal error from create-subscription:",
+          data.details,
+        );
+      }
+
+      throw new Error(data?.error ?? "Could not start checkout.");
     }
 
     // Handing PayPal a server-created id is what lets the SDK render its own
