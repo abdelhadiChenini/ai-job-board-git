@@ -19,8 +19,11 @@ import { Sparkles } from "lucide-react";
  * free plan. Creating it server-side keeps the user binding, and the plan itself
  * is still only ever granted by a verified webhook.
  *
- * `vault` is intentionally not set: it is a `createOrder` option for one-off
- * payments and has no meaning under `intent: "subscription"`.
+ * `vault: true` is required, not cosmetic. PayPal's script configuration docs
+ * state that `intent=subscription` is "used along with `vault=true`", and every
+ * official subscription sample pairs them. Without it the SDK treats the load as
+ * a one-off payment flow, filters the funding sources down to ones that cannot be
+ * saved, and the script itself 400s — so no buttons render at all.
  */
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? "";
@@ -108,6 +111,7 @@ export default function UpgradeButton() {
       <PayPalScriptProvider
         options={{
           clientId: CLIENT_ID,
+          vault: true,
           intent: "subscription",
           currency: "USD",
         }}
