@@ -13,6 +13,7 @@ function toSafeUser(user: {
   id: string;
   email: string;
   role: string;
+  plan: string;
   isFeatured: boolean;
   expertProfile?: { verificationStatus: string } | null;
 }) {
@@ -20,6 +21,9 @@ function toSafeUser(user: {
     id: user.id,
     email: user.email,
     role: user.role,
+    // `plan` is a free-form String column; normalise so the admin table only
+    // ever receives a value its <select> can render.
+    plan: user.plan === "PRO" ? "PRO" : "FREE",
     isFeatured: user.isFeatured,
     verificationStatus: user.expertProfile?.verificationStatus ?? null,
   };
@@ -45,6 +49,7 @@ export async function GET(request: NextRequest) {
       id: true,
       email: true,
       role: true,
+      plan: true,
       isFeatured: true,
       createdAt: true,
       updatedAt: true,

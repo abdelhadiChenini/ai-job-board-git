@@ -3,8 +3,9 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import Modal from "../Modal";
-import { updateExpertStatus, setFeatured } from "./actions";
+import { updateExpertStatus, setFeatured, setUserPlan } from "./actions";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
+import type { Plan } from "@/lib/subscription";
 
 type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
@@ -12,6 +13,7 @@ type ApiUser = {
   id: string;
   email: string;
   role: string;
+  plan: Plan;
   isFeatured: boolean;
   verificationStatus: VerificationStatus | null;
   createdAt: string;
@@ -198,6 +200,35 @@ export function UserTable() {
     }
   };
 
+  const changePlan = async (user: ApiUser, plan: Plan) => {
+    const previous = user.plan;
+    if (plan === previous) return;
+
+    setBusy(true);
+    setTableError(null);
+
+    // Optimistic so the badge reacts instantly; `load()` reconciles on success
+    // and both failure paths roll back.
+    setUsers((prev) =>
+      prev.map((row) => (row.id === user.id ? { ...row, plan } : row)),
+    );
+
+    try {
+      const result = await setUserPlan(user.id, plan);
+      if (result && !result.ok) {
+        setTableError(result.error ?? "Could not update the plan.");
+        await load();
+        return;
+      }
+      await load();
+    } catch {
+      setTableError("Network error while updating the plan.");
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const toggleFeatured = async (user: ApiUser) => {
     const next = !user.isFeatured;
     setBusy(true);
@@ -267,6 +298,7 @@ export function UserTable() {
             <thead>
               <tr className="text-xs uppercase tracking-wide text-slate-500">
                 <th className="pb-3 pr-4 font-semibold">Email</th>
+                <th className="pb-3 pr-4 font-semibold">Plan</th>
                 <th className="pb-3 pr-4 font-semibold">Status</th>
                 <th className="pb-3 pr-4 font-semibold">Role</th>
                 <th className="pb-3 pr-4 font-semibold">Created</th>
@@ -279,6 +311,27 @@ export function UserTable() {
               {users.map((user) => (
                 <tr key={user.id} className="border-t border-slate-700/60">
                   <td className="py-3 pr-4 text-white">{user.email}</td>
+                  <td className="py-3 pr-4">
+                    <select
+                      aria-label={`Subscription plan for ${user.email}`}
+                      value={user.plan}
+                      disabled={busy}
+                      onChange={(event) =>
+                        void changePlan(
+                          user,
+                          event.currentTarget.value as Plan,
+                        )
+                      }
+                      className={
+                        user.plan === "PRO"
+                          ? "rounded-full border border-amber-400/40 bg-amber-400/15 px-2.5 py-1 text-xs font-semibold text-amber-300 focus:outline-none disabled:opacity-60"
+                          : "rounded-full border border-slate-700 bg-slate-500/15 px-2.5 py-1 text-xs font-semibold text-slate-400 focus:outline-none disabled:opacity-60"
+                      }
+                    >
+                      <option value="FREE">FREE</option>
+                      <option value="PRO">PRO</option>
+                    </select>
+                  </td>
                   <td className="py-3 pr-4">{statusBadge(user)}</td>
                   <td className="py-3 pr-4">
                     <span className={roleBadge(user.role)}>{user.role}</span>
