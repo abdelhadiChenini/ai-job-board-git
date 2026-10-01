@@ -37,15 +37,39 @@ async function withDb(users: FakeUser[]) {
   return db;
 }
 
-async function send(body: unknown, headers: Record<string, string> = signatureHeaders()) {
-  const { POST } = await import("@/app/api/webhooks/paypal/route");
+/**
+ * Dispatches through a mounted route so the test exercises the real file that
+ * Next would route the request to, not the shared handler behind it.
+ */
+async function post(
+  modulePath: string,
+  urlPath: string,
+  body: unknown,
+  headers: Record<string, string>,
+) {
+  const { POST } = await import(modulePath);
   return POST(
-    new Request("https://example.com/api/webhooks/paypal", {
+    new Request(`https://example.com${urlPath}`, {
       method: "POST",
       headers: { "content-type": "application/json", ...headers },
       body: typeof body === "string" ? body : JSON.stringify(body),
     }),
   );
+}
+
+const LEGACY_PATH = "@/app/api/webhooks/paypal/route";
+const PRIMARY_PATH = "@/app/api/paypal/webhook/route";
+
+async function send(body: unknown, headers: Record<string, string> = signatureHeaders()) {
+  return post(LEGACY_PATH, "/api/webhooks/paypal", body, headers);
+}
+
+/** The path registered with the PayPal dashboard. */
+async function sendPrimary(
+  body: unknown,
+  headers: Record<string, string> = signatureHeaders(),
+) {
+  return post(PRIMARY_PATH, "/api/paypal/webhook", body, headers);
 }
 
 const activated = (id: string, customId = USER_ID) => ({
@@ -234,12 +258,94 @@ describe("expiration", () => {
   });
 });
 
+describe("mounted paths", () => {
+  it("serves the dashboard path and grants PRO on activation", async () => {
+    // The regression this guards: PayPal was registered with
+    // /api/paypal/webhook while the handler only existed at /api/webhooks/paypal,
+    // so a completed live subscription 404ed and never upgraded anyone.
+    await withDb([seedUser()]);
+
+    const response = await sendPrimary(activated(NEW_SUB));
+
+    expect(response.status).toBe(200);
+    expect(db.planOf(USER_ID)).toBe("PRO");
+    expect(db.subscriptionOf(USER_ID)).toBe(NEW_SUB);
+  });
+
+  it("keeps the legacy path working for an existing dashboard config", async () => {
+    await withDb([seedUser()]);
+
+    const response = await send(activated(NEW_SUB));
+
+    expect(response.status).toBe(200);
+    expect(db.planOf(USER_ID)).toBe("PRO");
+  });
+});
+
+describe("PAYMENT.SALE.COMPLETED", () => {
+  it("resolves the user from the stored subscription when custom_id is absent", async () => {
+    // A renewal sale that PayPal did not echo custom_id on. The stored
+    // subscription id is the only link back to the user.
+    await withDb([
+      seedUser({ plan: "FREE", paypalSubscriptionId: NEW_SUB }),
+    ]);
+
+    const response = await send({
+      event_type: "PAYMENT.SALE.COMPLETED",
+      resource: { id: "SALE-1", billing_agreement_id: NEW_SUB },
+    });
+
+    expect(response.status).toBe(200);
+    expect(db.planOf(USER_ID)).toBe("PRO");
+    expect(db.subscriptionOf(USER_ID)).toBe(NEW_SUB);
+  });
+
+  it("stores the agreement id, never the sale id", async () => {
+    // The sale id is not a subscription id. Writing it into
+    // `paypalSubscriptionId` makes every later subscription read fail, and the
+    // reconciliation sweep would treat the user as broken.
+    await withDb([seedUser()]);
+
+    await send({
+      event_type: "PAYMENT.SALE.COMPLETED",
+      resource: { id: "SALE-1", custom_id: USER_ID, billing_agreement_id: NEW_SUB },
+    });
+
+    expect(db.subscriptionOf(USER_ID)).toBe(NEW_SUB);
+  });
+
+  it("leaves the stored id alone when PayPal omits the agreement id", async () => {
+    await withDb([seedUser({ plan: "FREE", paypalSubscriptionId: NEW_SUB })]);
+
+    const response = await send({
+      event_type: "PAYMENT.SALE.COMPLETED",
+      resource: { id: "SALE-1", custom_id: USER_ID },
+    });
+
+    expect(response.status).toBe(200);
+    expect(db.planOf(USER_ID)).toBe("PRO");
+    expect(db.subscriptionOf(USER_ID)).toBe(NEW_SUB);
+  });
+
+  it("rejects a sale for no known user", async () => {
+    await withDb([seedUser()]);
+
+    const response = await send({
+      event_type: "PAYMENT.SALE.COMPLETED",
+      resource: { id: "SALE-1", billing_agreement_id: "UNKNOWN-SUB" },
+    });
+
+    expect(response.status).toBe(422);
+    expect(db.logs).toHaveLength(0);
+  });
+});
+
 describe("unrelated events", () => {
   it("acknowledges event types it does not act on", async () => {
     await withDb([seedUser({ plan: "PRO", paypalSubscriptionId: NEW_SUB })]);
 
     const response = await send({
-      event_type: "PAYMENT.SALE.COMPLETED",
+      event_type: "CHECKOUT.ORDER.APPROVED",
       resource: { custom_id: USER_ID },
     });
 

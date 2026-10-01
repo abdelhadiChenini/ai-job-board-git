@@ -87,6 +87,24 @@ export function createFakePrisma(seed: FakeUser[] = []) {
           return row ? project({ ...row }, args.select) : null;
         },
 
+        findFirst: async (args: {
+          where: { id?: string; paypalSubscriptionId?: string };
+          select?: Record<string, boolean>;
+        }) => {
+          let rows = [...users.values()];
+          if (args.where.id !== undefined) {
+            rows = rows.filter((row) => row.id === args.where.id);
+          }
+          if (args.where.paypalSubscriptionId !== undefined) {
+            rows = rows.filter(
+              (row) =>
+                row.paypalSubscriptionId === args.where.paypalSubscriptionId,
+            );
+          }
+          const row = rows[0];
+          return row ? project({ ...row }, args.select) : null;
+        },
+
         findMany: async (args: {
           where?: { plan?: string };
           select?: Record<string, boolean>;
