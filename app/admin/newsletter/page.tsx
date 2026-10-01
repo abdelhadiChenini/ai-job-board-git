@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
-import { countIncompleteExpertProfiles } from "@/lib/marketing";
-import { cardClass } from "../ui";
+import { countAllAudiences } from "@/lib/marketing";
 import { AudienceTable } from "./AudienceTable";
 import type { AudienceRow } from "./AudienceTable";
 import ReengagementCampaign from "./ReengagementCampaign";
@@ -16,10 +15,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminNewsletterPage() {
   await requireAdmin();
 
-  const [users, subscribers, incompleteExperts] = await Promise.all([
+  const [users, subscribers, audienceCounts] = await Promise.all([
     prisma.user.findMany({ select: { email: true, createdAt: true } }),
     prisma.subscriber.findMany({ select: { email: true, createdAt: true } }),
-    countIncompleteExpertProfiles(),
+    countAllAudiences(),
   ]);
 
   const combined: AudienceRow[] = [
@@ -68,20 +67,7 @@ export default async function AdminNewsletterPage() {
 
       <AudienceTable rows={rows} />
 
-      <section className={cardClass}>
-        <p className="text-sm font-medium text-slate-400">
-          Incomplete Expert Profiles
-        </p>
-        <p className="mt-2 text-4xl font-bold tracking-tight text-white">
-          {incompleteExperts.toLocaleString()}
-        </p>
-        <p className="mt-2 text-sm text-slate-400">
-          Expert accounts missing at least one required profile field. This is
-          the audience the re-engagement campaign below reaches.
-        </p>
-      </section>
-
-      <ReengagementCampaign recipientCount={incompleteExperts} />
+      <ReengagementCampaign audienceCounts={audienceCounts} />
     </div>
   );
 }

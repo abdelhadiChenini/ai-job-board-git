@@ -1,6 +1,12 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  AUDIENCES,
+  AUDIENCE_LABELS,
+  DEFAULT_AUDIENCE,
+  type Audience,
+} from "@/lib/audiences";
 import { cardClass, inputClass, primaryBtn } from "../ui";
 
 type Toast = {
@@ -16,21 +22,35 @@ type SendResponse = {
   error?: string;
 };
 
+/** Short explanation shown under the stat card, per segment. */
+const AUDIENCE_HINTS: Record<Audience, string> = {
+  incomplete:
+    "Expert accounts missing at least one required profile field. This is the audience the re-engagement campaign below reaches.",
+  completed:
+    "Expert accounts with every required profile field filled in. Useful for announcements and opportunity alerts.",
+  all:
+    "Every expert account that has not opted out of marketing email, complete or not.",
+};
+
 const toastTone = {
   success: "border-emerald-500/40 bg-emerald-950/90 text-emerald-200",
   error: "border-red-500/40 bg-red-950/90 text-red-200",
 } as const;
 
 export function ReengagementCampaign({
-  recipientCount,
+  audienceCounts,
 }: {
-  recipientCount: number;
+  audienceCounts: Record<Audience, number>;
 }) {
+  const [audience, setAudience] = useState<Audience>(DEFAULT_AUDIENCE);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextToastId = useRef(0);
+
+  const recipientCount = audienceCounts[audience];
+  const audienceLabel = AUDIENCE_LABELS[audience];
 
   const pushToast = useCallback((tone: Toast["tone"], text: string) => {
     const id = nextToastId.current++;
@@ -66,7 +86,7 @@ export function ReengagementCampaign({
       const response = await fetch("/api/admin/marketing/resend-bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, message }),
+        body: JSON.stringify({ subject, message, audience }),
       });
       const data = (await response.json()) as SendResponse;
 
@@ -89,15 +109,45 @@ export function ReengagementCampaign({
     <section className={cardClass}>
       <div className="mb-5 flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-white">
-          Profile re-engagement campaign
+          Expert profile re-engagement campaign
         </h2>
         <p className="text-sm text-slate-400">
-          Sends a reminder to every expert whose profile is still incomplete.
-          Experts who opted out of marketing email are skipped automatically.
+          Sends a reminder to a segment of experts. Experts who opted out of
+          marketing email are skipped automatically.
         </p>
       </div>
 
+      <div className="mb-6 rounded-xl border border-white/10 bg-slate-900/40 p-5">
+        <p className="text-sm font-medium text-slate-400">
+          {audienceLabel}
+        </p>
+        <p className="mt-2 text-4xl font-bold tracking-tight text-white">
+          {recipientCount.toLocaleString()}
+        </p>
+        <p className="mt-2 text-sm text-slate-400">{AUDIENCE_HINTS[audience]}</p>
+      </div>
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-slate-300">Target audience</span>
+          <select
+            value={audience}
+            onChange={(event) => setAudience(event.target.value as Audience)}
+            disabled={isSubmitting}
+            className={inputClass}
+          >
+            {AUDIENCES.map((option) => (
+              <option
+                key={option}
+                value={option}
+                className="bg-slate-900 text-white"
+              >
+                {AUDIENCE_LABELS[option]} ({audienceCounts[option].toLocaleString()})
+              </option>
+            ))}
+          </select>
+        </label>
+
         <label className="flex flex-col gap-2">
           <span className="text-sm font-medium text-slate-300">Subject line</span>
           <input
@@ -140,11 +190,11 @@ export function ReengagementCampaign({
           >
             {isSubmitting
               ? "Sending campaign…"
-              : `Send re-engagement campaign to ${recipientCount} expert${recipientCount === 1 ? "" : "s"}`}
+              : `Send to ${recipientCount} expert${recipientCount === 1 ? "" : "s"}`}
           </button>
           {recipientCount === 0 && (
             <p className="text-sm text-slate-500">
-              No experts are waiting on a nudge right now.
+              No experts are in this segment right now.
             </p>
           )}
         </div>

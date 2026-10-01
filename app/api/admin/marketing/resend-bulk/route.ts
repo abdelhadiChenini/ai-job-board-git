@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getAdminSession, readJsonBody } from "@/lib/admin";
-import { findIncompleteExpertProfiles, buildReengagementEmail } from "@/lib/marketing";
+import {
+  AUDIENCE_LABELS,
+  buildReengagementEmail,
+  findAudienceRecipients,
+  parseAudience,
+} from "@/lib/marketing";
 
 export const dynamic = "force-dynamic";
 
@@ -89,18 +94,36 @@ export async function POST(request: Request) {
     );
   }
 
-  const recipients = await findIncompleteExpertProfiles();
+  // An unknown segment is rejected outright rather than silently widened — the
+  // difference between "incomplete" and "all" is the whole user base.
+  const audience = parseAudience(body.audience) ?? null;
+  if (!audience) {
+    return NextResponse.json(
+      { error: `Audience must be one of: incomplete, completed, all.` },
+      { status: 400 },
+    );
+  }
+
+  const audienceLabel = AUDIENCE_LABELS[audience];
+
+  const recipients = await findAudienceRecipients(audience);
   if (recipients.length === 0) {
     return NextResponse.json({
       sent: 0,
       failed: 0,
       batches: 0,
-      message: "No incomplete expert profiles matched. Nothing was sent.",
+      audience,
+      message: `No experts matched "${audienceLabel}". Nothing was sent.`,
     });
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const { html, text } = buildReengagementEmail({ subject, message, siteUrl });
+  const { html, text } = buildReengagementEmail({
+    subject,
+    message,
+    siteUrl,
+    audience,
+  });
 
   const resend = new Resend(apiKey);
 
@@ -116,7 +139,8 @@ export async function POST(request: Request) {
         html,
         text,
         tags: [
-          { name: "campaign", value: "incomplete-profile-reengagement" },
+          { name: "campaign", value: "profile-reengagement" },
+          { name: "audience", value: audience },
         ],
       })),
     );
@@ -136,9 +160,10 @@ export async function POST(request: Request) {
     sent,
     failed,
     batches: Math.ceil(recipients.length / BATCH_SIZE),
+    audience,
     message:
       failed > 0
-        ? `Sent ${sent} of ${recipients.length} emails. ${failed} failed — check the server logs.`
-        : `Sent ${sent} of ${recipients.length} emails.`,
+        ? `Sent ${sent} of ${recipients.length} emails to "${audienceLabel}". ${failed} failed — check the server logs.`
+        : `Sent ${sent} of ${recipients.length} emails to "${audienceLabel}".`,
   });
 }
