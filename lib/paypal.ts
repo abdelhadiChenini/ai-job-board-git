@@ -184,6 +184,48 @@ export type PayPalSubscription = {
 };
 
 /**
+ * Cancels a subscription at PayPal, effective at the end of the paid period.
+ *
+ * Deliberately not routed through `paypalFetch`: a successful cancel answers
+ * `204 No Content`, and `response.json()` throws on an empty body. That throw
+ * would surface as a failed cancellation even though PayPal had already
+ * processed it — the worst possible outcome, since the customer believes they
+ * are still subscribed and the subscription has actually been cancelled.
+ *
+ * PayPal rejects an already-cancelled subscription with `422`, so callers should
+ * read the current status first rather than treating a 422 here as a failure.
+ */
+export async function cancelSubscription(
+  subscriptionId: string,
+  reason: string,
+): Promise<void> {
+  const token = await getAccessToken();
+
+  const response = await fetch(
+    `${getPayPalBaseUrl()}/v1/billing/subscriptions/${encodeURIComponent(
+      subscriptionId,
+    )}/cancel`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new PayPalError(
+      "PayPal could not cancel the subscription.",
+      response.status,
+      await response.text(),
+    );
+  }
+}
+
+/**
  * Subscription facts the dashboard needs beyond status.
  *
  * `billing_info` is not returned by a default `GET`, so it has to be requested

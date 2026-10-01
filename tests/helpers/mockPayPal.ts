@@ -11,8 +11,10 @@ export type PayPalMock = {
   setVerification: (result: "SUCCESS" | "FAILURE") => void;
   /** Status string PayPal reports for a subscription id, or a thrown error. */
   setSubscription: (id: string, status: string | Error) => void;
+  /** Response for a cancel call: true = 204, or a status code to reject with. */
+  setCancelResult: (id: string, result: true | number) => void;
   /** Calls captured per endpoint, for asserting request counts. */
-  calls: { verify: number; subscriptions: string[] };
+  calls: { verify: number; subscriptions: string[]; cancels: string[] };
   restore: () => void;
 };
 
@@ -40,7 +42,8 @@ export function mockPayPal(): PayPalMock {
 
   let verification: "SUCCESS" | "FAILURE" = "SUCCESS";
   const subscriptions: SubscriptionLookup = {};
-  const calls = { verify: 0, subscriptions: [] as string[] };
+  const cancels: Record<string, true | number> = {};
+  const calls = { verify: 0, subscriptions: [] as string[], cancels: [] as string[] };
 
   globalThis.fetch = (async (input: unknown) => {
     const url = String(input);
@@ -52,6 +55,26 @@ export function mockPayPal(): PayPalMock {
     if (url.includes("/v1/notifications/verify-webhook-signature")) {
       calls.verify += 1;
       return json({ verification_status: verification });
+    }
+
+    // Checked before the lookup branch: a cancel URL contains the subscription
+    // path, so the generic matcher below would otherwise answer it with a
+    // subscription body and the route would never see the 204.
+    const cancelMatch = url.match(/\/v1\/billing\/subscriptions\/([^/?]+)\/cancel/);
+    if (cancelMatch) {
+      const id = decodeURIComponent(cancelMatch[1]);
+      calls.cancels.push(id);
+      const result = cancels[id];
+
+      if (result === undefined) {
+        return json({ name: "UNPROCESSABLE_ENTITY" }, 422);
+      }
+      if (typeof result === "number") {
+        return json({ name: "UNPROCESSABLE_ENTITY" }, result);
+      }
+
+      // 204 with an empty body, exactly as PayPal answers a successful cancel.
+      return new Response(null, { status: 204 });
     }
 
     const match = url.match(/\/v1\/billing\/subscriptions\/([^/?]+)/);
@@ -78,6 +101,9 @@ export function mockPayPal(): PayPalMock {
     },
     setSubscription: (id, status) => {
       subscriptions[id] = status;
+    },
+    setCancelResult: (id, result) => {
+      cancels[id] = result;
     },
     calls,
     restore: () => {

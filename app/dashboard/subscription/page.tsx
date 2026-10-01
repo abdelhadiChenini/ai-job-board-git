@@ -13,6 +13,7 @@ import {
 import { getSubscriptionDetails, PayPalError } from "@/lib/paypal";
 import DashboardSidebar from "../DashboardSidebar";
 import UpgradeButton from "@/app/components/UpgradeButton";
+import CancelSubscriptionButton from "./CancelSubscriptionButton";
 
 export const metadata: Metadata = {
   title: "Subscription",
@@ -204,6 +205,27 @@ export default async function DashboardSubscriptionPage() {
                 )}
               </div>
             )}
+
+            {/* Gated on PayPal's live status rather than on `plan` alone. A
+                CANCELLED or EXPIRED subscription has nothing left to cancel —
+                PayPal rejects the second attempt with a 422 — and the upgrade
+                card is deliberately hidden from PRO users. If PayPal could not
+                be reached the button stays hidden too, so a network blip cannot
+                present an action whose outcome we cannot confirm. */}
+            {plan === "PRO" &&
+              subscriptionId &&
+              paypalStatus !== "CANCELLED" &&
+              paypalStatus !== "EXPIRED" &&
+              !paypalError && (
+                <div className="mt-5 border-t border-slate-700/60 pt-5">
+                  <p className={label}>Cancel</p>
+                  <p className="mt-2 mb-4 text-sm text-slate-400">
+                    Ending your Pro membership. No further invoices will be
+                    issued.
+                  </p>
+                  <CancelSubscriptionButton />
+                </div>
+              )}
           </section>
 
           {plan === "FREE" && (
