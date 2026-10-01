@@ -238,7 +238,11 @@ export default async function DashboardSubscriptionPage() {
                 ))}
               </ul>
 
-              <div className="mt-6">
+              {/* PayPal's vertical button stack fills whatever width it is
+                  given, which stretched it across the whole upgrade card.
+                  Capping it keeps the buttons at their natural size and
+                  centred under the benefits list. */}
+              <div className="mx-auto mt-6 w-full max-w-sm">
                 <UpgradeButton />
               </div>
 
