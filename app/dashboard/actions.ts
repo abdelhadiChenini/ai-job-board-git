@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canApplyToJob, formatUnlockCountdown, type ApplyBlockReason } from "@/lib/subscription";
+import {
+  canApplyToJob,
+  EARLY_ACCESS_FORBIDDEN_MESSAGE,
+  formatUnlockCountdown,
+  type ApplyBlockReason,
+} from "@/lib/subscription";
 
 export async function saveJob(jobId: string): Promise<{
   ok: boolean;
@@ -67,6 +72,13 @@ export type MarkAppliedResult = {
   ok: boolean;
   error?: string;
   blockedReason?: ApplyBlockReason;
+  /**
+   * Mirrors the HTTP status the equivalent REST endpoint returns, so callers
+   * and tests can distinguish "you are not entitled to this" from a transient
+   * failure. A server action cannot set a real status code — it resolves with a
+   * serialisable value — so the semantic is carried in the payload instead.
+   */
+  status?: number;
   unlocksAt?: string;
   unlockCountdown?: string;
   used?: number;
@@ -81,7 +93,7 @@ export async function markApplied(jobId: string): Promise<MarkAppliedResult> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return { ok: false, error: "You must be signed in." };
+    return { ok: false, error: "You must be signed in.", status: 401 };
   }
 
   const existing = await prisma.jobOffer.findUnique({
@@ -90,7 +102,7 @@ export async function markApplied(jobId: string): Promise<MarkAppliedResult> {
   });
 
   if (!existing) {
-    return { ok: false, error: "Opportunity not found." };
+    return { ok: false, error: "Opportunity not found.", status: 404 };
   }
 
   const alreadyApplied = await prisma.appliedOpportunity.findUnique({
@@ -113,7 +125,8 @@ export async function markApplied(jobId: string): Promise<MarkAppliedResult> {
     if (eligibility.reason === "early_access") {
       return {
         ok: false,
-        error: "This opportunity is locked for Pro members.",
+        error: EARLY_ACCESS_FORBIDDEN_MESSAGE,
+        status: 403,
         blockedReason: "early_access",
         unlocksAt: eligibility.unlocksAt.toISOString(),
         unlockCountdown: formatUnlockCountdown(eligibility.unlocksAt, new Date()),
@@ -123,6 +136,7 @@ export async function markApplied(jobId: string): Promise<MarkAppliedResult> {
     return {
       ok: false,
       error: "You have reached your daily application limit.",
+      status: 403,
       blockedReason: "daily_limit",
       used: eligibility.used,
       limit: eligibility.limit,

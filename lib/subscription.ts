@@ -6,6 +6,16 @@ export const FREE_DAILY_APPLICATION_LIMIT = 3;
 export const EARLY_ACCESS_WINDOW_HOURS = 48;
 export const EARLY_ACCESS_WINDOW_MS = EARLY_ACCESS_WINDOW_HOURS * 60 * 60 * 1000;
 
+/**
+ * The refusal shown when the early-access window blocks an application.
+ *
+ * Built from `EARLY_ACCESS_WINDOW_HOURS` and shared by every enforcement site
+ * (the apply action and the outbound redirect) so the two can never word the
+ * same refusal differently, and so widening the window automatically corrects
+ * the message instead of leaving a stale "48 hours" behind.
+ */
+export const EARLY_ACCESS_FORBIDDEN_MESSAGE = `This opportunity is exclusively available to Pro members for the first ${EARLY_ACCESS_WINDOW_HOURS} hours.`;
+
 export type Plan = "FREE" | "PRO";
 
 export type PlanChangeSource = "admin" | "webhook" | "reconcile";
@@ -62,16 +72,38 @@ export function getEarlyAccessUnlockAt(job: {
   return new Date(effectivePostedAt.getTime() + EARLY_ACCESS_WINDOW_MS);
 }
 
+/**
+ * Admins and Pro members are exempt from every apply limit.
+ *
+ * Exported so each enforcement site derives the exemption from one place. The
+ * early-access gate runs in more than one place (the apply action, the
+ * server-rendered paywall, the outbound redirect), and re-deriving "who is
+ * exempt" at each of them is how a bypass quietly reopens: any site that forgets
+ * the `role` check locks admins out, and any site that forgets the `plan` check
+ * gates Pro users.
+ */
+export function bypassesApplyLimits(
+  user:
+    | { plan?: string | null; role?: string | null }
+    | null
+    | undefined,
+): boolean {
+  if (!user) {
+    return false;
+  }
+  return user.role === "ADMIN" || normalizePlan(user.plan) === "PRO";
+}
+
 export async function canApplyToJob(
   userId: string,
   opportunityId: string,
 ): Promise<ApplyEligibility> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { plan: true },
+    select: { plan: true, role: true },
   });
 
-  if (normalizePlan(user?.plan) === "PRO") {
+  if (bypassesApplyLimits(user)) {
     return { allowed: true };
   }
 

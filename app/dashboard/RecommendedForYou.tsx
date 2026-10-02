@@ -1,5 +1,13 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
+import {
+  canApplyToJob,
+  formatUnlockCountdown,
+  type ApplyBlockInfo,
+} from "@/lib/subscription";
+import GatedApplyButton from "@/components/GatedApplyButton";
 import SafeImage from "@/components/SafeImage";
 
 function toTagList(tags: unknown): string[] {
@@ -87,6 +95,49 @@ export async function RecommendedForYou({ skills }: { skills: string[] }) {
     return null;
   }
 
+  // Resolve paywall state up front so a locked role renders its notice and an
+  // upgrade path here, instead of offering an Apply button that the server
+  // action will refuse a moment later. The client still re-checks on click.
+  const session = await getServerSession(authOptions);
+  const viewerId = session?.user?.id;
+  const applyBlock = new Map<string, ApplyBlockInfo>();
+
+  if (viewerId) {
+    const now = new Date();
+
+    const eligibility = await Promise.all(
+      jobs.map(async (job) => {
+        try {
+          return [job.id, await canApplyToJob(viewerId, job.id)] as const;
+        } catch {
+          // A job deleted between the listing query and this check should not
+          // take the whole recommendation rail down; leave it ungated here and
+          // let the apply action be the authority.
+          return [job.id, null] as const;
+        }
+      }),
+    );
+
+    for (const [jobId, result] of eligibility) {
+      if (result && !result.allowed) {
+        applyBlock.set(
+          jobId,
+          result.reason === "early_access"
+            ? {
+                reason: "early_access",
+                unlocksAt: result.unlocksAt.toISOString(),
+                countdown: formatUnlockCountdown(result.unlocksAt, now),
+              }
+            : {
+                reason: "daily_limit",
+                used: result.used,
+                limit: result.limit,
+              },
+        );
+      }
+    }
+  }
+
   return (
     <section className="rounded-card border border-white/10 bg-slate-800 p-6">
       <h2 className="text-lg font-bold tracking-tight text-white">
@@ -148,14 +199,12 @@ export async function RecommendedForYou({ skills }: { skills: string[] }) {
                 >
                   View details
                 </Link>
-                <a
-                  href={job.affiliateUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <GatedApplyButton
+                  jobId={job.id}
+                  affiliateUrl={job.affiliateUrl}
+                  applyBlock={applyBlock.get(job.id) ?? null}
                   className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-                >
-                  Apply
-                </a>
+                />
               </div>
             </li>
           );

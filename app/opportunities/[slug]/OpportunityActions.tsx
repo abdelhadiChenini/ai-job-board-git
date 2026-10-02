@@ -1,14 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
-import { Lock, Zap } from "lucide-react";
 import {
   saveJob,
   removeSavedJob,
   markApplied,
 } from "@/app/dashboard/actions";
 import UpgradeButton from "@/app/components/UpgradeButton";
-import type { ApplyBlockInfo } from "@/lib/subscription";
+import ProLockedNotice from "@/components/ProLockedNotice";
+import {
+  EARLY_ACCESS_FORBIDDEN_MESSAGE,
+  type ApplyBlockInfo,
+} from "@/lib/subscription";
 
 type Props = {
   jobId: string;
@@ -17,43 +21,6 @@ type Props = {
   initialApplied: boolean;
   applyBlock: ApplyBlockInfo | null;
 };
-
-function BlockedPanel({ block }: { block: ApplyBlockInfo }) {
-  const isEarlyAccess = block.reason === "early_access";
-
-  return (
-    <div
-      role="alert"
-      className={
-        isEarlyAccess
-          ? "flex flex-col gap-2 rounded-xl border border-amber-400/40 bg-amber-400/10 p-4"
-          : "flex flex-col gap-2 rounded-xl border border-blue-400/40 bg-blue-500/10 p-4"
-      }
-    >
-      <p
-        className={
-          isEarlyAccess
-            ? "flex items-center gap-2 text-sm font-bold text-amber-300"
-            : "flex items-center gap-2 text-sm font-bold text-blue-300"
-        }
-      >
-        {isEarlyAccess ? (
-          <Lock aria-hidden="true" className="h-4 w-4 shrink-0" />
-        ) : (
-          <Zap aria-hidden="true" className="h-4 w-4 shrink-0" />
-        )}
-        {isEarlyAccess
-          ? `Locked: Pro Early Access (Unlocks in ${block.countdown})`
-          : `Daily Limit Reached (${block.used}/${block.limit})`}
-      </p>
-      <p className="text-xs leading-relaxed text-slate-300">
-        {isEarlyAccess
-          ? "Newly posted roles are reserved for Pro members during the first 48 hours. Upgrade to apply now instead of waiting."
-          : "Upgrade to Pro for unlimited applications."}
-      </p>
-    </div>
-  );
-}
 
 export function OpportunityActions({
   jobId,
@@ -96,7 +63,11 @@ export function OpportunityActions({
       const result = await markApplied(jobId);
 
       if (!result.ok) {
-        setError(result.error ?? "Something went wrong.");
+        setError(
+          result.blockedReason === "early_access"
+            ? EARLY_ACCESS_FORBIDDEN_MESSAGE
+            : (result.error ?? "Something went wrong."),
+        );
 
         // The server is authoritative: a lock can appear between render and
         // click, so mirror any block it reports instead of opening the link.
@@ -129,8 +100,14 @@ export function OpportunityActions({
     <>
       {isBlocked && block ? (
         <>
-          <BlockedPanel block={block} />
+          <ProLockedNotice block={block} />
           <UpgradeButton />
+          <Link
+            href="/pricing"
+            className="block text-center text-xs font-semibold text-blue-400 underline underline-offset-2 transition-colors hover:text-blue-300"
+          >
+            Upgrade to Pro
+          </Link>
         </>
       ) : (
         <button

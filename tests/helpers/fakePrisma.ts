@@ -16,8 +16,29 @@ export type FakeUser = {
   id: string;
   email: string;
   plan: string;
+  role?: string;
   paypalSubscriptionId: string | null;
   updatedAt: Date;
+};
+
+/**
+ * Minimal stand-in for `JobOffer`. Only the columns the early-access gate reads
+ * are modelled; `datePosted` and `createdAt` are both nullable here because the
+ * production column is, and the gate's fallback between them is the behaviour
+ * under test.
+ */
+export type FakeJob = {
+  id: string;
+  affiliateUrl: string;
+  datePosted: Date | null;
+  createdAt: Date;
+};
+
+export type FakeApplied = {
+  id: string;
+  userId: string;
+  opportunityId: string;
+  createdAt: Date;
 };
 
 export type FakeLog = {
@@ -41,10 +62,17 @@ function project(row: Record<string, unknown>, select?: Record<string, boolean>)
   return out;
 }
 
-export function createFakePrisma(seed: FakeUser[] = []) {
+export function createFakePrisma(
+  seed: FakeUser[] = [],
+  jobs: FakeJob[] = [],
+) {
   const users = new Map<string, FakeUser>(
     seed.map((user) => [user.id, { ...user }]),
   );
+  const jobOffers = new Map<string, FakeJob>(
+    jobs.map((job) => [job.id, { ...job }]),
+  );
+  const applications: FakeApplied[] = [];
   const logs: FakeLog[] = [];
   let sequence = 0;
 
@@ -130,6 +158,66 @@ export function createFakePrisma(seed: FakeUser[] = []) {
         create: (args: Record<string, unknown>) =>
           Promise.resolve(apply({ __op: "planChangeLog.create", args })),
       },
+
+      jobOffer: {
+        findUnique: async (args: {
+          where: { id: string };
+          select?: Record<string, boolean>;
+        }) => {
+          const row = jobOffers.get(args.where.id);
+          return row ? project({ ...row }, args.select) : null;
+        },
+      },
+
+      appliedOpportunity: {
+        findUnique: async (args: {
+          where: { userId_opportunityId: { userId: string; opportunityId: string } };
+          select?: Record<string, boolean>;
+        }) => {
+          const { userId, opportunityId } = args.where.userId_opportunityId;
+          const row = applications.find(
+            (a) => a.userId === userId && a.opportunityId === opportunityId,
+          );
+          return row ? project({ ...row }, args.select) : null;
+        },
+
+        /**
+         * Counts rows inside a rolling window, mirroring the gate's daily-limit
+         * query. The `gte` bound is applied against `createdAt` only — that is
+         * the sole filter the production query uses.
+         */
+        count: async (args: { where: { userId: string; createdAt: { gte: Date } } }) =>
+          applications.filter(
+            (a) =>
+              a.userId === args.where.userId &&
+              a.createdAt.getTime() >= args.where.createdAt.gte.getTime(),
+          ).length,
+
+        upsert: async (args: {
+          where: { userId_opportunityId: { userId: string; opportunityId: string } };
+          create: { userId: string; opportunityId: string };
+          update: Record<string, unknown>;
+        }) => {
+          const { userId, opportunityId } = args.where.userId_opportunityId;
+          const existing = applications.find(
+            (a) => a.userId === userId && a.opportunityId === opportunityId,
+          );
+
+          if (existing) {
+            Object.assign(existing, args.update);
+            return existing;
+          }
+
+          sequence += 1;
+          const row: FakeApplied = {
+            id: `applied-${sequence}`,
+            createdAt: new Date(),
+            ...args.create,
+          };
+          applications.push(row);
+          return row;
+        },
+      },
     };
   }
 
@@ -153,8 +241,23 @@ export function createFakePrisma(seed: FakeUser[] = []) {
   return {
     prisma,
     users,
+    jobs: jobOffers,
+    applications,
     logs,
     planOf: (id: string) => users.get(id)?.plan,
+    roleOf: (id: string) => users.get(id)?.role ?? "EXPERT",
     subscriptionOf: (id: string) => users.get(id)?.paypalSubscriptionId,
+    /** Seeds applications so daily-limit behaviour can be tested directly. */
+    seedApplication: (userId: string, opportunityId: string, at = new Date()) => {
+      sequence += 1;
+      const row: FakeApplied = {
+        id: `applied-${sequence}`,
+        userId,
+        opportunityId,
+        createdAt: at,
+      };
+      applications.push(row);
+      return row;
+    },
   };
 }
