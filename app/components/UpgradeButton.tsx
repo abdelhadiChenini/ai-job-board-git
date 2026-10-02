@@ -141,18 +141,31 @@ export default function UpgradeButton() {
           currency: "USD",
         }}
       >
-        <PayPalButtons
-          style={{
-            layout: "vertical",
-            shape: "rect",
-            label: "paypal",
-            height: 48,
-          }}
-          createSubscription={createSubscription}
-          onApprove={onApprove}
-          onError={onError}
-          onCancel={onCancel}
-        />
+        <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm mx-auto">
+          {/* The white surface is a deliberate frame, not leftover light theme.
+              PayPal renders its buttons in a cross-origin iframe, so nothing
+              inside it can be themed — the iframe's own white background is
+              fixed. Giving that white an intentional card around it, with a
+              heading inside it and dark text on top, reads as a designed
+              checkout panel instead of a bright rectangle punched through a dark
+              page. Anything styled *outside* the frame (the status and error
+              lines below) stays on the dark theme, where it belongs. */}
+          <p className="text-slate-800 text-sm font-semibold mb-3 text-center">
+            Complete your upgrade
+          </p>
+          <PayPalButtons
+            style={{
+              layout: "vertical",
+              shape: "rect",
+              label: "paypal",
+              height: 48,
+            }}
+            createSubscription={createSubscription}
+            onApprove={onApprove}
+            onError={onError}
+            onCancel={onCancel}
+          />
+        </div>
       </PayPalScriptProvider>
 
       {notice && (
