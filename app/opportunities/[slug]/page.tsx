@@ -7,12 +7,14 @@ import { prisma } from "@/lib/prisma";
 import {
   canApplyToJob,
   formatUnlockCountdown,
+  getEarlyAccessUnlockAt,
   type ApplyBlockInfo,
 } from "@/lib/subscription";
 import JobCard from "@/app/components/JobCard";
 import { ShareJobButton } from "./ShareJobButton";
 import { NewsletterForm } from "./NewsletterForm";
 import { OpportunityActions } from "./OpportunityActions";
+import ProLockedNotice from "@/components/ProLockedNotice";
 import SafeImage from "@/components/SafeImage";
 
 export const dynamic = "force-dynamic";
@@ -377,6 +379,22 @@ export default async function OpportunityPage({ params: p }: Params) {
     `/opportunities/${job.slug}`,
   )}`;
 
+  // A signed-out visitor has no tier to test, but they must not be able to walk
+  // around the early-access window by staying logged out — the window is a
+  // property of the opportunity, not of who is looking. Resolve the window on
+  // its own and ask them to authenticate; from there their real Free/Pro tier is
+  // what decides, which is exactly the answer the gate would have given.
+  const now = new Date();
+  const anonymousUnlockAt = getEarlyAccessUnlockAt(job);
+  const anonymousEarlyAccess: ApplyBlockInfo | null =
+    now.getTime() < anonymousUnlockAt.getTime()
+      ? {
+          reason: "early_access",
+          unlocksAt: anonymousUnlockAt.toISOString(),
+          countdown: formatUnlockCountdown(anonymousUnlockAt, now),
+        }
+      : null;
+
   return (
     <div>
       <script
@@ -470,6 +488,20 @@ export default async function OpportunityPage({ params: p }: Params) {
                 initialApplied={applied}
                 applyBlock={applyBlock}
               />
+            ) : anonymousEarlyAccess ? (
+              <>
+                <ProLockedNotice block={anonymousEarlyAccess} />
+                <Link
+                  href={loginHref}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-500"
+                >
+                  Log in or Sign up to apply
+                </Link>
+                <p className="text-center text-xs text-slate-400">
+                  Applying needs an account — your plan decides whether this
+                  role is available to you now.
+                </p>
+              </>
             ) : (
               <>
                 <a

@@ -30,6 +30,7 @@ export type FakeUser = {
 export type FakeJob = {
   id: string;
   affiliateUrl: string;
+  slug: string;
   datePosted: Date | null;
   createdAt: Date;
 };

@@ -32,6 +32,7 @@ function seedJob(overrides: Partial<FakeJob> = {}): FakeJob {
   return {
     id: JOB_ID,
     affiliateUrl: "https://example.com/apply",
+    slug: "senml-engineer",
     datePosted: new Date(),
     createdAt: new Date(),
     ...overrides,
