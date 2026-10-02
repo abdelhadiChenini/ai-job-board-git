@@ -27,6 +27,7 @@ const PRO_BENEFITS = [
   `Unlimited applications, instead of ${FREE_DAILY_APPLICATION_LIMIT} per day`,
   `New roles ${EARLY_ACCESS_WINDOW_HOURS} hours before anyone else`,
   'A "Pro" badge in the expert directory',
+  "AI-Powered CV Builder: Generate unlimited tailored resumes for specific roles.",
   "Priority support",
 ] as const;
 

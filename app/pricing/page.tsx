@@ -39,6 +39,7 @@ const proFeatures = [
   "Unlimited applications — no daily cap",
   `Early access to new roles, ${EARLY_ACCESS_WINDOW_HOURS} hours before anyone else`,
   'A standout "Pro" badge in the expert directory',
+  "AI-Powered CV Builder: Generate unlimited tailored resumes for specific roles.",
   "Priority support when an application needs attention",
 ] as const;
 
@@ -54,6 +55,7 @@ const comparison = [
     pro: "Immediately",
   },
   { label: "Directory badge", free: "Standard", pro: "Pro badge" },
+  { label: "AI CV Builder", free: "Not included", pro: "Included" },
   { label: "Support", free: "Standard", pro: "Priority" },
   { label: "Expert profile", free: "Standard", pro: "Standard + Pro badge" },
 ] as const;
