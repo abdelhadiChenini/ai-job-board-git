@@ -260,11 +260,11 @@ export default async function DashboardSubscriptionPage() {
                 ))}
               </ul>
 
-              {/* PayPal's vertical button stack fills whatever width it is
-                  given, which stretched it across the whole upgrade card.
-                  Capping it keeps the buttons at their natural size and
-                  centred under the benefits list. */}
-              <div className="mx-auto mt-6 w-full max-w-sm">
+              {/* Sizing lives in `UpgradeButton`: PayPal's vertical button stack fills
+                  whatever width it is given, so the component caps and centres
+                  itself inside a white checkout card. This wrapper only owns
+                  the gap above it. */}
+              <div className="mt-6">
                 <UpgradeButton />
               </div>
 
