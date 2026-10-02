@@ -6,7 +6,13 @@ type JobCardProps = {
   title: string;
   labName: string;
   tags: string[];
-  url: string;
+  /**
+   * The card's only navigation target. There is deliberately no external URL
+   * prop: a card used to fall back to `/api/redirect` when a slug was missing,
+   * which meant browsing quietly sent visitors straight to the employer's site
+   * and past our own page. Every card now routes to the detail page, where the
+   * apply action and its paywall are the thing being read before anyone leaves.
+   */
   slug?: string | null;
   location?: string;
   maxTags?: number;
@@ -29,7 +35,6 @@ export function JobCard({
   title,
   labName,
   tags,
-  url,
   slug,
   location = "💻 Remote 📍 Global",
   maxTags = 3,
@@ -109,12 +114,21 @@ export function JobCard({
         )}
       </div>
 
-      <Link
-        href={slug ? `/opportunities/${slug}` : url}
-        className="z-10 before:absolute before:inset-0 mt-auto text-sm font-medium text-blue-400 transition-colors group-hover:text-blue-300 hover:text-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
-      >
-        View opportunity →
-      </Link>
+      {slug ? (
+        <Link
+          href={`/opportunities/${slug}`}
+          className="z-10 before:absolute before:inset-0 mt-auto text-sm font-medium text-blue-400 transition-colors group-hover:text-blue-300 hover:text-blue-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
+        >
+          View opportunity →
+        </Link>
+      ) : (
+        // A legacy row with no slug has no detail page to route to. Showing a
+        // dead link would 404, and reaching for an external URL here would put
+        // us back on the bypass this card used to be.
+        <p className="mt-auto text-sm text-slate-500">
+          Details coming soon
+        </p>
+      )}
     </article>
   );
 }

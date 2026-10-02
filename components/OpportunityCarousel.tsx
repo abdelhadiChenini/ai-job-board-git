@@ -206,7 +206,6 @@ export function OpportunityCarousel({
                 logoUrl={opportunity.platform?.logoUrl}
                 badge={opportunity.badge}
                 slug={opportunity.slug}
-                url={`/api/redirect?id=${opportunity.id}`}
                 jobId={opportunity.id}
                 saved={savedIds.has(opportunity.id)}
               />

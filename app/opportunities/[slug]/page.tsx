@@ -547,7 +547,6 @@ export default async function OpportunityPage({ params: p }: Params) {
                     title={item.title}
                     labName={item.platform.name}
                     tags={toTagList(item.tags)}
-                    url={`/api/redirect?id=${item.id}`}
                     slug={item.slug}
                     location={item.region ?? item.jobLocationType}
                     logoUrl={item.platform.logoUrl}
@@ -570,7 +569,6 @@ export default async function OpportunityPage({ params: p }: Params) {
                     title={item.title}
                     labName={item.platform.name}
                     tags={toTagList(item.tags)}
-                    url={`/api/redirect?id=${item.id}`}
                     slug={item.slug}
                     location={item.region ?? item.jobLocationType}
                     logoUrl={item.platform.logoUrl}

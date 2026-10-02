@@ -358,7 +358,6 @@ export default async function OpportunitiesPage({
                       .filter(Boolean)
                       .join(" · ") || undefined
                   }
-                  url={`/api/redirect?id=${job.id}`}
                   slug={job.slug}
                   jobId={job.id}
                   saved={savedIds.has(job.id)}
