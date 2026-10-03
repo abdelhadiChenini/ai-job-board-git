@@ -55,6 +55,7 @@ function readInput(
   const skills = clamp(str(record.skills));
   const education = clamp(str(record.education));
   const languages = clamp(str(record.languages));
+  const certifications = clamp(str(record.certifications));
   const rawExperience = clamp(str(record.rawExperience));
   const fullName = clamp(str(personal.fullName));
   const email = clamp(str(personal.email));
@@ -87,6 +88,7 @@ function readInput(
       skills,
       education: education || undefined,
       languages: languages || undefined,
+      certifications: certifications || undefined,
       rawExperience,
       personalInfo: {
         fullName,

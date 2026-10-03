@@ -82,11 +82,17 @@ export function CvBuilder({
     ...initialPersonalInfo,
   });
   const [skills, setSkills] = useState(initialSkills ?? "");
-  const [education, setEducation] = useState("");
-  const [languages, setLanguages] = useState("");
+  const [education, setEducation] = useState(
+    "Master en Pétrochimie et Raffinage, Kasdi Merbah Ouargla University",
+  );
+  const [languages, setLanguages] = useState(
+    "Arabic (Native), English (Fluent), French (Proficient)",
+  );
+  const [certifications, setCertifications] = useState("");
   const [rawExperience, setRawExperience] = useState("");
   const [font, setFont] = useState("sans");
   const [accentColor, setAccentColor] = useState("#0f172a");
+  const [template, setTemplate] = useState("minimalist");
 
   const [cv, setCv] = useState<CvDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,6 +130,7 @@ export function CvBuilder({
           skills,
           education,
           languages,
+          certifications,
           rawExperience,
         }),
       });
@@ -212,15 +219,51 @@ export function CvBuilder({
         // Multi-page: cut the source canvas into page-sized slices. Slicing one
         // long canvas into N images (rather than scaling to fit) keeps text at a
         // readable size on every page.
+        //
+        // Rather than cutting blindly at every page height — which can bisect a
+        // section — we prefer to break on a `break-inside-avoid` boundary just
+        // above the page limit. When a single section is taller than a page
+        // there is no such boundary, so we fall back to the hard limit.
         const pageHeightPx = Math.floor(contentHeightMm / mmPerPx);
-        let offsetY = 0;
-        let pageIndex = 0;
 
-        while (offsetY < canvas.height) {
-          const sliceHeight = Math.min(
-            pageHeightPx,
-            canvas.height - offsetY,
+        const nodeTop = node.getBoundingClientRect().top;
+        const candidates = Array.from(
+          node.querySelectorAll<HTMLElement>('[class*="break-inside-avoid"]'),
+        )
+          .map((element) =>
+            Math.round(
+              (element.getBoundingClientRect().bottom - nodeTop) * CAPTURE_SCALE,
+            ),
+          )
+          .filter((bottom) => bottom > 0 && bottom < canvas.height)
+          .sort((a, b) => a - b);
+
+        const breaks: number[] = [];
+        let cursor = 0;
+
+        while (cursor < canvas.height) {
+          const limit = cursor + pageHeightPx;
+
+          if (limit >= canvas.height) {
+            breaks.push(canvas.height);
+            break;
+          }
+
+          // Largest safe boundary that still fits inside this page.
+          const safe = candidates.filter(
+            (bottom) => bottom > cursor && bottom <= limit,
           );
+          const boundary =
+            safe.length > 0 ? safe[safe.length - 1] : limit;
+
+          breaks.push(boundary);
+          cursor = boundary;
+        }
+
+        let offsetY = 0;
+
+        breaks.forEach((boundary, pageIndex) => {
+          const sliceHeight = boundary - offsetY;
 
           const slice = document.createElement("canvas");
           slice.width = canvas.width;
@@ -259,9 +302,8 @@ export function CvBuilder({
             sliceHeight * mmPerPx,
           );
 
-          offsetY += sliceHeight;
-          pageIndex += 1;
-        }
+          offsetY = boundary;
+        });
       }
 
       const safeName =
@@ -386,6 +428,35 @@ export function CvBuilder({
           />
         </Field>
 
+        <Field label="Education">
+          <textarea
+            value={education}
+            onChange={(event) => setEducation(event.target.value)}
+            rows={3}
+            placeholder="e.g. BSc Computer Science, University of XYZ, 2022"
+            className={`${inputClass} resize-y`}
+          />
+        </Field>
+
+        <Field label="Languages & Proficiency">
+          <input
+            value={languages}
+            onChange={(event) => setLanguages(event.target.value)}
+            placeholder="e.g. English (Fluent), French (Proficient)"
+            className={inputClass}
+          />
+        </Field>
+
+        <Field label="Certifications">
+          <textarea
+            value={certifications}
+            onChange={(event) => setCertifications(event.target.value)}
+            rows={2}
+            placeholder="e.g. AWS Certified Solutions Architect, 2024"
+            className={`${inputClass} resize-y`}
+          />
+        </Field>
+
         <Field label="Raw experience & background">
           <textarea
             value={rawExperience}
@@ -439,14 +510,26 @@ export function CvBuilder({
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">Template</span>
+              <select
+                value={template}
+                onChange={(e) => setTemplate(e.target.value)}
+                className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-100"
+              >
+                <option value="minimalist">Minimalist</option>
+                <option value="professional">Professional</option>
+                <option value="modern">Modern</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400">Font</span>
               <select
                 value={font}
                 onChange={(e) => setFont(e.target.value)}
                 className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-100"
               >
-                <option value="sans">Sans-Serif (Inter)</option>
-                <option value="serif">Serif (Merriweather)</option>
+                <option value="sans">Sans-Serif</option>
+                <option value="serif">Serif</option>
               </select>
             </div>
             <div className="flex items-center gap-2">
@@ -487,7 +570,7 @@ export function CvBuilder({
 
         <div className="overflow-hidden rounded-card border border-white/10 bg-slate-800">
           <div ref={previewRef}>
-            <CvPreview cv={cv} personalInfo={personalInfo} font={font} accentColor={accentColor} />
+            <CvPreview cv={cv} personalInfo={personalInfo} font={font} accentColor={accentColor} template={template} />
           </div>
         </div>
       </section>

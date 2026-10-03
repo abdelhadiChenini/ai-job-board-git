@@ -39,13 +39,20 @@ export type CvEducationEntry = {
   year: string;
 };
 
+export type CvCertificationEntry = {
+  name: string;
+  issuer: string;
+  year: string;
+};
+
 /** The shape the UI renders. Every field is a definite type after parsing. */
 export type CvDocument = {
   summary: string;
   skills: string[];
   experience: CvExperienceEntry[];
   education: CvEducationEntry[];
-  languages?: string[];
+  languages?: string[] | { name: string; level: string }[];
+  certifications?: CvCertificationEntry[];
 };
 
 /** What the browser sends. Every field is a plain string — no nested objects. */
@@ -56,6 +63,7 @@ export type CvRequestInput = {
   rawExperience: string;
   education?: string;
   languages?: string;
+  certifications?: string;
 };
 
 export const CV_MIN_RAW_EXPERIENCE = 40;
@@ -65,7 +73,7 @@ export function buildCvSystemPrompt(targetRole: string): string {
     "You are an expert tech recruiter. Take the user's raw experience and format it " +
     `into a highly professional CV tailored for the role of ${targetRole}. ` +
     "Return strictly in JSON format matching this structure: " +
-    '{ "summary": "", "skills": [], "experience": [{ "title": "", "company": "", "duration": "", "achievements": [""] }], "education": [{ "degree": "", "institution": "", "year": "" }], "languages": [""] }. ' +
+    '{ "summary": "", "skills": [], "experience": [{ "title": "", "company": "", "duration": "", "achievements": [""] }], "education": [{ "degree": "", "institution": "", "year": "" }], "languages": [""], "certifications": [{ "name": "", "issuer": "", "year": "" }] }. ' +
     "Rules: rewrite the user's own experience, never invent employers, job titles, " +
     "degrees or dates they did not supply; quantify outcomes only where the user gave " +
     "a number; keep achievements as short action-led bullets; order skills by relevance " +
@@ -115,6 +123,23 @@ function toExperienceEntry(value: unknown): CvExperienceEntry | null {
     duration: text(entry.duration),
     achievements: textList(entry.achievements),
   };
+}
+
+function toCertificationEntry(value: unknown): CvCertificationEntry | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const entry = value as Record<string, unknown>;
+  const name = text(entry.name);
+  const issuer = text(entry.issuer);
+  const year = text(entry.year);
+
+  if (!name && !issuer && !year) {
+    return null;
+  }
+
+  return { name, issuer, year };
 }
 
 function toEducationEntry(value: unknown): CvEducationEntry | null {
@@ -198,6 +223,11 @@ export function parseCvCompletion(raw: string | null | undefined): CvDocument | 
           .map((s) => s.trim())
           .filter((s) => s.length > 0)
       : undefined,
+    certifications: Array.isArray(record.certifications)
+      ? record.certifications
+          .map(toCertificationEntry)
+          .filter((entry): entry is CvCertificationEntry => entry !== null)
+      : undefined,
   };
 }
 
@@ -236,6 +266,7 @@ export async function generateCv(input: CvRequestInput): Promise<CvDocument | nu
           `Existing skills: ${input.skills}`,
           input.education ? `Education: ${input.education}` : "",
           input.languages ? `Languages: ${input.languages}` : "",
+          input.certifications ? `Certifications: ${input.certifications}` : "",
           "",
           "My raw experience and background:",
           input.rawExperience,
