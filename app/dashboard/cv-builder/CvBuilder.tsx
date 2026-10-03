@@ -82,7 +82,11 @@ export function CvBuilder({
     ...initialPersonalInfo,
   });
   const [skills, setSkills] = useState(initialSkills ?? "");
+  const [education, setEducation] = useState("");
+  const [languages, setLanguages] = useState("");
   const [rawExperience, setRawExperience] = useState("");
+  const [font, setFont] = useState("sans");
+  const [accentColor, setAccentColor] = useState("#0f172a");
 
   const [cv, setCv] = useState<CvDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +94,13 @@ export function CvBuilder({
   const [isExporting, setIsExporting] = useState(false);
 
   const previewRef = useRef<HTMLDivElement>(null);
+
+  const colors = [
+    { name: "Black", value: "#0f172a" },
+    { name: "Navy Blue", value: "#1e3a8a" },
+    { name: "Dark Slate", value: "#334155" },
+    { name: "Forest Green", value: "#065f46" },
+  ];
 
   const update = (field: keyof PersonalInfo) => (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -111,6 +122,8 @@ export function CvBuilder({
           targetRole,
           personalInfo,
           skills,
+          education,
+          languages,
           rawExperience,
         }),
       });
@@ -424,29 +437,57 @@ export function CvBuilder({
             Preview
           </h2>
 
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={!cv || isExporting}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-blue-500/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isExporting ? (
-              <>
-                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-                Building PDF…
-              </>
-            ) : (
-              <>
-                <Download aria-hidden="true" className="h-4 w-4" />
-                Download as PDF
-              </>
-            )}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">Font</span>
+              <select
+                value={font}
+                onChange={(e) => setFont(e.target.value)}
+                className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-100"
+              >
+                <option value="sans">Sans-Serif (Inter)</option>
+                <option value="serif">Serif (Merriweather)</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">Color</span>
+              {colors.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => setAccentColor(color.value)}
+                  className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-105 ${
+                    accentColor === color.value ? "border-white" : "border-slate-600"
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.name}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={!cv || isExporting}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 transition-colors hover:border-blue-500/50 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                  Building PDF…
+                </>
+              ) : (
+                <>
+                  <Download aria-hidden="true" className="h-4 w-4" />
+                  Download as PDF
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-card border border-white/10 bg-slate-800">
           <div ref={previewRef}>
-            <CvPreview cv={cv} personalInfo={personalInfo} />
+            <CvPreview cv={cv} personalInfo={personalInfo} font={font} accentColor={accentColor} />
           </div>
         </div>
       </section>

@@ -2,27 +2,21 @@ import type { CvDocument, CvPersonalInfo } from "@/lib/cv";
 
 /**
  * The printable CV.
- *
- * Deliberately light-on-white rather than themed to match the dashboard. A CV is
- * a document someone hands to an employer or an ATS, so paper-white is both what
- * it should look like and what makes the PDF honest — the export is a capture of
- * exactly these pixels, so nothing here can silently re-theme itself on the way
- * out.
- *
- * Kept free of transforms, shadows and sticky positioning for the same reason:
- * the node is handed to html2canvas, which rasterises layout rather than
- * painting it, and effects that html2canvas approximates badly end up as visual
- * artefacts in the downloaded file.
  */
 
 type Props = {
   cv: CvDocument | null;
   personalInfo: CvPersonalInfo;
+  font?: string;
+  accentColor?: string;
 };
 
-function SectionHeading({ children }: { children: string }) {
+function SectionHeading({ children, accentColor }: { children: string; accentColor?: string }) {
   return (
-    <h2 className="mt-6 border-b border-slate-300 pb-1 text-xs font-bold uppercase tracking-widest text-slate-600">
+    <h2
+      className="mt-6 border-b pb-1 text-xs font-bold uppercase tracking-widest"
+      style={{ borderColor: accentColor || "#cbd5e1", color: accentColor || "#475569" }}
+    >
       {children}
     </h2>
   );
@@ -134,9 +128,9 @@ export function CvPreview({ cv, personalInfo }: Props) {
         </section>
       )}
 
-      {cv.education.length > 0 && (
+      {cv.education && cv.education.length > 0 && (
         <section>
-          <SectionHeading>Education</SectionHeading>
+          <SectionHeading accentColor={accent}>Education</SectionHeading>
           <div className="mt-2 space-y-2">
             {cv.education.map((entry, index) => (
               <div
@@ -144,19 +138,45 @@ export function CvPreview({ cv, personalInfo }: Props) {
                 className="flex items-baseline justify-between gap-3"
               >
                 <p className="text-xs text-slate-700">
-                  <span className="font-semibold text-slate-900">
+                  <span
+                    className="font-semibold text-slate-900"
+                    contentEditable={true}
+                    suppressContentEditableWarning={true}
+                  >
                     {entry.degree || "Degree"}
                   </span>
-                  {entry.institution && ` — ${entry.institution}`}
+                  {entry.institution && (
+                    <span contentEditable={true} suppressContentEditableWarning={true}>
+                      {" "}
+                      — {entry.institution}
+                    </span>
+                  )}
                 </p>
                 {entry.year && (
-                  <p className="shrink-0 text-[11px] italic text-slate-500">
+                  <p
+                    className="shrink-0 text-[11px] italic text-slate-500"
+                    contentEditable={true}
+                    suppressContentEditableWarning={true}
+                  >
                     {entry.year}
                   </p>
                 )}
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {cv.languages && cv.languages.length > 0 && (
+        <section>
+          <SectionHeading accentColor={accent}>Languages</SectionHeading>
+          <p
+            className="mt-2 text-xs text-slate-700"
+            contentEditable={true}
+            suppressContentEditableWarning={true}
+          >
+            {Array.isArray(cv.languages) ? cv.languages.join(", ") : cv.languages}
+          </p>
         </section>
       )}
     </div>

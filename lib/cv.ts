@@ -45,6 +45,7 @@ export type CvDocument = {
   skills: string[];
   experience: CvExperienceEntry[];
   education: CvEducationEntry[];
+  languages?: string[];
 };
 
 /** What the browser sends. Every field is a plain string — no nested objects. */
@@ -53,6 +54,8 @@ export type CvRequestInput = {
   personalInfo: CvPersonalInfo;
   skills: string;
   rawExperience: string;
+  education?: string;
+  languages?: string;
 };
 
 export const CV_MIN_RAW_EXPERIENCE = 40;
@@ -62,7 +65,7 @@ export function buildCvSystemPrompt(targetRole: string): string {
     "You are an expert tech recruiter. Take the user's raw experience and format it " +
     `into a highly professional CV tailored for the role of ${targetRole}. ` +
     "Return strictly in JSON format matching this structure: " +
-    '{ "summary": "", "skills": [], "experience": [{ "title": "", "company": "", "duration": "", "achievements": [""] }], "education": [{ "degree": "", "institution": "", "year": "" }] }. ' +
+    '{ "summary": "", "skills": [], "experience": [{ "title": "", "company": "", "duration": "", "achievements": [""] }], "education": [{ "degree": "", "institution": "", "year": "" }], "languages": [""] }. ' +
     "Rules: rewrite the user's own experience, never invent employers, job titles, " +
     "degrees or dates they did not supply; quantify outcomes only where the user gave " +
     "a number; keep achievements as short action-led bullets; order skills by relevance " +
@@ -187,6 +190,14 @@ export function parseCvCompletion(raw: string | null | undefined): CvDocument | 
     education: Array.isArray(record.education)
       ? record.education.map(toEducationEntry).filter((entry): entry is CvEducationEntry => entry !== null)
       : [],
+    languages: Array.isArray(record.languages)
+      ? record.languages.map(text).filter((entry) => entry.length > 0)
+      : typeof record.languages === "string"
+      ? text(record.languages)
+          .split(/[,;|]/)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0)
+      : undefined,
   };
 }
 
@@ -223,6 +234,8 @@ export async function generateCv(input: CvRequestInput): Promise<CvDocument | nu
           input.personalInfo.linkedin ? `LinkedIn: ${input.personalInfo.linkedin}` : "",
           input.personalInfo.github ? `GitHub: ${input.personalInfo.github}` : "",
           `Existing skills: ${input.skills}`,
+          input.education ? `Education: ${input.education}` : "",
+          input.languages ? `Languages: ${input.languages}` : "",
           "",
           "My raw experience and background:",
           input.rawExperience,
