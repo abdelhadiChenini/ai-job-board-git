@@ -8,6 +8,7 @@ const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/edit", label: "Edit Profile" },
   { href: "/dashboard/cv-builder", label: "AI CV Builder" },
+  { href: "/dashboard/training", label: "Training" },
   { href: "/dashboard/subscription", label: "Subscription" },
 ];
 

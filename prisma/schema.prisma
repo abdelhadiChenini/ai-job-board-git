@@ -128,6 +128,7 @@ model User {
   appliedOpportunities AppliedOpportunity[]
   planChangeLogs       PlanChangeLog[] @relation("PlanChangeSubject")
   planChangesPerformed PlanChangeLog[] @relation("PlanChangeActor")
+  userProgress         UserProgress[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -301,6 +302,48 @@ model Subscriber {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("subscribers")
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  category    String
+  duration    String?
+  skills      Json     @default("[]")
+  steps       Int      @default(0)
+  published   Boolean  @default(false)
+
+  userProgress UserProgress[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("courses")
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model UserProgress {
+  id             String         @id @default(cuid())
+  userId         String         @map("user_id")
+  courseId       String         @map("course_id")
+  completedSteps Int            @default(0) @map("completed_steps")
+  status         ProgressStatus @default(NOT_STARTED)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+  @@map("user_progress")
 }
 
 model SMTPSettings {
