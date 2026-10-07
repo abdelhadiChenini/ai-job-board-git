@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { plan: true },
+    select: { plan: true, role: true },
   });
 
   const plan = normalizePlan(user?.plan ?? null);

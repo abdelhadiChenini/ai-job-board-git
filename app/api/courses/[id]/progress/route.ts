@@ -18,11 +18,12 @@ export async function POST(
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { plan: true },
+    select: { plan: true, role: true },
   });
 
   const plan = normalizePlan(user?.plan ?? null);
-  if (plan !== "PRO") {
+  const isAdmin = user?.role === "ADMIN";
+  if (!isAdmin && plan !== "PRO") {
     return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
   }
 

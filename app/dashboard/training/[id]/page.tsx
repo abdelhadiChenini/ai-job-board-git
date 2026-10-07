@@ -34,11 +34,12 @@ export default async function TrainingCoursePage({ params }: Props) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { plan: true },
+    select: { plan: true, role: true },
   });
 
   const plan = normalizePlan(user?.plan ?? null);
-  if (plan !== "PRO") {
+  const isAdmin = user?.role === "ADMIN";
+  if (!isAdmin && plan !== "PRO") {
     redirect("/pricing?from=training");
   }
 
