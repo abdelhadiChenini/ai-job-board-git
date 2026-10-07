@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
 
@@ -26,7 +26,8 @@ export async function POST(
     return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
   }
 
-  const courseId = params.id;
+  const { id } = await params;
+  const courseId = id;
 
   const course = await prisma.course.findUnique({
     where: { id: courseId },

@@ -9,14 +9,15 @@ import { normalizePlan } from "@/lib/subscription";
 export const dynamic = "force-dynamic";
 
 type Props = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
   const course = await prisma.course.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { title: true, description: true },
   });
   if (!course) return { title: "Course Not Found" };
@@ -24,10 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function TrainingCoursePage({ params }: Props) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect(`/login?callbackUrl=/dashboard/training/${params.id}`);
+    redirect(`/login?callbackUrl=/dashboard/training/${id}`);
   }
 
   const user = await prisma.user.findUnique({
@@ -41,7 +43,7 @@ export default async function TrainingCoursePage({ params }: Props) {
   }
 
   const course = await prisma.course.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   if (!course || !course.published) {
