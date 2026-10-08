@@ -15,8 +15,11 @@ const staticRoutes: Array<{
   priority: number;
 }> = [
   { path: "/", changeFrequency: "daily", priority: 1 },
+  { path: "/opportunities", changeFrequency: "daily", priority: 0.9 },
   { path: "/experts", changeFrequency: "weekly", priority: 0.8 },
   { path: "/platforms", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/for-companies", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/blog", changeFrequency: "daily", priority: 0.8 },
   { path: "/faq", changeFrequency: "monthly", priority: 0.5 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.7 },
   { path: "/register", changeFrequency: "monthly", priority: 0.4 },
@@ -24,10 +27,13 @@ const staticRoutes: Array<{
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [jobOffers, blogPosts, experts] = await Promise.all([
+  const [jobOffers, courses, blogPosts, experts] = await Promise.all([
     prisma.jobOffer.findMany({
       where: { slug: { not: null } },
       select: { slug: true, updatedAt: true },
+    }),
+    prisma.course.findMany({
+      select: { id: true, updatedAt: true },
     }),
     prisma.blogPost.findMany({
       where: { published: true },
@@ -55,6 +61,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
+  const courseEntries: MetadataRoute.Sitemap = courses.map((course) => ({
+    url: `${baseUrl}/dashboard/training/${course.id}`,
+    lastModified: course.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
   const blogs: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: post.updatedAt,
@@ -69,5 +82,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...statics, ...jobs, ...blogs, ...expertEntries];
+  return [...statics, ...jobs, ...courseEntries, ...blogs, ...expertEntries];
 }
