@@ -45,7 +45,7 @@ function SlideBody({ slide }: { slide: CourseSlide }) {
             {slide.eyebrow}
           </p>
         )}
-        <h2 className="mt-4 text-3xl font-semibold leading-tight text-white sm:text-4xl">
+        <h2 className="mt-4 text-3xl font-bold leading-tight text-white sm:text-4xl">
           {slide.title}
         </h2>
         {slide.subtitle && (
@@ -57,17 +57,19 @@ function SlideBody({ slide }: { slide: CourseSlide }) {
 
   if (slide.type === "bullets") {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         {slide.heading && (
-          <h2 className="text-2xl font-semibold leading-snug text-white">{slide.heading}</h2>
+          <h2 className="text-3xl font-bold leading-tight text-white sm:text-4xl">
+            {slide.heading}
+          </h2>
         )}
-        <ul className="mt-6 space-y-3">
+        <ul className="mt-7 space-y-3">
           {(slide.bullets ?? []).map((bullet, index) => (
             <li
               key={`${slide.id}-bullet-${index}`}
-              className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-slate-200"
+              className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-base leading-relaxed text-slate-200"
             >
-              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" />
+              <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-accent" />
               <span>{bullet}</span>
             </li>
           ))}
@@ -77,14 +79,16 @@ function SlideBody({ slide }: { slide: CourseSlide }) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       {slide.heading && (
-        <h2 className="text-2xl font-semibold leading-snug text-white">{slide.heading}</h2>
+        <h2 className="text-3xl font-bold leading-tight text-white sm:text-4xl">
+          {slide.heading}
+        </h2>
       )}
       {(slide.body ?? "").split(/\n{2,}/).map((paragraph, index) => (
         <p
           key={`${slide.id}-paragraph-${index}`}
-          className="mt-4 whitespace-pre-line text-base leading-relaxed text-slate-300"
+          className="mt-5 whitespace-pre-line text-lg leading-relaxed text-slate-300"
         >
           {paragraph}
         </p>
@@ -125,6 +129,17 @@ export default function CoursePlayer({
   const moduleIsComplete = moduleIndex < completedSteps;
   const allComplete = targetSteps > 0 && completedSteps >= targetSteps;
   const percent = computeProgressPercent(completedSteps, targetSteps);
+  const courseTotalSlides = useMemo(
+    () => modules.reduce((total, mod) => total + mod.slides.length, 0),
+    [modules]
+  );
+  const slidesBeforeModule = useMemo(
+    () => modules.slice(0, moduleIndex).reduce((total, mod) => total + mod.slides.length, 0),
+    [modules, moduleIndex]
+  );
+  const courseSlidePosition = slidesBeforeModule + slideIndex + 1;
+  const slidePercent =
+    courseTotalSlides > 0 ? Math.round((courseSlidePosition / courseTotalSlides) * 100) : 0;
 
   const goToSlide = useCallback(
     (nextModule: number, nextSlide: number) => {
@@ -227,7 +242,7 @@ export default function CoursePlayer({
         Previous
       </button>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
         {isCourseEnd ? (
           allComplete ? (
             <Link
@@ -244,52 +259,47 @@ export default function CoursePlayer({
               className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-accent/90"
             >
               <CircleCheck className="h-4 w-4" />
-              Mark Complete
+              Complete Module
             </button>
           )
+        ) : isLastSlide ? (
+          moduleIsComplete ? (
+            <button
+              type="button"
+              onClick={goNext}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-accent/90"
+            >
+              Next Module
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={markComplete}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-accent/90"
+            >
+              <CircleCheck className="h-4 w-4" />
+              Complete Module
+            </button>
+          )
+        ) : isCourseOpening ? (
+          <button
+            type="button"
+            onClick={goNext}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-accent/90"
+          >
+            Jump in
+            <ArrowRight className="h-4 w-4" />
+          </button>
         ) : (
-          <>
-            {!isLastSlide && (
-              <button
-                type="button"
-                onClick={goNext}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/5"
-              >
-                Next Slide
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            )}
-            {isCourseOpening && (
-              <button
-                type="button"
-                onClick={goNext}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-accent/90"
-              >
-                Jump in
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            )}
-            {isLastSlide && !moduleIsComplete && (
-              <button
-                type="button"
-                onClick={markComplete}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-accent/90"
-              >
-                <CircleCheck className="h-4 w-4" />
-                Mark Complete
-              </button>
-            )}
-            {isLastSlide && moduleIsComplete && (
-              <button
-                type="button"
-                onClick={goNext}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-accent/90"
-              >
-                Next Module
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            )}
-          </>
+          <button
+            type="button"
+            onClick={goNext}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/5"
+          >
+            Next Slide
+            <ChevronRight className="h-4 w-4" />
+          </button>
         )}
       </div>
     </div>
@@ -388,21 +398,28 @@ export default function CoursePlayer({
         </div>
       </aside>
 
-      <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70">
-        <header className="border-b border-white/10 px-5 py-4 sm:px-8">
+      <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 shadow-2xl shadow-black/40">
+        <header className="border-b border-white/10 bg-slate-900/90 px-5 py-4 sm:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-accent">
-                {category}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <span className="text-xs font-semibold uppercase tracking-widest text-accent">
+                  {category}
+                </span>
                 {duration && (
-                  <span className="ml-2 inline-flex items-center gap-1 font-medium text-slate-400 normal-case tracking-normal">
-                    <Clock className="h-3 w-3" />
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                    <Clock className="h-3.5 w-3.5" />
                     {duration}
                   </span>
                 )}
-              </p>
-              <p className="mt-1 truncate text-sm text-slate-400">
-                Module {moduleIndex + 1} of {modules.length} · {activeModule.title}
+              </div>
+              <p className="mt-1.5 flex min-w-0 items-baseline gap-2">
+                <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-slate-500">
+                  Module {moduleIndex + 1}/{modules.length}
+                </span>
+                <span className="truncate text-sm font-semibold text-white">
+                  {activeModule.title}
+                </span>
               </p>
             </div>
             <span className="inline-flex items-center gap-2">
@@ -427,25 +444,32 @@ export default function CoursePlayer({
             </span>
           </div>
 
-          <div className="mt-4 flex gap-1.5">
-            {activeModule.slides.map((item, index) => (
-              <span
-                key={item.id}
-                className={`h-1 flex-1 rounded-full transition ${
-                  index <= slideIndex ? "bg-accent" : "bg-white/10"
-                }`}
+          <div className="mt-4">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-accent transition-all duration-500"
+                style={{ width: `${slidePercent}%` }}
               />
-            ))}
+            </div>
+            <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium text-slate-500">
+              <span>
+                {courseSlidePosition} of {courseTotalSlides} slides completed
+              </span>
+              <span className="text-slate-400">{slidePercent}%</span>
+            </div>
           </div>
         </header>
 
-        <div className="flex min-h-[420px] flex-1 items-center justify-center bg-slate-950/50 px-5 py-12 sm:px-10 lg:min-h-[520px]">
-          <div key={activeSlide.id} className="w-full animate-fade-up">
+        <div className="flex max-h-[calc(100vh-20rem)] min-h-[420px] flex-1 flex-col overflow-y-auto bg-slate-950/60 px-4 py-7 sm:px-8 sm:py-9 lg:min-h-[470px]">
+          <div
+            key={activeSlide.id}
+            className="mx-auto my-auto w-full max-w-3xl animate-fade-up rounded-2xl border border-white/5 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-2xl shadow-black/50 sm:p-10"
+          >
             <SlideBody slide={activeSlide} />
           </div>
         </div>
 
-        <footer className="border-t border-white/10 bg-slate-900/60 px-5 py-4 sm:px-8">
+        <footer className="border-t border-white/10 bg-slate-900/90 px-5 py-4 sm:px-8">
           {allComplete && !isCourseEnd && (
             <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
               <Sparkles className="h-3.5 w-3.5" />
