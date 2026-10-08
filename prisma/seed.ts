@@ -28,6 +28,7 @@ const platformData = [
 ];
 
 type JobSeed = {
+  slug: string;
   platformSlug: string;
   title: string;
   labName: string;
@@ -42,6 +43,7 @@ type JobSeed = {
 
 const jobSeeds: JobSeed[] = [
   {
+    slug: "llm-evaluator",
     platformSlug: "turing",
     title: "LLM Evaluator",
     labName: "Turing",
@@ -54,6 +56,7 @@ const jobSeeds: JobSeed[] = [
     affiliateUrl: "https://www.turing.com/careers/llm-evaluator?ref=ai-job-board",
   },
   {
+    slug: "ai-data-annotator-turing",
     platformSlug: "turing",
     title: "AI Data Annotator",
     labName: "Turing",
@@ -65,6 +68,7 @@ const jobSeeds: JobSeed[] = [
     affiliateUrl: "https://www.turing.com/careers/ai-data-annotator?ref=ai-job-board",
   },
   {
+    slug: "ai-data-annotator",
     platformSlug: "rws",
     title: "AI Data Annotator",
     labName: "RWS",
@@ -76,6 +80,7 @@ const jobSeeds: JobSeed[] = [
     affiliateUrl: "https://www.rws.com/careers/ai-data-annotator?ref=ai-job-board",
   },
   {
+    slug: "prompt-linguist",
     platformSlug: "rws",
     title: "Prompt Linguist",
     labName: "RWS",
@@ -87,6 +92,7 @@ const jobSeeds: JobSeed[] = [
     affiliateUrl: "https://www.rws.com/careers/prompt-linguist?ref=ai-job-board",
   },
   {
+    slug: "genai-evaluation-specialist",
     platformSlug: "scale-ai",
     title: "GenAI Evaluation Specialist",
     labName: "Scale AI",
@@ -315,12 +321,60 @@ async function seedCourses() {
   ];
   for (const c of courses) {
     const data = { ...c, steps: c.modules.length };
-    const existing = await prisma.course.findFirst({ where: { title: c.title } });
-    if (existing) {
-      await prisma.course.update({ where: { id: existing.id }, data });
-    } else {
-      await prisma.course.create({ data });
+    await prisma.course.upsert({
+      where: { title: c.title },
+      update: data,
+      create: data,
+    });
+  }
+}
+
+async function seedJobOffers() {
+  const platforms = new Map(
+    (await prisma.aIPlatform.findMany({ select: { id: true, slug: true } })).map((p) => [
+      p.slug,
+      p.id,
+    ])
+  );
+
+  for (const job of jobSeeds) {
+    const platformId = platforms.get(job.platformSlug);
+    if (!platformId) {
+      throw new Error(`Cannot seed "${job.title}": unknown platform "${job.platformSlug}"`);
     }
+
+    // Adopt the slug of an already-live offer so the upsert updates that row
+    // instead of inserting a duplicate. Legacy rows without a slug are given
+    // the canonical one first, which keeps `slug` unique across the table.
+    const existing = await prisma.jobOffer.findFirst({
+      where: { title: job.title, platformId },
+      select: { id: true, slug: true },
+    });
+    if (existing && !existing.slug) {
+      await prisma.jobOffer.update({
+        where: { id: existing.id },
+        data: { slug: job.slug },
+      });
+    }
+
+    const data = {
+      title: job.title,
+      description: job.description,
+      aiLabName: job.labName,
+      tags: job.tags,
+      salaryMin: job.salaryMin,
+      salaryMax: job.salaryMax,
+      currency: job.currency ?? "USD",
+      badge: job.badge,
+      affiliateUrl: job.affiliateUrl,
+      platform: { connect: { slug: job.platformSlug } },
+    };
+
+    await prisma.jobOffer.upsert({
+      where: { slug: existing?.slug ?? job.slug },
+      update: data,
+      create: { ...data, slug: job.slug },
+    });
   }
 }
 
@@ -337,24 +391,7 @@ async function main() {
     });
   }
 
-  await prisma.jobOffer.deleteMany();
-
-  for (const job of jobSeeds) {
-    await prisma.jobOffer.create({
-      data: {
-        title: job.title,
-        description: job.description,
-        aiLabName: job.labName,
-        tags: job.tags,
-        salaryMin: job.salaryMin,
-        salaryMax: job.salaryMax,
-        currency: job.currency ?? "USD",
-        badge: job.badge,
-        affiliateUrl: job.affiliateUrl,
-        platform: { connect: { slug: job.platformSlug } },
-      },
-    });
-  }
+  await seedJobOffers();
   await seedCourses();
 }
 

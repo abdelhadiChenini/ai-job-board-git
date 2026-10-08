@@ -306,7 +306,7 @@ model Subscriber {
 
 model Course {
   id          String   @id @default(uuid())
-  title       String
+  title       String   @unique
   description String   @db.Text
   category    String
   duration    String?
