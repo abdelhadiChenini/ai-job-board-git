@@ -3,6 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizePlan } from "@/lib/subscription";
+import {
+  computeProgressPercent,
+  resolveCourseTarget,
+  resolveProgressStatus,
+} from "@/lib/courses";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +43,24 @@ export async function POST(
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
 
+  const contentType = request.headers.get("content-type") ?? "";
+  const wantsJson = contentType.includes("application/json");
+
+  let requestedSteps: number | null = null;
+  if (wantsJson) {
+    try {
+      const body = await request.json();
+      const raw = body?.completedSteps;
+      if (typeof raw === "number" && Number.isFinite(raw)) {
+        requestedSteps = Math.max(0, Math.floor(raw));
+      }
+    } catch {
+      requestedSteps = null;
+    }
+  }
+
+  const targetSteps = resolveCourseTarget(course);
+
   let progress = await prisma.userProgress.findUnique({
     where: {
       userId_courseId: {
@@ -58,37 +81,37 @@ export async function POST(
     });
   }
 
-  const steps = course.steps || 0;
-  const newCompletedSteps = (progress.completedSteps || 0) + 1;
+  const currentSteps = progress.completedSteps || 0;
+  const nextCompletedSteps =
+    requestedSteps !== null ? requestedSteps : currentSteps + 1;
+  const completedSteps = targetSteps
+    ? Math.min(nextCompletedSteps, targetSteps)
+    : nextCompletedSteps;
+  const status = resolveProgressStatus(completedSteps, targetSteps);
 
-  if (newCompletedSteps >= steps && steps > 0) {
-    progress = await prisma.userProgress.update({
-      where: {
-        userId_courseId: {
-          userId: session.user.id,
-          courseId,
-        },
+  progress = await prisma.userProgress.update({
+    where: {
+      userId_courseId: {
+        userId: session.user.id,
+        courseId,
       },
-      data: {
-        completedSteps: steps,
-        status: "COMPLETED",
-        updatedAt: new Date(),
-      },
-    });
-  } else {
-    progress = await prisma.userProgress.update({
-      where: {
-        userId_courseId: {
-          userId: session.user.id,
-          courseId,
-        },
-      },
-      data: {
-        completedSteps: newCompletedSteps,
-        status: "IN_PROGRESS",
-        updatedAt: new Date(),
-      },
-    });
+    },
+    data: {
+      completedSteps,
+      status,
+      updatedAt: new Date(),
+    },
+  });
+
+  const payload = {
+    completedSteps: progress.completedSteps,
+    targetSteps,
+    percent: computeProgressPercent(progress.completedSteps, targetSteps),
+    status: progress.status,
+  };
+
+  if (wantsJson) {
+    return NextResponse.json(payload);
   }
 
   const referer = request.headers.get("referer");

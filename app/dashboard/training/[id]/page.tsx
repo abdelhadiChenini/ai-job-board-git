@@ -5,6 +5,8 @@ import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizePlan } from "@/lib/subscription";
+import { computeProgressPercent, getCourseModules } from "@/lib/courses";
+import CoursePlayer from "./CoursePlayer";
 
 export const dynamic = "force-dynamic";
 
@@ -71,61 +73,39 @@ export default async function TrainingCoursePage({ params }: Props) {
     });
   }
 
-  const steps = course.steps || 0;
-  const completedSteps = progress.completedSteps || 0;
-  const currentStep = Math.min(steps, completedSteps + 1);
-  const isCompleted = progress.status === "COMPLETED" || completedSteps >= steps;
+  const modules = getCourseModules(course);
+  const targetSteps = modules.length || course.steps || 0;
+  const completedSteps = Math.max(
+    0,
+    Math.min(progress.completedSteps || 0, targetSteps || progress.completedSteps || 0)
+  );
+  const percent = computeProgressPercent(completedSteps, targetSteps);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <Link href="/dashboard/training" className="text-sm text-slate-400 hover:text-white">
+    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href="/dashboard/training"
+          className="text-sm text-slate-400 transition hover:text-white"
+        >
           ← Back to training
         </Link>
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/70 px-3 py-1.5 text-xs text-slate-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+          {percent}% complete
+        </span>
       </div>
-      <div className="rounded-2xl border border-white/10 bg-slate-800/70 p-6">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{course.category}</p>
-            <h1 className="mt-1 text-2xl font-semibold text-white">{course.title}</h1>
-          </div>
-          {course.duration && <span className="text-sm text-slate-400">{course.duration}</span>}
-        </div>
-        <p className="text-sm text-slate-400">{course.description}</p>
-        <div className="mt-6">
-          <div className="h-2 w-full rounded-full bg-white/10">
-            <div
-              className="h-2 rounded-full bg-accent transition-all"
-              style={{ width: `${steps ? Math.min(100, (completedSteps / steps) * 100) : 0}%` }}
-            />
-          </div>
-          <p className="mt-2 text-xs text-slate-400">
-            {completedSteps} of {steps} steps completed
-          </p>
-        </div>
-        <div className="mt-8 space-y-6">
-          <div className="rounded-xl border border-white/10 bg-slate-900/60 p-6">
-            <h2 className="text-lg font-semibold text-white">
-              {isCompleted ? "Course completed" : `Step ${currentStep} of ${steps}`}
-            </h2>
-            <p className="mt-2 text-sm text-slate-400">
-              {isCompleted
-                ? "You've completed all training modules. Great work!"
-                : "Follow the instructional content and complete the checkpoint for this step."}
-            </p>
-          </div>
-          <div className="flex justify-end">
-            <form action={`/api/courses/${course.id}/progress`} method="post">
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-xl bg-accent px-6 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-accent/90"
-              >
-                {isCompleted ? "Mark as reviewed" : "Complete step"}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+
+      <CoursePlayer
+        courseId={course.id}
+        title={course.title}
+        category={course.category}
+        duration={course.duration}
+        modules={modules}
+        completedSteps={completedSteps}
+        targetSteps={targetSteps}
+        status={progress.status}
+      />
     </main>
   );
 }

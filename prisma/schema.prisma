@@ -312,6 +312,8 @@ model Course {
   duration    String?
   skills      Json     @default("[]")
   steps       Int      @default(0)
+  // Ordered list of presentation modules: [{ id, title, slides: [{ id, type, ... }] }]
+  modules     Json     @default("[]")
   published   Boolean  @default(false)
 
   userProgress UserProgress[]

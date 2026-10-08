@@ -41,25 +41,24 @@ export default async function TrainingPage() {
     }),
   ]);
 
-  const progressMap = new Map(progressRows.map((p: any) => [p.courseId, p]));
+  const progressMap = new Map(progressRows.map((p) => [p.courseId, p]));
 
   const getActionLabel = (courseId: string, steps: number) => {
-    const p: any = progressMap.get(courseId);
+    const p = progressMap.get(courseId);
     if (!p || p.status === "NOT_STARTED" || p.completedSteps === 0) return "Start";
     if (p.status === "COMPLETED" || (p.completedSteps >= steps && steps > 0)) return "View details";
     return "Continue";
   };
 
-  const learningPaths = courses.filter((c: any) => c.category === "LEARNING PATH");
-  const playgrounds = courses.filter((c: any) => c.category !== "LEARNING PATH");
+  const learningPaths = courses.filter((c) => c.category === "LEARNING PATH");
+  const playgrounds = courses.filter((c) => c.category !== "LEARNING PATH");
 
   const activeCourse = progressRows.find(
-    (p: any) => p.status === "IN_PROGRESS" || (p.completedSteps > 0 && p.status !== "COMPLETED")
+    (p) => p.status === "IN_PROGRESS" || (p.completedSteps > 0 && p.status !== "COMPLETED")
   );
-  let activeCourseData: any = null;
-  if (activeCourse) {
-    activeCourseData = courses.find((c: any) => c.id === activeCourse.courseId) || null;
-  }
+  const activeCourseData = activeCourse
+    ? courses.find((c) => c.id === activeCourse.courseId) ?? null
+    : null;
 
   return (
     <section className="flex flex-col gap-8 lg:flex-row">
@@ -106,7 +105,7 @@ export default async function TrainingPage() {
             <p className="mt-2 text-sm text-slate-400">No learning paths published yet.</p>
           ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {learningPaths.map((course: any) => {
+              {learningPaths.map((course) => {
                 const skills = Array.isArray(course.skills) ? (course.skills as string[]) : [];
                 return (
                   <div key={course.id} className="rounded-2xl border border-white/10 bg-slate-800/70 p-5">
@@ -149,7 +148,7 @@ export default async function TrainingPage() {
             <p className="mt-2 text-sm text-slate-400">No playground modules published yet.</p>
           ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {playgrounds.map((course: any) => {
+              {playgrounds.map((course) => {
                 const skills = Array.isArray(course.skills) ? (course.skills as string[]) : [];
                 return (
                   <div key={course.id} className="rounded-2xl border border-white/10 bg-slate-800/70 p-5">

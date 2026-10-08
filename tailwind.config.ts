@@ -26,11 +26,16 @@ const config: Config = {
       animation: {
         float: "float 7s ease-in-out infinite",
         "float-delayed": "float 7s ease-in-out 2.5s infinite",
+        "fade-up": "fade-up 0.35s ease-out both",
       },
       keyframes: {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-12px)" },
+        },
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
     },
