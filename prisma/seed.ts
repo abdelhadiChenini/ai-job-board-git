@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { rubricCourseModules } from "./courseContent";
 
 const prisma = new PrismaClient();
 
@@ -107,131 +108,7 @@ async function seedCourses() {
       description: "Master the core guidelines, consistency checks, and quality metrics required by top-tier AI labs for accurate dataset labeling.",
       duration: "45 min",
       skills: ["Data Annotation", "Quality Evaluation", "Rubric Compliance", "NLP"],
-      modules: [
-        {
-          id: "foundations-of-rubrics",
-          title: "Foundations of Rubrics",
-          slides: [
-            {
-              id: "for-title",
-              type: "title",
-              eyebrow: "Module 01",
-              title: "Foundations of Rubrics",
-              subtitle: "Why a shared scoring standard is the difference between noise and signal in human feedback.",
-            },
-            {
-              id: "for-why",
-              type: "bullets",
-              heading: "Why rubrics matter",
-              bullets: [
-                "They turn subjective opinions into comparable, repeatable measurements.",
-                "They let dozens of annotators converge on the same judgment for the same sample.",
-                "They expose disagreement early — a rubric argument is cheaper than a model regression.",
-                "They give model consumers a readable contract for what 'good' actually means.",
-              ],
-            },
-            {
-              id: "for-contract",
-              type: "text",
-              heading: "The consistency contract",
-              body: "A rubric is a contract between everyone who scores the same data. It states, in advance, what each quality dimension means and how each level of quality looks in practice.\n\nWithout that contract, two annotators can both be 'right' and still disagree — and downstream, the model learns from that disagreement as if it were a real preference.",
-            },
-            {
-              id: "for-signals",
-              type: "bullets",
-              heading: "Signals a rubric is working",
-              bullets: [
-                "Inter-annotator agreement stays stable as the team grows.",
-                "Disputes are resolved by pointing at descriptors, not by seniority.",
-                "Edge cases get added to the rubric instead of being silently forced.",
-                "Reviewers spend time on genuinely ambiguous samples only.",
-              ],
-            },
-          ],
-        },
-        {
-          id: "anatomy-of-a-rubric",
-          title: "Anatomy of a Rubric",
-          slides: [
-            {
-              id: "ana-title",
-              type: "title",
-              eyebrow: "Module 02",
-              title: "Anatomy of a Rubric",
-              subtitle: "The four parts every scoring guide is built from — and how they fit together.",
-            },
-            {
-              id: "ana-parts",
-              type: "bullets",
-              heading: "The four building blocks",
-              bullets: [
-                "Criteria: the single dimension being judged, such as accuracy or tone.",
-                "Descriptors: plain-language statements of what each level looks like.",
-                "Rating levels: the ordered scale, typically 1–4 or 1–5.",
-                "Anchors: real, reviewed examples pinned to each level.",
-              ],
-            },
-            {
-              id: "ana-criteria",
-              type: "text",
-              heading: "Criteria versus indicators",
-              body: "A criterion answers 'what are we judging?' — factual accuracy, instruction-following, safety. An indicator answers 'how would I notice it?' — the observable behaviours that justify moving a score up or down.\n\nGood rubrics keep those separate. Indicators are written as things a reviewer can verify in the sample, never as intentions the annotator has to guess at.",
-            },
-            {
-              id: "ana-levels",
-              type: "bullets",
-              heading: "Designing levels that hold up",
-              bullets: [
-                "Use an even number of levels when you want to force a decision instead of a hedge.",
-                "Write the top and bottom levels first — they define the range.",
-                "Make every level distinguishable on a single axis, never a blend of qualities.",
-                "Kill the 'average' middle unless it has a concrete anchor example.",
-              ],
-            },
-          ],
-        },
-        {
-          id: "dimensions-instructions-weighting",
-          title: "Dimensions, Instructions, and Weighting",
-          slides: [
-            {
-              id: "diw-title",
-              type: "title",
-              eyebrow: "Module 03",
-              title: "Dimensions, Instructions, and Weighting",
-              subtitle: "Choosing what to measure, writing instructions that remove ambiguity, and deciding what counts more.",
-            },
-            {
-              id: "diw-dimensions",
-              type: "bullets",
-              heading: "Choosing dimensions",
-              bullets: [
-                "Accuracy and faithfulness to the source — non-negotiable for factual tasks.",
-                "Instruction-following — did the response do exactly what was asked?",
-                "Completeness — are required points present without padding?",
-                "Tone and safety — style rules and boundary adherence.",
-              ],
-            },
-            {
-              id: "diw-instructions",
-              type: "text",
-              heading: "Instructions that remove ambiguity",
-              body: "Write instructions as decision rules, not advice. 'Be concise' is advice; 'flag any response over 200 words unless the user asked for detail' is a rule a reviewer can apply without asking anyone.\n\nEvery instruction should be answerable with yes or no from the sample alone. If answering it requires guessing intent, it belongs in the guidelines — not the rubric.",
-            },
-            {
-              id: "diw-weighting",
-              type: "bullets",
-              heading: "Weighting with intent",
-              bullets: [
-                "Weight by failure cost: safety and factual errors outweigh stylistic polish.",
-                "Keep weights simple — two or three tiers beat a dozen fractional values.",
-                "Document the composite formula so scores are reproducible.",
-                "Rebalance whenever the product's risk profile changes, and version the rubric.",
-              ],
-            },
-          ],
-        },
-      ],
+      modules: rubricCourseModules,
       published: true,
     },
     {

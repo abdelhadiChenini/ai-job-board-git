@@ -53,14 +53,17 @@ function normalizeSlide(
   if (!isRecord(raw)) return null;
 
   const declaredType = asString(raw.type) as CourseSlideType | undefined;
+  const text = asString(raw.body) ?? asString(raw.content);
   const type: CourseSlideType =
     declaredType && SLIDE_TYPES.includes(declaredType)
       ? declaredType
       : raw.bullets
         ? "bullets"
-        : slideIndex === 0 && raw.title
-          ? "title"
-          : "text";
+        : text
+          ? "text"
+          : slideIndex === 0 && raw.title
+            ? "title"
+            : "text";
 
   const slide: CourseSlide = {
     id: asString(raw.id) ?? `module-${moduleIndex + 1}-slide-${slideIndex + 1}`,
@@ -69,9 +72,9 @@ function normalizeSlide(
 
   const eyebrow = asString(raw.eyebrow);
   const title = asString(raw.title);
-  const subtitle = asString(raw.subtitle);
+  const subtitle = asString(raw.subtitle) ?? (type === "title" ? text : undefined);
   const heading = asString(raw.heading) ?? (type === "text" ? title : undefined);
-  const body = asString(raw.body);
+  const body = text;
   const bullets = asStringList(raw.bullets);
 
   if (eyebrow) slide.eyebrow = eyebrow;

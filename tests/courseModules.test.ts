@@ -69,6 +69,25 @@ describe("parseCourseModules", () => {
     ]);
   });
 
+  it("reads the flat title/content slide shape used by the seed", () => {
+    const modules = parseCourseModules([
+      {
+        title: "Foundations of Rubrics",
+        slides: [
+          { title: "Intro to Rubrics", content: "A fundamental introduction to rubrics." },
+          { title: "Assessment Check", content: "Key Takeaways:\n- one\n- two" },
+        ],
+      },
+    ]);
+
+    expect(modules).toHaveLength(1);
+    expect(modules[0].slides).toHaveLength(2);
+    expect(modules[0].slides[0].type).toBe("text");
+    expect(modules[0].slides[0].heading).toBe("Intro to Rubrics");
+    expect(modules[0].slides[0].body).toBe("A fundamental introduction to rubrics.");
+    expect(modules[0].slides[1].body).toBe("Key Takeaways:\n- one\n- two");
+  });
+
   it("returns an empty list for malformed input", () => {
     expect(parseCourseModules(null)).toEqual([]);
     expect(parseCourseModules("nope")).toEqual([]);

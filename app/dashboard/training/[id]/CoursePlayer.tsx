@@ -84,7 +84,7 @@ function SlideBody({ slide }: { slide: CourseSlide }) {
       {(slide.body ?? "").split(/\n{2,}/).map((paragraph, index) => (
         <p
           key={`${slide.id}-paragraph-${index}`}
-          className="mt-4 text-base leading-relaxed text-slate-300"
+          className="mt-4 whitespace-pre-line text-base leading-relaxed text-slate-300"
         >
           {paragraph}
         </p>
