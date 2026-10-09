@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Modal from "../Modal";
 import RichTextEditor from "../pages/RichTextEditor";
@@ -27,6 +27,17 @@ type ApiOpportunity = {
 };
 
 type ApiPlatform = { id: string; name: string; slug: string };
+
+type Toast = {
+  id: number;
+  tone: "success" | "error";
+  message: string;
+};
+
+const toastTone = {
+  success: "border-emerald-500/40 bg-emerald-950/90 text-emerald-200",
+  error: "border-red-500/40 bg-red-950/90 text-red-200",
+} as const;
 
 type ApiCategory = { id: string; name: string };
 
@@ -102,8 +113,19 @@ export function OpportunityTable({
   );
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const nextToastId = useRef(0);
 
   const total = totalCount ?? records.length;
+
+  const pushToast = useCallback((tone: Toast["tone"], text: string) => {
+    const id = nextToastId.current++;
+    setToasts((current) => [...current, { id, tone, message: text }]);
+    setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    }, 6000);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -256,6 +278,31 @@ export function OpportunityTable({
     }
   };
 
+  const share = async (record: ApiOpportunity) => {
+    setSharingId(record.id);
+    setTableError(null);
+    try {
+      const response = await fetch(
+        `/api/opportunities/${encodeURIComponent(record.id)}/social`,
+        { method: "POST" },
+      );
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        pushToast(
+          "error",
+          (data as { error?: string } | null)?.error ??
+            "Could not share opportunity.",
+        );
+        return;
+      }
+      pushToast("success", `"${record.title}" sent to socials.`);
+    } catch {
+      pushToast("error", "Network error while sharing the opportunity.");
+    } finally {
+      setSharingId(null);
+    }
+  };
+
   const salaryLabel = (record: ApiOpportunity) => {
     if (record.salaryMin == null && record.salaryMax == null) return "—";
     const min = record.salaryMin == null ? "" : `${record.salaryMin}`;
@@ -327,6 +374,14 @@ export function OpportunityTable({
                     {tagsLabel(record.tags) || "—"}
                   </td>
                   <td className="py-3 text-right">
+                    <button
+                      type="button"
+                      onClick={() => void share(record)}
+                      disabled={sharingId === record.id}
+                      className="mr-3 text-sm font-semibold text-emerald-400 hover:text-emerald-300 disabled:opacity-60"
+                    >
+                      {sharingId === record.id ? "Sharing…" : "Share"}
+                    </button>
                     <button
                       type="button"
                       onClick={() => openEdit(record)}
@@ -559,6 +614,19 @@ export function OpportunityTable({
           </div>
         </form>
       </Modal>
+
+      <div className="pointer-events-none fixed right-6 bottom-6 z-50 flex w-full max-w-sm flex-col gap-2">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            role="status"
+            aria-live="polite"
+            className={`pointer-events-auto rounded-xl border px-4 py-3 text-sm font-medium shadow-lg shadow-black/40 ${toastTone[toast.tone]}`}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
