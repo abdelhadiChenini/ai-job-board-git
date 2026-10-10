@@ -31,19 +31,23 @@
     "@tiptap/starter-kit": "^3.31.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "@vitest/mocker": "^4.1.11",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.11.0",
     "html2canvas": "^1.4.1",
     "isomorphic-dompurify": "^4.3.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.48.0",
-    "next": "^16.3.8",
+"next": "^16.4.0",
     "next-auth": "^4.24.15",
     "nodemailer": "^10.0.12",
     "openai": "^7.23.0",
+    "postcss-selector-parser": "^7.1.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "resend": "^6.31.0"
+    "resend": "^6.31.0",
+    "source-map-js": "^1.2.2",
+    "tinypool": "^2.2.0"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.20",
@@ -54,12 +58,12 @@
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.6",
+    "eslint-config-next": "^16.4.0",
     "postcss": "^8.5.28",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.16",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
-    "vitest": "^3.2.7"
+    "vitest": "^4.1.11"
   }
 }
