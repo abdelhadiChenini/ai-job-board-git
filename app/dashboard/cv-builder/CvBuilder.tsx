@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Download, FileText, Loader2, Sparkles } from "lucide-react";
 import type { CvDocument } from "@/lib/cv";
 import { CV_MIN_RAW_EXPERIENCE } from "@/lib/cv";
+import { CV_FONT_OPTIONS, type CvFontId } from "@/lib/cvFonts";
 import CvPreview from "./CvPreview";
 
 type PersonalInfo = {
@@ -32,6 +33,89 @@ const A4_HEIGHT_MM = 297;
 const PAGE_MARGIN_MM = 10;
 /** Render scale for the raster capture. 2 keeps text crisp without huge memory. */
 const CAPTURE_SCALE = 2;
+/** JPEG quality for the rasterised pages: visually lossless, far smaller than PNG. */
+const JPEG_QUALITY = 0.98;
+
+/**
+ * Styles applied only to the copy html2canvas rasterises, never the live page.
+ *
+ * html2canvas ignores `@media print`, so the PDF needs the print layout forced
+ * onto its clone: the sheet is pinned to a real A4 width, text is let out to
+ * 12-14.5px with a 1.6 line height, and `print-color-adjust` keeps the dark
+ * section bars (PROFESSIONAL SUMMARY, SKILLS, …) from being dropped.
+ */
+const CV_PRINT_STYLES = `
+  .cv-card {
+    overflow: visible !important;
+  }
+  .cv-capture {
+    width: ${A4_WIDTH_MM}mm !important;
+    min-width: ${A4_WIDTH_MM}mm !important;
+    max-width: ${A4_WIDTH_MM}mm !important;
+  }
+  .cv-capture,
+  .cv-capture *,
+  .cv-preview,
+  .cv-preview * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .cv-capture .text-\\[11px\\] {
+    font-size: 12px !important;
+  }
+  .cv-capture .text-xs {
+    font-size: 13px !important;
+  }
+  .cv-capture .text-sm {
+    font-size: 14.5px !important;
+  }
+  .cv-capture p,
+  .cv-capture li {
+    line-height: 1.6 !important;
+  }
+  .cv-capture section {
+    margin-bottom: 3mm !important;
+  }
+  .cv-capture h2 {
+    page-break-after: avoid;
+  }
+`;
+
+/**
+ * Chooses where to slice a rasterised CV across A4 pages.
+ *
+ * Sections marked `break-inside-avoid` are treated as atomic: a page split crawls
+ * up to the end of the last whole section that still fits, rather than cutting
+ * through it. When nothing fits — one section taller than a page — it falls back
+ * to the hard height limit.
+ */
+function planPageBreaks(
+  candidates: number[],
+  pageHeightPx: number,
+  totalHeightPx: number,
+): number[] {
+  const breaks: number[] = [];
+  let cursor = 0;
+
+  while (cursor < totalHeightPx) {
+    const limit = cursor + pageHeightPx;
+
+    if (limit >= totalHeightPx) {
+      breaks.push(totalHeightPx);
+      break;
+    }
+
+    const safe = candidates.filter(
+      (bottom) => bottom > cursor && bottom <= limit,
+    );
+    const boundary = safe.length > 0 ? safe[safe.length - 1] : limit;
+
+    breaks.push(boundary);
+    cursor = boundary;
+  }
+
+  return breaks;
+}
 
 const inputClass =
   "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-blue-500 focus:outline-none";
@@ -90,7 +174,7 @@ export function CvBuilder({
   );
   const [certifications, setCertifications] = useState("");
   const [rawExperience, setRawExperience] = useState("");
-  const [font, setFont] = useState("sans");
+  const [font, setFont] = useState<CvFontId>("inter");
   const [accentColor, setAccentColor] = useState("#0f172a");
   const [template, setTemplate] = useState("minimalist");
 
@@ -102,10 +186,13 @@ export function CvBuilder({
   const previewRef = useRef<HTMLDivElement>(null);
 
   const colors = [
-    { name: "Black", value: "#0f172a" },
+    { name: "Midnight", value: "#0f172a" },
     { name: "Navy Blue", value: "#1e3a8a" },
-    { name: "Dark Slate", value: "#334155" },
-    { name: "Forest Green", value: "#065f46" },
+    { name: "Charcoal", value: "#334155" },
+    { name: "Emerald Green", value: "#065f46" },
+    { name: "Burgundy", value: "#881337" },
+    { name: "Teal", value: "#0f766e" },
+    { name: "Indigo", value: "#4338ca" },
   ];
 
   const update = (field: keyof PersonalInfo) => (
@@ -165,6 +252,13 @@ export function CvBuilder({
   /**
    * Rasterises the preview and writes it to disk as a paginated A4 PDF.
    *
+   * The preview is laid out for a browser column, so the capture is re-pinned to
+   * a real A4 width (210&nbsp;mm) inside html2canvas's clone of the document —
+   * the live page never moves. The clone also gets print typography, because a
+   * 12&nbsp;px font inside a 794&nbsp;px-wide sheet is what a 10&nbsp;mm-margined
+   * A4 page can actually hold, while the on-screen preview can stretch far
+   * wider. `scale: 2` keeps that text crisp in the raster.
+   *
    * The dynamic `import` keeps both libraries out of the initial bundle: they
    * are only needed once someone actually clicks Download, and together they are
    * an order of magnitude larger than this page's own code.
@@ -185,13 +279,6 @@ export function CvBuilder({
         import("jspdf"),
       ]);
 
-      const canvas = await html2canvas(node, {
-        scale: CAPTURE_SCALE,
-        backgroundColor: "#ffffff",
-        logging: false,
-        useCORS: true,
-      });
-
       const pdf = new jsPDF({
         unit: "mm",
         format: "a4",
@@ -201,65 +288,58 @@ export function CvBuilder({
       const contentWidthMm = A4_WIDTH_MM - PAGE_MARGIN_MM * 2;
       const contentHeightMm = A4_HEIGHT_MM - PAGE_MARGIN_MM * 2;
 
+      // Page boundaries have to be picked in the cloned layout: that is the one
+      // laid out at real A4 width. Measuring the live preview instead would be
+      // off by the ratio of the on-screen card to the paper width.
+      let cloneBreaks: number[] | null = null;
+
+      const canvas = await html2canvas(node, {
+        scale: CAPTURE_SCALE,
+        backgroundColor: "#ffffff",
+        logging: false,
+        useCORS: true,
+        onclone(clonedDocument) {
+          const style = clonedDocument.createElement("style");
+          style.textContent = CV_PRINT_STYLES;
+          clonedDocument.head.appendChild(style);
+
+          const host = clonedDocument.querySelector<HTMLElement>(".cv-capture");
+
+          if (!host) {
+            return;
+          }
+
+          const bounds = host.getBoundingClientRect();
+          const widthPx = bounds.width * CAPTURE_SCALE;
+          const heightPx = bounds.height * CAPTURE_SCALE;
+          const mmPerPx = contentWidthMm / widthPx;
+
+          const candidates = Array.from(
+            host.querySelectorAll<HTMLElement>('[class*="break-inside-avoid"]'),
+          )
+            .map((element) =>
+              Math.round(
+                (element.getBoundingClientRect().bottom - bounds.top) *
+                  CAPTURE_SCALE,
+              ),
+            )
+            .filter((bottom) => bottom > 0 && bottom < heightPx)
+            .sort((a, b) => a - b);
+
+          cloneBreaks = planPageBreaks(
+            candidates,
+            Math.floor(contentHeightMm / mmPerPx),
+            heightPx,
+          );
+        },
+      });
+
       // Scale from captured pixels to millimetres, using the width so the two
       // axes stay in proportion.
       const mmPerPx = contentWidthMm / canvas.width;
       const fullHeightMm = canvas.height * mmPerPx;
 
-      if (fullHeightMm <= contentHeightMm) {
-        pdf.addImage(
-          canvas.toDataURL("image/png"),
-          "PNG",
-          PAGE_MARGIN_MM,
-          PAGE_MARGIN_MM,
-          contentWidthMm,
-          fullHeightMm,
-        );
-      } else {
-        // Multi-page: cut the source canvas into page-sized slices. Slicing one
-        // long canvas into N images (rather than scaling to fit) keeps text at a
-        // readable size on every page.
-        //
-        // Rather than cutting blindly at every page height — which can bisect a
-        // section — we prefer to break on a `break-inside-avoid` boundary just
-        // above the page limit. When a single section is taller than a page
-        // there is no such boundary, so we fall back to the hard limit.
-        const pageHeightPx = Math.floor(contentHeightMm / mmPerPx);
-
-        const nodeTop = node.getBoundingClientRect().top;
-        const candidates = Array.from(
-          node.querySelectorAll<HTMLElement>('[class*="break-inside-avoid"]'),
-        )
-          .map((element) =>
-            Math.round(
-              (element.getBoundingClientRect().bottom - nodeTop) * CAPTURE_SCALE,
-            ),
-          )
-          .filter((bottom) => bottom > 0 && bottom < canvas.height)
-          .sort((a, b) => a - b);
-
-        const breaks: number[] = [];
-        let cursor = 0;
-
-        while (cursor < canvas.height) {
-          const limit = cursor + pageHeightPx;
-
-          if (limit >= canvas.height) {
-            breaks.push(canvas.height);
-            break;
-          }
-
-          // Largest safe boundary that still fits inside this page.
-          const safe = candidates.filter(
-            (bottom) => bottom > cursor && bottom <= limit,
-          );
-          const boundary =
-            safe.length > 0 ? safe[safe.length - 1] : limit;
-
-          breaks.push(boundary);
-          cursor = boundary;
-        }
-
+      const writeSlices = (breaks: number[]) => {
         let offsetY = 0;
 
         breaks.forEach((boundary, pageIndex) => {
@@ -294,8 +374,8 @@ export function CvBuilder({
           }
 
           pdf.addImage(
-            slice.toDataURL("image/png"),
-            "PNG",
+            slice.toDataURL("image/jpeg", JPEG_QUALITY),
+            "JPEG",
             PAGE_MARGIN_MM,
             PAGE_MARGIN_MM,
             contentWidthMm,
@@ -304,6 +384,45 @@ export function CvBuilder({
 
           offsetY = boundary;
         });
+      };
+
+      if (fullHeightMm <= contentHeightMm) {
+        pdf.addImage(
+          canvas.toDataURL("image/jpeg", JPEG_QUALITY),
+          "JPEG",
+          PAGE_MARGIN_MM,
+          PAGE_MARGIN_MM,
+          contentWidthMm,
+          fullHeightMm,
+        );
+      } else {
+        // Defensive fallback only: `onclone` always runs, but if its metrics go
+        // missing for any reason, slice from the live layout instead of
+        // contradicting a row of empty page-break candidates.
+        let breaks: number[] | null = cloneBreaks;
+
+        if (!breaks) {
+          const pageHeightPx = Math.floor(contentHeightMm / mmPerPx);
+          const nodeTop = node.getBoundingClientRect().top;
+
+          breaks = planPageBreaks(
+            Array.from(
+              node.querySelectorAll<HTMLElement>('[class*="break-inside-avoid"]'),
+            )
+              .map((element) =>
+                Math.round(
+                  (element.getBoundingClientRect().bottom - nodeTop) *
+                    CAPTURE_SCALE,
+                ),
+              )
+              .filter((bottom) => bottom > 0 && bottom < canvas.height)
+              .sort((a, b) => a - b),
+            pageHeightPx,
+            canvas.height,
+          );
+        }
+
+        writeSlices(breaks);
       }
 
       const safeName =
@@ -525,11 +644,14 @@ export function CvBuilder({
               <span className="text-xs text-slate-400">Font</span>
               <select
                 value={font}
-                onChange={(e) => setFont(e.target.value)}
+                onChange={(e) => setFont(e.target.value as CvFontId)}
                 className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-100"
               >
-                <option value="sans">Sans-Serif</option>
-                <option value="serif">Serif</option>
+                {CV_FONT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="flex items-center gap-2">
@@ -568,8 +690,8 @@ export function CvBuilder({
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-card border border-white/10 bg-slate-800">
-          <div ref={previewRef}>
+        <div className="cv-card mx-auto w-full max-w-3xl overflow-hidden rounded-card border border-white/10 bg-slate-800">
+          <div ref={previewRef} className="cv-capture">
             <CvPreview cv={cv} personalInfo={personalInfo} font={font} accentColor={accentColor} template={template} />
           </div>
         </div>

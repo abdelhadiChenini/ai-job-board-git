@@ -106,3 +106,59 @@ body {
     padding: 1.25rem;
   }
 }
+
+/*
+ * A4 print layout for the AI CV Builder.
+ *
+ * The PDF is produced by rasterising a clone of the preview, and that clone is
+ * pinned to the same width grammar used here, so a browser's File > Print
+ * matches the "Download as PDF" output: full-width A4, larger text with looser
+ * lines, and exact colour on the dark section bars.
+ */
+@page {
+  size: A4;
+  margin: 10mm;
+}
+
+@media print {
+  .cv-card,
+  .cv-capture {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    overflow: visible !important;
+    margin-inline: auto;
+  }
+
+  .cv-capture,
+  .cv-capture *,
+  .cv-preview,
+  .cv-preview * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  .cv-capture p,
+  .cv-capture li {
+    line-height: 1.6;
+  }
+
+  .cv-capture .text-\[11px\] {
+    font-size: 12px;
+  }
+
+  .cv-capture .text-xs {
+    font-size: 13px;
+  }
+
+  .cv-capture .text-sm {
+    font-size: 14.5px;
+  }
+
+  .cv-capture section {
+    margin-bottom: 3mm;
+  }
+
+  .cv-capture h2 {
+    page-break-after: avoid;
+  }
+}
