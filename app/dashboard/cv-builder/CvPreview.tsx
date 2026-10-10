@@ -1,16 +1,17 @@
 import type { ReactNode } from "react";
 import type { CvDocument, CvPersonalInfo } from "@/lib/cv";
 import { CV_FONTS, type CvFontId } from "@/lib/cvFonts";
+import type { CvTemplateId } from "@/lib/cvTemplates";
 
 type Props = {
   cv: CvDocument | null;
   personalInfo: CvPersonalInfo;
   font?: CvFontId;
   accentColor?: string;
-  template?: string;
+  template?: CvTemplateId;
 };
 
-type SectionVariant = "professional" | "default";
+type SectionVariant = "professional" | "default" | "executive" | "inverse";
 
 function SectionHeading({
   children,
@@ -26,6 +27,31 @@ function SectionHeading({
       <h2
         className="mt-6 rounded-sm px-3 py-1 text-xs font-bold uppercase tracking-widest text-white"
         style={{ backgroundColor: accentColor || "#334155" }}
+      >
+        {children}
+      </h2>
+    );
+  }
+
+  if (variant === "executive") {
+    return (
+      <h2
+        className="mt-6 border-y-2 py-1 text-xs font-bold uppercase tracking-widest"
+        style={{
+          borderColor: accentColor || "#334155",
+          color: accentColor || "#334155",
+        }}
+      >
+        {children}
+      </h2>
+    );
+  }
+
+  if (variant === "inverse") {
+    return (
+      <h2
+        className="mt-6 border-b pb-1 text-xs font-bold uppercase tracking-widest text-white"
+        style={{ borderColor: "rgba(255,255,255,0.35)" }}
       >
         {children}
       </h2>
@@ -92,6 +118,66 @@ function buildContact(personalInfo: CvPersonalInfo): ContactEntry[] {
   add(personalInfo.github, toHref(personalInfo.github));
 
   return entries;
+}
+
+/** Mixes a hex colour towards black so accents can produce a dark surface. */
+function darken(hex: string, amount: number): string {
+  const value = hex.replace("#", "");
+  if (!/^[0-9a-fA-F]{6}$/.test(value)) {
+    return hex;
+  }
+  const num = parseInt(value, 16);
+  const channel = (shift: number) =>
+    Math.max(0, Math.round(((num >> shift) & 255) * (1 - amount)));
+  return `rgb(${channel(16)}, ${channel(8)}, ${channel(0)})`;
+}
+
+function ContactBlock({
+  entries,
+  accent,
+  variant,
+  inverse = false,
+}: {
+  entries: ContactEntry[];
+  accent: string;
+  variant: SectionVariant;
+  inverse?: boolean;
+}) {
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const linkColor = inverse ? "rgba(255,255,255,0.85)" : accent;
+
+  return (
+    <Section>
+      <SectionHeading accentColor={accent} variant={variant}>
+        Contact
+      </SectionHeading>
+      <ul className="mt-2 space-y-0.5">
+        {entries.map((entry, index) => (
+          <li
+            key={`${entry.key}-${index}`}
+            className={`text-[11px] ${
+              inverse ? "text-white/85" : "text-slate-700"
+            }`}
+          >
+            {entry.href ? (
+              <a
+                href={entry.href}
+                className="underline-offset-2 hover:underline"
+                style={{ color: linkColor }}
+              >
+                {entry.label}
+              </a>
+            ) : (
+              entry.label
+            )}
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
 }
 
 function ContactLine({
@@ -163,11 +249,13 @@ function SkillsBlock({
   accent,
   variant,
   layout = "chips",
+  inverse = false,
 }: {
   cv: CvDocument;
   accent: string;
   variant: SectionVariant;
   layout?: "chips" | "list";
+  inverse?: boolean;
 }) {
   if (cv.skills.length === 0) {
     return null;
@@ -183,7 +271,9 @@ function SkillsBlock({
           {cv.skills.map((skill, idx) => (
             <li
               key={`${skill}-${idx}`}
-              className="text-[11px] text-slate-700"
+              className={`text-[11px] ${
+                inverse ? "text-white/85" : "text-slate-700"
+              }`}
               contentEditable={true}
               suppressContentEditableWarning={true}
             >
@@ -196,7 +286,11 @@ function SkillsBlock({
           {cv.skills.map((skill, idx) => (
             <li
               key={`${skill}-${idx}`}
-              className="rounded border border-slate-300 bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700"
+              className={`rounded border px-2 py-0.5 text-[11px] ${
+                inverse
+                  ? "border-white/30 bg-white/10 text-white"
+                  : "border-slate-300 bg-slate-100 text-slate-700"
+              }`}
               contentEditable={true}
               suppressContentEditableWarning={true}
             >
@@ -415,11 +509,13 @@ function LanguagesBlock({
   accent,
   variant,
   layout = "inline",
+  inverse = false,
 }: {
   cv: CvDocument;
   accent: string;
   variant: SectionVariant;
   layout?: "inline" | "list";
+  inverse?: boolean;
 }) {
   if (!cv.languages || cv.languages.length === 0) {
     return null;
@@ -440,7 +536,9 @@ function LanguagesBlock({
           {languageNames.map((language, idx) => (
             <li
               key={`${language}-${idx}`}
-              className="text-[11px] text-slate-700"
+              className={`text-[11px] ${
+                inverse ? "text-white/85" : "text-slate-700"
+              }`}
               contentEditable={true}
               suppressContentEditableWarning={true}
             >
@@ -450,7 +548,9 @@ function LanguagesBlock({
         </ul>
       ) : (
         <p
-          className="mt-2 text-xs text-slate-700"
+          className={`mt-2 text-xs ${
+            inverse ? "text-white/85" : "text-slate-700"
+          }`}
           contentEditable={true}
           suppressContentEditableWarning={true}
         >
@@ -595,6 +695,109 @@ function ModernTemplate({
   );
 }
 
+/**
+ * Executive: highly formal single column. The name and contact sit centred at
+ * the top, and every section heading is framed by thick accent rules drawn
+ * above and below it.
+ */
+function ExecutiveTemplate({
+  cv,
+  personalInfo,
+  accent,
+  fontClassName,
+  contact,
+}: {
+  cv: CvDocument;
+  personalInfo: CvPersonalInfo;
+  accent: string;
+  fontClassName: string;
+  contact: ContactEntry[];
+}) {
+  return (
+    <div className={`cv-preview bg-white text-slate-800 ${fontClassName}`}>
+      <header className="px-8 pt-10 pb-6 text-center">
+        <h1 className="text-3xl font-bold tracking-tight" style={{ color: accent }}>
+          <span contentEditable={true} suppressContentEditableWarning={true}>
+            {personalInfo.fullName || "Your Name"}
+          </span>
+        </h1>
+        <ContactLine entries={contact} accent={accent} />
+      </header>
+      <div className="px-8 pb-8 pt-2">
+        <SummaryBlock cv={cv} accent={accent} variant="executive" />
+        <SkillsBlock cv={cv} accent={accent} variant="executive" />
+        <ExperienceBlock cv={cv} accent={accent} variant="executive" />
+        <EducationBlock cv={cv} accent={accent} variant="executive" />
+        <CertificationsBlock cv={cv} accent={accent} variant="executive" />
+        <LanguagesBlock cv={cv} accent={accent} variant="executive" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Creative: bold two-column. The left sidebar is a darkened accent surface
+ * holding the name, Contact, Skills and Languages in white; the right column
+ * keeps Summary, Experience and Education on white.
+ */
+function CreativeTemplate({
+  cv,
+  personalInfo,
+  accent,
+  fontClassName,
+  contact,
+}: {
+  cv: CvDocument;
+  personalInfo: CvPersonalInfo;
+  accent: string;
+  fontClassName: string;
+  contact: ContactEntry[];
+}) {
+  const sidebarBg = darken(accent, 0.45);
+
+  return (
+    <div className={`cv-preview bg-white text-slate-800 ${fontClassName}`}>
+      <div className="grid md:grid-cols-[1fr_2fr]">
+        <aside
+          className="space-y-2 p-6 text-white"
+          style={{ backgroundColor: sidebarBg }}
+        >
+          <h1 className="text-2xl font-bold tracking-tight text-white">
+            <span contentEditable={true} suppressContentEditableWarning={true}>
+              {personalInfo.fullName || "Your Name"}
+            </span>
+          </h1>
+          <ContactBlock
+            entries={contact}
+            accent={accent}
+            variant="inverse"
+            inverse
+          />
+          <SkillsBlock
+            cv={cv}
+            accent={accent}
+            variant="inverse"
+            layout="list"
+            inverse
+          />
+          <LanguagesBlock
+            cv={cv}
+            accent={accent}
+            variant="inverse"
+            layout="list"
+            inverse
+          />
+        </aside>
+        <main className="space-y-1 p-6">
+          <SummaryBlock cv={cv} accent={accent} variant="default" />
+          <ExperienceBlock cv={cv} accent={accent} variant="default" />
+          <EducationBlock cv={cv} accent={accent} variant="default" />
+        </main>
+      </div>
+    </div>
+  );
+}
+
 export function CvPreview({
   cv,
   personalInfo,
@@ -626,6 +829,30 @@ export function CvPreview({
   if (template === "professional") {
     return (
       <ProfessionalTemplate
+        cv={cv}
+        personalInfo={personalInfo}
+        accent={accent}
+        fontClassName={fontClassName}
+        contact={contact}
+      />
+    );
+  }
+
+  if (template === "executive") {
+    return (
+      <ExecutiveTemplate
+        cv={cv}
+        personalInfo={personalInfo}
+        accent={accent}
+        fontClassName={fontClassName}
+        contact={contact}
+      />
+    );
+  }
+
+  if (template === "creative") {
+    return (
+      <CreativeTemplate
         cv={cv}
         personalInfo={personalInfo}
         accent={accent}

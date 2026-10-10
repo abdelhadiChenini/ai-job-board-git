@@ -5,6 +5,7 @@ import { Download, FileText, Loader2, Sparkles } from "lucide-react";
 import type { CvDocument } from "@/lib/cv";
 import { CV_MIN_RAW_EXPERIENCE } from "@/lib/cv";
 import { CV_FONT_OPTIONS, type CvFontId } from "@/lib/cvFonts";
+import { CV_TEMPLATE_OPTIONS, type CvTemplateId } from "@/lib/cvTemplates";
 import CvPreview from "./CvPreview";
 
 type PersonalInfo = {
@@ -78,6 +79,10 @@ const CV_PRINT_STYLES = `
   }
   .cv-capture h2 {
     page-break-after: avoid;
+  }
+  .cv-capture .grid {
+    display: grid !important;
+    grid-template-columns: 1fr 2fr !important;
   }
 `;
 
@@ -176,7 +181,7 @@ export function CvBuilder({
   const [rawExperience, setRawExperience] = useState("");
   const [font, setFont] = useState<CvFontId>("inter");
   const [accentColor, setAccentColor] = useState("#0f172a");
-  const [template, setTemplate] = useState("minimalist");
+  const [template, setTemplate] = useState<CvTemplateId>("minimalist");
 
   const [cv, setCv] = useState<CvDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -632,12 +637,14 @@ export function CvBuilder({
               <span className="text-xs text-slate-400">Template</span>
               <select
                 value={template}
-                onChange={(e) => setTemplate(e.target.value)}
+                onChange={(e) => setTemplate(e.target.value as CvTemplateId)}
                 className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-100"
               >
-                <option value="minimalist">Minimalist</option>
-                <option value="professional">Professional</option>
-                <option value="modern">Modern</option>
+                {CV_TEMPLATE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="flex items-center gap-2">
