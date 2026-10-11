@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Modal from "../Modal";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 import { RichTextEditor } from "../pages/RichTextEditor";
@@ -25,6 +25,12 @@ type ApiPost = {
 };
 
 type ApiUser = { id: string; email: string; role: string };
+
+export type CurrentUser = {
+  id: string;
+  email: string;
+  name: string | null;
+};
 
 type FormState = {
   slug: string;
@@ -67,7 +73,36 @@ function dateLabel(value: string | null): string {
   return new Date(value).toLocaleDateString();
 }
 
-export function BlogTable() {
+/**
+ * Builds the author dropdown options, guaranteeing the logged-in admin (the
+ * "Master Admin") is present and pinned to the top so it is the default
+ * selection. Admin accounts stay grouped above expert (external) accounts.
+ */
+function orderAuthors(users: ApiUser[], currentUser: CurrentUser): ApiUser[] {
+  const seen = new Set<string>();
+  const merged: ApiUser[] = [];
+
+  const push = (user: ApiUser) => {
+    if (!user.id || seen.has(user.id)) return;
+    seen.add(user.id);
+    merged.push(user);
+  };
+
+  if (currentUser.id) {
+    push({ id: currentUser.id, email: currentUser.email, role: "ADMIN" });
+  }
+  users.forEach(push);
+
+  return merged.sort((a, b) => {
+    if (a.id === currentUser.id) return -1;
+    if (b.id === currentUser.id) return 1;
+    if (a.role === "ADMIN" && b.role !== "ADMIN") return -1;
+    if (b.role === "ADMIN" && a.role !== "ADMIN") return 1;
+    return a.email.localeCompare(b.email);
+  });
+}
+
+export function BlogTable({ currentUser }: { currentUser: CurrentUser }) {
   const [posts, setPosts] = useState<ApiPost[]>([]);
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,10 +110,20 @@ export function BlogTable() {
   const [tableError, setTableError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ApiPost | null>(null);
-  const [form, setForm] = useState<FormState>(() => toForm({ authorId: "" }));
+  const [form, setForm] = useState<FormState>(() =>
+    toForm({ authorId: currentUser.id }),
+  );
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  const authorOptions = useMemo(() => {
+    const options = orderAuthors(users, currentUser);
+    if (editing && !options.some((user) => user.id === editing.authorId)) {
+      options.push(editing.author);
+    }
+    return options;
+  }, [users, currentUser, editing]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -149,7 +194,7 @@ export function BlogTable() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm(toForm({ authorId: users[0]?.id ?? "" }));
+    setForm(toForm({ authorId: currentUser.id }));
     setFormError(null);
     setModalOpen(true);
   };
@@ -385,10 +430,17 @@ export function BlogTable() {
                 onChange={setField("authorId")}
                 className={inputClass}
               >
-                {users.length === 0 && <option value="">No users yet</option>}
-                {users.map((user) => (
+                {authorOptions.length === 0 && (
+                  <option value="">No users yet</option>
+                )}
+                {authorOptions.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.email} ({user.role})
+                    {user.id === currentUser.id
+                      ? " — Master Admin (you)"
+                      : user.role === "ADMIN"
+                        ? " — Master Admin"
+                        : ""}
                   </option>
                 ))}
               </select>

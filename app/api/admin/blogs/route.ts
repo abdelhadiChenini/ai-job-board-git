@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return UNAUTHORIZED;
   }
 
@@ -64,7 +65,11 @@ export async function POST(request: NextRequest) {
   const content = typeof body.content === "string" ? body.content : "";
   const featuredImage =
     typeof body.featuredImage === "string" ? body.featuredImage : null;
-  const authorId = typeof body.authorId === "string" ? body.authorId : "";
+  // Default the author to the logged-in admin so posts published from the admin
+  // panel are attributed to the Master Admin unless an explicit author is sent.
+  const authorId =
+    (typeof body.authorId === "string" ? body.authorId.trim() : "") ||
+    session.user.id;
   const metaDescription =
     typeof body.metaDescription === "string" ? body.metaDescription : "";
   const excerpt = typeof body.excerpt === "string" ? body.excerpt : "";
@@ -118,7 +123,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return UNAUTHORIZED;
   }
 
@@ -151,12 +157,14 @@ export async function PUT(request: NextRequest) {
     }
   }
 
-  const authorId = typeof body.authorId === "string" ? body.authorId : undefined;
-  if (authorId) {
-    const author = await prisma.user.findUnique({ where: { id: authorId } });
-    if (!author) {
-      return NextResponse.json({ error: "Author not found." }, { status: 404 });
-    }
+  // Fall back to the logged-in admin when no author is sent, so edits keep a
+  // valid attribution instead of silently dropping the author.
+  const authorId =
+    (typeof body.authorId === "string" ? body.authorId.trim() : "") ||
+    session.user.id;
+  const author = await prisma.user.findUnique({ where: { id: authorId } });
+  if (!author) {
+    return NextResponse.json({ error: "Author not found." }, { status: 404 });
   }
 
   const publishedAt = parsePublishedAt(body.publishedAt);
@@ -183,7 +191,7 @@ export async function PUT(request: NextRequest) {
   if (typeof body.published === "boolean") data.published = body.published;
   if (publishedAt === null) data.publishedAt = { set: null };
   else if (publishedAt !== undefined) data.publishedAt = publishedAt;
-  if (authorId) data.author = { connect: { id: authorId } };
+  data.author = { connect: { id: authorId } };
 
   const blogPost = await prisma.blogPost.update({
     where: { id },

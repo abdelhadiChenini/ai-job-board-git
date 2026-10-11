@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminBlogsPage() {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   return (
     <div className="flex flex-col gap-6">
@@ -22,7 +22,13 @@ export default async function AdminBlogsPage() {
         </p>
       </header>
 
-      <BlogTable />
+      <BlogTable
+        currentUser={{
+          id: session.user.id,
+          email: session.user.email ?? "",
+          name: session.user.name ?? null,
+        }}
+      />
     </div>
   );
 }
