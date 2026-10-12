@@ -96,8 +96,8 @@ export function RichTextEditor({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-900/60">
-      <div className="flex flex-wrap items-center gap-1 border-b border-slate-700/70 px-2 py-1.5">
+    <div className="rounded-xl border border-slate-700 bg-slate-900">
+      <div className="sticky top-0 z-20 flex flex-wrap items-center gap-1 rounded-t-xl border-b border-slate-700 bg-slate-900 px-2 py-1.5 shadow-md shadow-slate-950/40">
         <button
           type="button"
           aria-label="Bold"
