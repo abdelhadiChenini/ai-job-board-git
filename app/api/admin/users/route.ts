@@ -37,32 +37,42 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = request.nextUrl;
-  const take = Math.min(
-    Math.max(Number(searchParams.get("take") ?? "20") || 20, 1),
+  const limit = Math.min(
+    Math.max(Number(searchParams.get("limit") ?? "20") || 20, 1),
     100,
   );
-  const skip = Math.max(Number(searchParams.get("skip") ?? "0") || 0, 0);
+  const page = Math.max(Number(searchParams.get("page") ?? "1") || 1, 1);
+  const skip = (page - 1) * limit;
 
-  const users = await prisma.user.findMany({
-    take,
-    skip,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      plan: true,
-      isFeatured: true,
-      paypalSubscriptionId: true,
-      createdAt: true,
-      updatedAt: true,
-      expertProfile: {
-        select: { verificationStatus: true },
+  const [totalCount, rows] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.findMany({
+      take: limit,
+      skip,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        plan: true,
+        isFeatured: true,
+        paypalSubscriptionId: true,
+        createdAt: true,
+        updatedAt: true,
+        expertProfile: {
+          select: { verificationStatus: true },
+        },
       },
-    },
-  });
+    }),
+  ]);
 
-  return NextResponse.json(users);
+  const users = rows.map((user) => ({
+    ...toSafeUser(user),
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+  }));
+
+  return NextResponse.json({ users, totalCount, page, limit });
 }
 
 export async function POST(request: NextRequest) {

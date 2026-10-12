@@ -132,7 +132,7 @@ export function BlogTable({ currentUser }: { currentUser: CurrentUser }) {
     try {
       const [postsResponse, usersResponse] = await Promise.all([
         fetch("/api/admin/blogs"),
-        fetch("/api/admin/users"),
+        fetch("/api/admin/users?page=1&limit=100"),
       ]);
       const postData: unknown = await postsResponse.json();
       const userData: unknown = await usersResponse.json();
@@ -151,7 +151,11 @@ export function BlogTable({ currentUser }: { currentUser: CurrentUser }) {
       }
 
       setPosts(Array.isArray(postData) ? (postData as ApiPost[]) : []);
-      setUsers(Array.isArray(userData) ? (userData as ApiUser[]) : []);
+      setUsers(
+        Array.isArray((userData as { users?: unknown })?.users)
+          ? ((userData as { users: ApiUser[] }).users)
+          : [],
+      );
     } catch {
       setLoadError("Network error while loading data.");
     } finally {

@@ -25,8 +25,35 @@ type FormState = { email: string; password: string; role: string };
 
 const emptyForm: FormState = { email: "", password: "", role: "EXPERT" };
 
+const PAGE_SIZE = 20;
+
+type UsersResponse = {
+  users: ApiUser[];
+  totalCount: number;
+  page: number;
+  limit: number;
+};
+
+function pageItems(current: number, total: number): (number | "gap")[] {
+  const wanted = [1, current - 1, current, current + 1, total]
+    .filter((page) => page >= 1 && page <= total)
+    .filter((page, index, all) => all.indexOf(page) === index)
+    .sort((a, b) => a - b);
+
+  const items: (number | "gap")[] = [];
+  let previous = 0;
+  for (const page of wanted) {
+    if (page - previous > 1) items.push("gap");
+    items.push(page);
+    previous = page;
+  }
+  return items;
+}
+
 export function UserTable() {
   const [users, setUsers] = useState<ApiUser[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [tableError, setTableError] = useState<string | null>(null);
@@ -41,7 +68,9 @@ export function UserTable() {
     setLoadError(null);
     setTableError(null);
     try {
-      const response = await fetch("/api/admin/users");
+      const response = await fetch(
+        `/api/admin/users?page=${currentPage}&limit=${PAGE_SIZE}`,
+      );
       const data: unknown = await response.json();
       if (!response.ok) {
         setLoadError(
@@ -49,13 +78,26 @@ export function UserTable() {
         );
         return;
       }
-      setUsers(Array.isArray(data) ? (data as ApiUser[]) : []);
+      const payload = data as UsersResponse;
+      const nextUsers = Array.isArray(payload?.users) ? payload.users : [];
+      const nextTotal = Number(payload?.totalCount) || 0;
+
+      // The last row may have been deleted (or the total shrank) — snap back
+      // to the highest valid page instead of showing an empty table.
+      const maxPage = Math.max(1, Math.ceil(nextTotal / PAGE_SIZE));
+      if (currentPage > maxPage) {
+        setCurrentPage(maxPage);
+        return;
+      }
+
+      setUsers(nextUsers);
+      setTotalCount(nextTotal);
     } catch {
       setLoadError("Network error while loading users.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     void load();
@@ -259,11 +301,20 @@ export function UserTable() {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  const goToPage = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage || busy) return;
+    setCurrentPage(page);
+  };
+
   return (
     <section className={cardClass}>
       <div className="mb-4 flex items-center justify-between gap-4">
         <p className="text-sm text-slate-400">
-          {loading ? "Loading…" : `${users.length} account${users.length === 1 ? "" : "s"}`}
+          {loading
+            ? "Loading…"
+            : `${totalCount} account${totalCount === 1 ? "" : "s"}`}
         </p>
         <button type="button" onClick={openCreate} className={primaryBtn}>
           + Create New
@@ -422,6 +473,54 @@ export function UserTable() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && !loadError && totalPages > 1 && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-slate-400">
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1 || busy}
+              className={subtleBtn}
+            >
+              Previous
+            </button>
+            {pageItems(currentPage, totalPages).map((item, index) =>
+              item === "gap" ? (
+                <span key={`gap-${index}`} className="px-1 text-sm text-slate-500">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => goToPage(item)}
+                  disabled={busy || item === currentPage}
+                  aria-current={item === currentPage ? "page" : undefined}
+                  className={
+                    item === currentPage
+                      ? "inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white"
+                      : "inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-600 text-sm font-semibold text-slate-200 transition-colors hover:border-slate-500 hover:text-white disabled:opacity-60"
+                  }
+                >
+                  {item}
+                </button>
+              ),
+            )}
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages || busy}
+              className={subtleBtn}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 
