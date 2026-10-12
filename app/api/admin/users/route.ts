@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession, readJsonBody } from "@/lib/admin";
+import { calculateCompleteness } from "@/lib/completeness";
 
 const ROLES = ["ADMIN", "EXPERT"] as const;
 const UNAUTHORIZED = NextResponse.json(
@@ -9,15 +11,47 @@ const UNAUTHORIZED = NextResponse.json(
   { status: 401 },
 );
 
-function toSafeUser(user: {
+const PROFILE_STATUSES = ["completed", "incomplete"] as const;
+type ProfileStatus = (typeof PROFILE_STATUSES)[number];
+
+/** Profile fields that decide whether an expert profile counts as complete. */
+const COMPLETENESS_SELECT = {
+  bio: true,
+  skills: true,
+  hourlyRate: true,
+  country: true,
+  stateRegion: true,
+  languages: true,
+  education: true,
+} as const;
+
+function parseProfileStatus(value: string | null): ProfileStatus | null {
+  return typeof value === "string" &&
+    (PROFILE_STATUSES as readonly string[]).includes(value)
+    ? (value as ProfileStatus)
+    : null;
+}
+
+type SafeUserInput = {
   id: string;
   email: string;
   role: string;
   plan: string;
   isFeatured: boolean;
   paypalSubscriptionId: string | null;
-  expertProfile?: { verificationStatus: string } | null;
-}) {
+  expertProfile?: {
+    verificationStatus: string;
+    bio?: string | null;
+    skills?: unknown;
+    hourlyRate?: string | null;
+    country?: string | null;
+    stateRegion?: string | null;
+    languages?: string | null;
+    education?: string | null;
+  } | null;
+};
+
+function toSafeUser(user: SafeUserInput) {
   return {
     id: user.id,
     email: user.email,
@@ -28,7 +62,31 @@ function toSafeUser(user: {
     isFeatured: user.isFeatured,
     paypalSubscriptionId: user.paypalSubscriptionId,
     verificationStatus: user.expertProfile?.verificationStatus ?? null,
+    // Shares the same rubric as the dashboard and analytics, so the filter and
+    // the badge can never disagree about who is "complete".
+    profileComplete: calculateCompleteness(user.expertProfile) === 100,
   };
+}
+
+/**
+ * Ids of every account whose profile does (or does not) score 100 on the shared
+ * completeness rubric. `calculateCompleteness` needs the raw profile fields, so
+ * the narrowing happens in memory and feeds the `id: { in: [...] }` clause.
+ */
+async function userIdsByProfileStatus(status: ProfileStatus): Promise<string[]> {
+  const rows = await prisma.user.findMany({
+    select: {
+      id: true,
+      expertProfile: { select: COMPLETENESS_SELECT },
+    },
+  });
+
+  return rows
+    .filter((row) => {
+      const complete = calculateCompleteness(row.expertProfile) === 100;
+      return status === "completed" ? complete : !complete;
+    })
+    .map((row) => row.id);
 }
 
 export async function GET(request: NextRequest) {
@@ -44,9 +102,16 @@ export async function GET(request: NextRequest) {
   const page = Math.max(Number(searchParams.get("page") ?? "1") || 1, 1);
   const skip = (page - 1) * limit;
 
+  const profileStatus = parseProfileStatus(searchParams.get("profileStatus"));
+  const where: Prisma.UserWhereInput =
+    profileStatus === null
+      ? {}
+      : { id: { in: await userIdsByProfileStatus(profileStatus) } };
+
   const [totalCount, rows] = await Promise.all([
-    prisma.user.count(),
+    prisma.user.count({ where }),
     prisma.user.findMany({
+      where,
       take: limit,
       skip,
       orderBy: { createdAt: "desc" },
@@ -60,7 +125,7 @@ export async function GET(request: NextRequest) {
         createdAt: true,
         updatedAt: true,
         expertProfile: {
-          select: { verificationStatus: true },
+          select: { verificationStatus: true, ...COMPLETENESS_SELECT },
         },
       },
     }),

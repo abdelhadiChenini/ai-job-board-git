@@ -1,13 +1,21 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Star } from "lucide-react";
+import { Check, Minus, Star } from "lucide-react";
 import Modal from "../Modal";
 import { updateExpertStatus, setFeatured, setUserPlan } from "./actions";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 import type { Plan } from "@/lib/subscription";
 
 type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+type ProfileStatus = "all" | "completed" | "incomplete";
+
+const PROFILE_STATUS_OPTIONS: { value: ProfileStatus; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "completed", label: "Profile Completed" },
+  { value: "incomplete", label: "Profile Incomplete" },
+];
 
 type ApiUser = {
   id: string;
@@ -17,6 +25,7 @@ type ApiUser = {
   isFeatured: boolean;
   paypalSubscriptionId: string | null;
   verificationStatus: VerificationStatus | null;
+  profileComplete: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -54,6 +63,7 @@ export function UserTable() {
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [profileStatus, setProfileStatus] = useState<ProfileStatus>("all");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [tableError, setTableError] = useState<string | null>(null);
@@ -68,9 +78,12 @@ export function UserTable() {
     setLoadError(null);
     setTableError(null);
     try {
-      const response = await fetch(
-        `/api/admin/users?page=${currentPage}&limit=${PAGE_SIZE}`,
-      );
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: String(PAGE_SIZE),
+      });
+      if (profileStatus !== "all") params.set("profileStatus", profileStatus);
+      const response = await fetch(`/api/admin/users?${params.toString()}`);
       const data: unknown = await response.json();
       if (!response.ok) {
         setLoadError(
@@ -97,11 +110,17 @@ export function UserTable() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage]);
+  }, [currentPage, profileStatus]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const changeProfileStatus = (status: ProfileStatus) => {
+    if (status === profileStatus) return;
+    setProfileStatus(status);
+    setCurrentPage(1);
+  };
 
   const setField = (field: keyof FormState) => (
     event: FormEvent<HTMLInputElement | HTMLSelectElement>,
@@ -194,6 +213,25 @@ export function UserTable() {
     role === "ADMIN"
       ? "rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-400"
       : "rounded-full bg-slate-500/15 px-2.5 py-1 text-xs font-semibold text-slate-300";
+
+  const profileBadge = (user: ApiUser) =>
+    user.profileComplete ? (
+      <span
+        title="Profile complete"
+        className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-400"
+      >
+        <Check aria-hidden="true" className="h-3.5 w-3.5" />
+        Complete
+      </span>
+    ) : (
+      <span
+        title="Profile incomplete"
+        className="inline-flex items-center gap-1 rounded-full bg-slate-500/15 px-2.5 py-1 text-xs font-semibold text-slate-400"
+      >
+        <Minus aria-hidden="true" className="h-3.5 w-3.5" />
+        Incomplete
+      </span>
+    );
 
   const statusBadge = (user: ApiUser) => {
     if (user.verificationStatus === "APPROVED") {
@@ -310,15 +348,42 @@ export function UserTable() {
 
   return (
     <section className={cardClass}>
-      <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <p className="text-sm text-slate-400">
           {loading
             ? "Loading…"
             : `${totalCount} account${totalCount === 1 ? "" : "s"}`}
         </p>
-        <button type="button" onClick={openCreate} className={primaryBtn}>
-          + Create New
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div
+            role="group"
+            aria-label="Filter by profile status"
+            className="inline-flex rounded-full border border-slate-700 p-1"
+          >
+            {PROFILE_STATUS_OPTIONS.map((option) => {
+              const active = profileStatus === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => changeProfileStatus(option.value)}
+                  disabled={busy}
+                  aria-pressed={active}
+                  className={
+                    active
+                      ? "rounded-full bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                      : "rounded-full px-3.5 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:text-white disabled:opacity-60"
+                  }
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+          <button type="button" onClick={openCreate} className={primaryBtn}>
+            + Create New
+          </button>
+        </div>
       </div>
 
       {loadError && (
@@ -342,7 +407,9 @@ export function UserTable() {
         </p>
       ) : users.length === 0 ? (
         <p className="py-10 text-center text-sm text-slate-500">
-          No users yet. Click “Create New” to add your first account.
+          {profileStatus === "all"
+            ? "No users yet. Click “Create New” to add your first account."
+            : "No users match this profile status filter."}
         </p>
       ) : (
         <div className="overflow-x-auto">
@@ -350,6 +417,7 @@ export function UserTable() {
             <thead>
               <tr className="text-xs uppercase tracking-wide text-slate-500">
                 <th className="pb-3 pr-4 font-semibold">Email</th>
+                <th className="pb-3 pr-4 font-semibold">Profile</th>
                 <th className="pb-3 pr-4 font-semibold">Plan</th>
                 <th className="pb-3 pr-4 font-semibold">Status</th>
                 <th className="pb-3 pr-4 font-semibold">Role</th>
@@ -363,6 +431,7 @@ export function UserTable() {
               {users.map((user) => (
                 <tr key={user.id} className="border-t border-slate-700/60">
                   <td className="py-3 pr-4 text-white">{user.email}</td>
+                  <td className="py-3 pr-4">{profileBadge(user)}</td>
                   <td className="py-3 pr-4">
                     <div className="flex flex-col items-start gap-1">
                       <select
