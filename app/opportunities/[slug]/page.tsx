@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
 import {
   canApplyToJob,
   formatUnlockCountdown,
@@ -25,7 +26,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
 
 export async function generateMetadata({ params: p }: Params): Promise<Metadata> {
   const params = await p;
-  const job = await fetchJob(params.slug);
+  const [job, siteLogo] = await Promise.all([
+    fetchJob(params.slug),
+    fetchDefaultLogo(),
+  ]);
 
   if (!job) {
     return {
@@ -36,13 +40,31 @@ export async function generateMetadata({ params: p }: Params): Promise<Metadata>
 
   const title = `${job.title} at ${job.platform.name}`;
   const description = excerpt(job.description);
+  const url = `/opportunities/${job.slug}`;
+
+  // Prefer the hiring platform's logo (e.g. the Turing or Micro1 Cloudinary
+  // asset); fall back to the site-wide Ameelai logo when it has none.
+  const image = job.platform.logoUrl || siteLogo || undefined;
+  const images = image ? [image] : undefined;
 
   return {
     title,
     description,
     keywords: toTagList(job.tags),
-    alternates: { canonical: `/opportunities/${job.slug}` },
-    openGraph: { title, description },
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images,
+    },
   };
 }
 
@@ -288,6 +310,24 @@ async function fetchJob(slug: string) {
     where: { slug },
     include: { platform: { select: { name: true, slug: true, websiteUrl: true, logoUrl: true } } },
   });
+}
+
+/**
+ * Site-wide Ameelai logo from the admin-managed SEO settings, used as the
+ * social share image when a hiring platform has no logo of its own.
+ */
+async function fetchDefaultLogo(): Promise<string | null> {
+  const settings = await safeRead(
+    "opportunity fallback logo",
+    () =>
+      prisma.seoSetting.findUnique({
+        where: { id: "global" },
+        select: { logoUrl: true },
+      }),
+    null,
+  );
+
+  return settings?.logoUrl ?? null;
 }
 
 async function fetchRelatedAndTrending(job: JobRow) {
