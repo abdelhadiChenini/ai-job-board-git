@@ -66,12 +66,19 @@ const getExpert = cache(async (id: string) => {
 export async function generateMetadata({ params: p }: Params): Promise<Metadata> {
   const params = await p;
   const profile = await getExpert(params.id);
+
+  // Individual profiles are intentionally kept out of the index: they are
+  // low-value, constantly changing and would bloat the crawl budget. The
+  // directory page /experts stays indexable and is where crawlers should land.
+  const robots = { index: false, follow: false };
+
   if (!profile) {
-    return { title: "Expert Profile" };
+    return { title: "Expert Profile", robots };
   }
   return {
     title: profile.fullName,
     description: profile.headline || profile.bio?.slice(0, 160) || undefined,
+    robots,
   };
 }
 

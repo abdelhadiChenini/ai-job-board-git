@@ -2,5 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /dashboard/
 Disallow: /api/
+# Individual expert profiles are noindex and should not be crawled. The
+# directory at /experts (no ID) stays crawlable via the Allow: / rule above.
+Disallow: /experts/*
 
 Sitemap: https://ameelai.com/sitemap.xml
