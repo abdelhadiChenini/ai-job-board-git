@@ -370,6 +370,8 @@ export default async function OpportunitiesPage({
             page={page}
             totalPages={totalPages}
             filters={searchParams}
+            basePath="/opportunities"
+            ariaLabel="Opportunities pagination"
           />
         </div>
       </div>

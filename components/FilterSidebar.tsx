@@ -35,6 +35,10 @@ export function FilterSidebar() {
     } else {
       params.set("availability", value);
     }
+    // Any filter change invalidates the current page: the result set shrinks or
+    // reshuffles, so returning to page 1 avoids stranding the user on an empty
+    // or out-of-range page.
+    params.delete("page");
     updateUrl(params);
   };
 
@@ -49,6 +53,7 @@ export function FilterSidebar() {
     } else {
       params.append("specialty", value);
     }
+    params.delete("page");
     updateUrl(params);
   };
 
@@ -56,6 +61,7 @@ export function FilterSidebar() {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("availability");
     params.delete("specialty");
+    params.delete("page");
     updateUrl(params);
   };
 

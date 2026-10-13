@@ -3,8 +3,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import ExpertCard from "@/app/components/ExpertCard";
 import FilterSidebar from "@/components/FilterSidebar";
+import Pagination from "@/components/Pagination";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
+import { EXPERTS_PAGE_SIZE, compareExperts } from "@/lib/experts";
 
 export const metadata: Metadata = {
   title: "AI Experts Directory",
@@ -16,7 +18,15 @@ type SearchParams = Promise<{
   q?: string;
   availability?: string;
   specialty?: string | string[];
+  page?: string;
 }>;
+
+/** Defensive parsing: rejects NaN, 0, negatives and other junk. */
+function parsePage(raw: string | undefined): number {
+  const parsed = Number.parseInt(raw ?? "", 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return parsed;
+}
 
 function toSkillList(skills: unknown): string[] {
   if (!Array.isArray(skills)) {
@@ -67,7 +77,12 @@ export default async function ExpertsPage({
     ];
   }
 
-  const experts = await prisma.expertProfile.findMany({
+  // Priority ranking depends on computed state — a paid plan and profile
+  // completeness — that Prisma cannot express in `orderBy`. The matching
+  // profiles are therefore ranked in memory and only then sliced into the
+  // requested page. Sorting globally before slicing is what keeps the priority
+  // order consistent across page boundaries.
+  const matched = await prisma.expertProfile.findMany({
     where,
     select: {
       id: true,
@@ -75,12 +90,40 @@ export default async function ExpertsPage({
       headline: true,
       skills: true,
       profilePicture: true,
-      user: { select: { isFeatured: true } },
+      bio: true,
+      linkedin: true,
+      linkedInUrl: true,
+      github: true,
+      githubUrl: true,
+      website: true,
+      websiteUrl: true,
+      xUrl: true,
+      twitterUrl: true,
+      youtube: true,
+      updatedAt: true,
+      createdAt: true,
+      user: {
+        select: {
+          isFeatured: true,
+          plan: true,
+          paypalSubscriptionId: true,
+        },
+      },
     },
-    orderBy: [{ user: { isFeatured: "desc" } }, { fullName: "asc" }],
   });
 
-  const hasFilters = Boolean(q || availability || specialties.length > 0);
+  const ranked = [...matched].sort(compareExperts);
+
+  const total = ranked.length;
+  const totalPages = Math.max(1, Math.ceil(total / EXPERTS_PAGE_SIZE));
+
+  // An out-of-range ?page= would otherwise render an empty grid behind the
+  // "no experts match your filters" copy, so clamp to the last real page.
+  const page = Math.min(parsePage(searchParams.page), totalPages);
+  const experts = ranked.slice(
+    (page - 1) * EXPERTS_PAGE_SIZE,
+    page * EXPERTS_PAGE_SIZE,
+  );
 
   return (
     <>
@@ -157,7 +200,7 @@ export default async function ExpertsPage({
               Expert network
             </h2>
             <span className="rounded-full bg-white/10 px-3 py-0.5 text-sm font-semibold text-slate-300">
-              {experts.length} expert{experts.length === 1 ? "" : "s"}
+              {total} expert{total === 1 ? "" : "s"}
             </span>
           </header>
           <p className="mt-1 text-sm text-slate-400">
@@ -195,6 +238,14 @@ export default async function ExpertsPage({
               ))}
             </div>
           )}
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            filters={searchParams}
+            basePath="/experts"
+            ariaLabel="Expert network pagination"
+          />
         </div>
       </div>
     </>
