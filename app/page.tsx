@@ -3,6 +3,7 @@ import Hero from "@/app/components/Hero";
 import TrendingOpportunities from "@/app/components/TrendingOpportunities";
 import OpportunityCarousel from "@/components/OpportunityCarousel";
 import { TrustedExperience, VerifiedTalent } from "@/app/components/TrustSignals";
+import { WhyAmeelai } from "@/app/components/WhyAmeelai";
 import { prisma } from "@/lib/prisma";
 import { safeRead } from "@/lib/safeQuery";
 import { fetchTrendingOpportunities } from "@/lib/trendingOpportunities";
@@ -117,6 +118,8 @@ export default async function HomePage() {
           initialOpportunities={trendingOpportunities}
         />
       </Suspense>
+
+      <WhyAmeelai />
 
       <OpportunityCarousel
         title="Latest Opportunities"
