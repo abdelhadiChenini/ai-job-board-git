@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { getAdminSession, readJsonBody } from "@/lib/admin";
 import {
   AUDIENCE_LABELS,
-  buildReengagementEmail,
+  buildBroadcastEmail,
   findAudienceRecipients,
   parseAudience,
 } from "@/lib/marketing";
@@ -117,13 +117,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const { html, text } = buildReengagementEmail({
-    subject,
-    message,
-    siteUrl,
-    audience,
-  });
+  const { html, text } = buildBroadcastEmail({ subject, message });
 
   const resend = new Resend(apiKey);
 
@@ -139,7 +133,7 @@ export async function POST(request: Request) {
         html,
         text,
         tags: [
-          { name: "campaign", value: "profile-reengagement" },
+          { name: "campaign", value: "broadcast" },
           { name: "audience", value: audience },
         ],
       })),

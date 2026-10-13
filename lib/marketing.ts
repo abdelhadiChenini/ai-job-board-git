@@ -152,51 +152,20 @@ function toParagraphs(message: string): string {
 }
 
 /**
- * Per-segment shell copy. The intro paragraph is what most readers act on, so
- * telling a fully-complete expert to "finish" their profile would be both wrong
- * and a good reason to mark the mail as spam.
+ * Renders an admin-authored broadcast email.
+ *
+ * There is deliberately no campaign shell here: the subject and the message are
+ * the only content the admin supplies, so the body is exactly that message with
+ * blank lines turned into paragraphs. No per-segment headings, intros, CTAs or
+ * links are injected, which is what makes this reusable for any announcement.
  */
-const SEGMENT_COPY: Record<
-  Audience,
-  { eyebrow: string; heading: string; intro: string; cta: string }
-> = {
-  incomplete: {
-    eyebrow: "Action needed",
-    heading: "Finish your expert profile",
-    intro:
-      "Your profile is not quite finished yet. Companies can only shortlist and apply to experts whose profiles are complete, so the last few fields are what stand between you and those applications.",
-    cta: "Complete my profile",
-  },
-  completed: {
-    eyebrow: "Profile verified",
-    heading: "Your profile is working for you",
-    intro:
-      "Your expert profile is fully complete, which means companies hiring in your area of expertise can find and shortlist you. Keep an eye on new opportunities as they are posted.",
-    cta: "View my profile",
-  },
-  all: {
-    eyebrow: "Your account",
-    heading: "Make sure your profile is up to date",
-    intro:
-      "The more complete your expert profile is, the more likely companies are to find and reach out to you. It only takes a few minutes to review your details.",
-    cta: "Review my profile",
-  },
-};
-
-export function buildReengagementEmail({
+export function buildBroadcastEmail({
   subject,
   message,
-  siteUrl,
-  audience,
 }: {
   subject: string;
   message: string;
-  siteUrl: string;
-  audience: Audience;
 }) {
-  const profileUrl = `${siteUrl.replace(/\/+$/, "")}/dashboard/edit`;
-  const copy = SEGMENT_COPY[audience];
-
   const html = `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -210,46 +179,8 @@ export function buildReengagementEmail({
         <td align="center">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
             <tr>
-              <td style="padding:28px 32px 8px;">
-                <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#2563eb;">
-                  ${escapeHtml(copy.eyebrow)}
-                </p>
-                <h1 style="margin:8px 0 0;font-size:24px;line-height:1.3;color:#0f172a;">
-                  ${escapeHtml(copy.heading)}
-                </h1>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:16px 32px 0;">
-                <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#334155;">
-                  ${escapeHtml(copy.intro)}
-                </p>
+              <td style="padding:28px 32px;">
                 ${toParagraphs(message)}
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:8px 32px 28px;">
-                <table role="presentation" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="border-radius:9999px;background-color:#2563eb;">
-                      <a href="${escapeHtml(profileUrl)}" style="display:inline-block;padding:13px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:9999px;">
-                        ${escapeHtml(copy.cta)}
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-                <p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#64748b;">
-                  Button not working? Copy this link into your browser:<br />
-                  <a href="${escapeHtml(profileUrl)}" style="color:#2563eb;word-break:break-all;">${escapeHtml(profileUrl)}</a>
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;">
-                <p style="margin:0;font-size:12px;line-height:1.5;color:#64748b;">
-                  You are receiving this because you registered an expert account on our
-                  platform. You can unsubscribe from these emails from your profile settings.
-                </p>
               </td>
             </tr>
           </table>
@@ -259,15 +190,7 @@ export function buildReengagementEmail({
   </body>
 </html>`;
 
-  const text = [
-    copy.heading,
-    "",
-    copy.intro,
-    "",
-    message.trim(),
-    "",
-    `${copy.cta}: ${profileUrl}`,
-  ].join("\n");
+  const text = message.trim();
 
   return { html, text };
 }

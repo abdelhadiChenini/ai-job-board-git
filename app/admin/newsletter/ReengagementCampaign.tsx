@@ -25,7 +25,7 @@ type SendResponse = {
 /** Short explanation shown under the stat card, per segment. */
 const AUDIENCE_HINTS: Record<Audience, string> = {
   incomplete:
-    "Expert accounts missing at least one required profile field. This is the audience the re-engagement campaign below reaches.",
+    "Expert accounts missing at least one required profile field. This is the audience the broadcast below reaches.",
   completed:
     "Expert accounts with every required profile field filled in. Useful for announcements and opportunity alerts.",
   all:
@@ -109,11 +109,11 @@ export function ReengagementCampaign({
     <section className={cardClass}>
       <div className="mb-5 flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-white">
-          Expert profile re-engagement campaign
+          Email Marketing Broadcast
         </h2>
         <p className="text-sm text-slate-400">
-          Sends a reminder to a segment of experts. Experts who opted out of
-          marketing email are skipped automatically.
+          Sends a custom broadcast email to the selected audience. Experts who
+          opted out of marketing email are skipped automatically.
         </p>
       </div>
 
@@ -156,7 +156,7 @@ export function ReengagementCampaign({
             onChange={(event) => setSubject(event.target.value)}
             maxLength={150}
             required
-            placeholder="Your profile is almost ready to apply"
+            placeholder="New AI opportunities this week"
             disabled={isSubmitting}
             className={inputClass}
           />
@@ -173,7 +173,7 @@ export function ReengagementCampaign({
             maxLength={5000}
             required
             rows={8}
-            placeholder="Hi there — you're only a few fields away from unlocking applications from companies hiring in your area of expertise."
+            placeholder="Hi there — we've just published new roles from leading AI labs. Take a look and apply to the ones that fit your expertise."
             disabled={isSubmitting}
             className={`${inputClass} resize-y leading-relaxed`}
           />
