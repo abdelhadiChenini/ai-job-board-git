@@ -1,40 +1,62 @@
+import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { safeRead } from "@/lib/safeQuery";
+
 /**
  * B2B trust signals for the landing page.
  *
- * The partner marks are rendered as styled wordmarks rather than remote images:
- * no logo assets ship with the repo, and hard-coding external image URLs would
- * break whenever a partner rebrands. Each mark keeps its brand colour and is
- * faded + desaturated by default, restoring to full colour on hover.
+ * The partner logos are the same Cloudinary assets the AI Platforms directory
+ * renders, so the banner always mirrors what each platform shows there. Slugs
+ * are matched against `AIPlatform` and a faded wordmark is used as a fallback
+ * if a platform has no logo on file.
  */
 
 const partnerBrands = [
   {
     name: "Turing",
+    slug: "turing",
     mark: "T",
     accent: "from-blue-500 to-cyan-400",
     text: "text-blue-300",
   },
   {
     name: "Micro1",
+    slug: "mirco1",
     mark: "M1",
     accent: "from-indigo-500 to-violet-400",
     text: "text-indigo-300",
   },
   {
     name: "RWS",
+    slug: "rws",
     mark: "R",
     accent: "from-rose-500 to-red-400",
     text: "text-rose-300",
   },
   {
     name: "TELUS International",
+    slug: "telus-digital",
     mark: "TI",
     accent: "from-emerald-500 to-teal-400",
     text: "text-emerald-300",
   },
 ] as const;
 
-export function TrustedExperience() {
+export async function TrustedExperience() {
+  const logos = await safeRead(
+    "trusted experience logos",
+    () =>
+      prisma.aIPlatform.findMany({
+        where: { slug: { in: partnerBrands.map((brand) => brand.slug) } },
+        select: { slug: true, logoUrl: true },
+      }),
+    [],
+  );
+
+  const logoBySlug = new Map(
+    logos.map((platform) => [platform.slug, platform.logoUrl]),
+  );
+
   return (
     <section aria-labelledby="trusted-experience-heading" className="mt-12">
       <p
@@ -46,26 +68,41 @@ export function TrustedExperience() {
       </p>
 
       <ul className="mt-8 grid grid-cols-2 items-center gap-x-6 gap-y-8 rounded-2xl border border-slate-800 bg-slate-900/40 px-6 py-8 sm:grid-cols-4">
-        {partnerBrands.map((brand) => (
-          <li
-            key={brand.name}
-            className="flex items-center justify-center opacity-60 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
-          >
-            <div className="flex items-center gap-2.5">
-              <span
-                aria-hidden="true"
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${brand.accent} text-xs font-black text-white`}
-              >
-                {brand.mark}
-              </span>
-              <span
-                className={`text-sm font-bold tracking-tight sm:text-base ${brand.text}`}
-              >
-                {brand.name}
-              </span>
-            </div>
-          </li>
-        ))}
+        {partnerBrands.map((brand) => {
+          const logoUrl = logoBySlug.get(brand.slug);
+          return (
+            <li
+              key={brand.name}
+              className="flex items-center justify-center grayscale opacity-70 transition-all duration-300 hover:grayscale-0 hover:opacity-100"
+            >
+              {logoUrl ? (
+                <span className="relative h-9 w-24 sm:h-10 sm:w-28">
+                  <Image
+                    src={logoUrl}
+                    alt={`${brand.name} logo`}
+                    fill
+                    sizes="(min-width: 640px) 7rem, 6rem"
+                    className="object-contain"
+                  />
+                </span>
+              ) : (
+                <span className="flex items-center gap-2.5">
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${brand.accent} text-xs font-black text-white`}
+                  >
+                    {brand.mark}
+                  </span>
+                  <span
+                    className={`text-sm font-bold tracking-tight sm:text-base ${brand.text}`}
+                  >
+                    {brand.name}
+                  </span>
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
