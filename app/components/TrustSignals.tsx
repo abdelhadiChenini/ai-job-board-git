@@ -71,19 +71,18 @@ export async function TrustedExperience() {
         {partnerBrands.map((brand) => {
           const logoUrl = logoBySlug.get(brand.slug);
           return (
-            <li
-              key={brand.name}
-              className="flex items-center justify-center grayscale opacity-70 transition-all duration-300 hover:grayscale-0 hover:opacity-100"
-            >
+            <li key={brand.name} className="flex items-center justify-center">
               {logoUrl ? (
-                <span className="relative h-9 w-24 sm:h-10 sm:w-28">
-                  <Image
-                    src={logoUrl}
-                    alt={`${brand.name} logo`}
-                    fill
-                    sizes="(min-width: 640px) 7rem, 6rem"
-                    className="object-contain"
-                  />
+                <span className="flex h-14 w-full max-w-[9rem] items-center justify-center rounded-lg bg-white/90 p-2 shadow-sm transition-transform duration-300 hover:-translate-y-0.5">
+                  <span className="relative h-full w-full">
+                    <Image
+                      src={logoUrl}
+                      alt={`${brand.name} logo`}
+                      fill
+                      sizes="(min-width: 640px) 9rem, 8rem"
+                      className="object-contain"
+                    />
+                  </span>
                 </span>
               ) : (
                 <span className="flex items-center gap-2.5">
