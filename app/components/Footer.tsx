@@ -99,7 +99,6 @@ export async function Footer() {
       title: "Resources",
       links: [
         { label: "Blog", href: "/blog" },
-        { label: "Guides", href: "/guides" },
         { label: "FAQ", href: "/faq" },
         { label: "Pricing", href: "/pricing" },
         { label: "Support", href: "/contact" },
