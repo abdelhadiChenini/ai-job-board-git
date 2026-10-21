@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/admin";
 
@@ -72,6 +73,10 @@ export async function PUT(request: NextRequest) {
       youtubeUrl: strOrNull(b.youtubeUrl),
     },
   });
+
+  // The root layout is cached (`revalidate = 60`), so a saved injection would
+  // otherwise stay invisible on the public site until the cache expired.
+  revalidatePath("/", "layout");
 
   return NextResponse.json(settings);
 }

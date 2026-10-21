@@ -268,6 +268,10 @@ export async function Footer() {
             ))}
           </div>
         </div>
+
+        {seoSettings?.footerInjection && (
+          <div dangerouslySetInnerHTML={{ __html: seoSettings.footerInjection }} />
+        )}
       </div>
     </footer>
   );

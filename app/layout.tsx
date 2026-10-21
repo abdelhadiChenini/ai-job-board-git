@@ -75,15 +75,13 @@ export default async function RootLayout({
 
   return (
     <html lang="en" dir="ltr">
-      {seo?.headerInjection && (
-        <head>
-          <div dangerouslySetInnerHTML={{ __html: seo.headerInjection }} />
-        </head>
-      )}
       <body
         style={{ fontFamily: fonts }}
         className="min-h-screen overflow-x-hidden bg-slate-950 text-slate-300 antialiased"
       >
+        {seo?.headerInjection && (
+          <div dangerouslySetInnerHTML={{ __html: seo.headerInjection }} />
+        )}
         {seo?.bodyInjection && (
           <div dangerouslySetInnerHTML={{ __html: seo.bodyInjection }} />
         )}
@@ -94,9 +92,6 @@ export default async function RootLayout({
             <Footer />
           </MaintenanceGate>
         </Providers>
-        {seo?.footerInjection && (
-          <div dangerouslySetInnerHTML={{ __html: seo.footerInjection }} />
-        )}
         <Analytics />
         <SpeedInsights />
       </body>

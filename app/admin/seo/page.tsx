@@ -354,11 +354,8 @@ export default function AdminSeoPage() {
               Code Injections
             </h2>
             <p className="mt-1 text-sm text-slate-400">
-              Raw HTML/JS injected into the{" "}
-              <code className="text-slate-300">&lt;head&gt;</code>, top of{" "}
-              <code className="text-slate-300">&lt;body&gt;</code> and before{" "}
-              <code className="text-slate-300">&lt;/body&gt;</code> on every
-              page.
+              Raw HTML/JS injected at the top of the page and at the bottom of
+              the footer on every page.
             </p>
 
             <div className="mt-6 flex flex-col gap-4">
