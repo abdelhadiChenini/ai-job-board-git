@@ -1,15 +1,38 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Check, Minus, Star } from "lucide-react";
 import Modal from "../Modal";
-import { updateExpertStatus, setFeatured, setUserPlan } from "./actions";
+import {
+  updateExpertStatus,
+  setFeatured,
+  setUserPlan,
+  sendManualPasswordReset,
+} from "./actions";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 import type { Plan } from "@/lib/subscription";
 
 type VerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 type ProfileStatus = "all" | "completed" | "incomplete";
+
+type Toast = {
+  id: number;
+  tone: "success" | "error";
+  message: string;
+};
+
+const toastTone = {
+  success: "border-emerald-500/40 bg-emerald-950/90 text-emerald-200",
+  error: "border-red-500/40 bg-red-950/90 text-red-200",
+} as const;
+
+/** The reset link handed back by the server action, ready to be copied. */
+type ResetLink = {
+  email: string;
+  url: string;
+  expiresAt: string;
+};
 
 const PROFILE_STATUS_OPTIONS: { value: ProfileStatus; label: string }[] = [
   { value: "all", label: "All" },
@@ -72,6 +95,19 @@ export function UserTable() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [resetBusyId, setResetBusyId] = useState<string | null>(null);
+  const [resetLink, setResetLink] = useState<ResetLink | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const nextToastId = useRef(0);
+
+  const pushToast = useCallback((tone: Toast["tone"], text: string) => {
+    const id = nextToastId.current++;
+    setToasts((current) => [...current, { id, tone, message: text }]);
+    setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    }, 6000);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -339,6 +375,66 @@ export function UserTable() {
     }
   };
 
+  const sendResetLink = async (user: ApiUser) => {
+    if (
+      !window.confirm(
+        `Send a password reset link to ${user.email}? Any earlier reset link for this account will stop working.`,
+      )
+    ) {
+      return;
+    }
+
+    setResetBusyId(user.id);
+    setTableError(null);
+    setResetLink(null);
+    setLinkCopied(false);
+
+    try {
+      const result = await sendManualPasswordReset({ userId: user.id });
+
+      if (!result?.ok) {
+        const message = result?.error ?? "Could not send the reset link.";
+        setTableError(message);
+        pushToast("error", message);
+        return;
+      }
+
+      setResetLink({
+        email: result.email ?? user.email,
+        url: result.resetUrl ?? "",
+        expiresAt: result.expiresAt ?? "",
+      });
+      pushToast(
+        "success",
+        `Reset link generated and emailed to ${result.email ?? user.email}.`,
+      );
+    } catch {
+      const message = "Network error while sending the reset link.";
+      setTableError(message);
+      pushToast("error", message);
+    } finally {
+      setResetBusyId(null);
+    }
+  };
+
+  const closeResetModal = () => {
+    setResetLink(null);
+    setLinkCopied(false);
+  };
+
+  const copyResetLink = async () => {
+    if (!resetLink?.url) return;
+
+    try {
+      await navigator.clipboard.writeText(resetLink.url);
+      setLinkCopied(true);
+    } catch {
+      // Clipboard access needs a secure context; the link is still on screen
+      // and selectable, so the admin can copy it by hand.
+      setLinkCopied(false);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   const goToPage = (page: number) => {
@@ -531,6 +627,15 @@ export function UserTable() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => void sendResetLink(user)}
+                      disabled={busy || resetBusyId === user.id}
+                      title={`Send a password reset link to ${user.email}`}
+                      className="mr-3 whitespace-nowrap text-sm font-semibold text-cyan-400 hover:text-cyan-300 disabled:opacity-60"
+                    >
+                      {resetBusyId === user.id ? "Sending…" : "Send Reset Link"}
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => void remove(user)}
                       disabled={busy}
                       className="text-sm font-semibold text-red-400 hover:text-red-300 disabled:opacity-60"
@@ -660,6 +765,76 @@ export function UserTable() {
           </div>
         </form>
       </Modal>
+
+      <Modal
+        open={resetLink !== null}
+        title="Password reset link"
+        onClose={closeResetModal}
+      >
+        <p className="text-sm text-slate-400">
+          The reset link was emailed to{" "}
+          <span className="font-semibold text-slate-200">
+            {resetLink?.email}
+          </span>
+          . Copy it below if the user needs it handed over directly.
+        </p>
+
+        <div className="mt-5 flex flex-col gap-3">
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
+            Reset link
+            <input
+              readOnly
+              value={resetLink?.url ?? ""}
+              onFocus={(event) => event.currentTarget.select()}
+              className={`${inputClass} font-mono text-xs`}
+            />
+          </label>
+
+          {resetLink?.expiresAt && (
+            <p className="text-xs text-slate-500">
+              Expires at{" "}
+              {new Date(resetLink.expiresAt).toLocaleString()} and can only be
+              used once.
+            </p>
+          )}
+
+          <p className="text-xs text-slate-500">
+            Anyone holding this link can set the password, so share it with the
+            account owner only.
+          </p>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => void copyResetLink()}
+              disabled={!resetLink?.url}
+              className={primaryBtn}
+            >
+              {linkCopied ? "Copied" : "Copy link"}
+            </button>
+            <button
+              type="button"
+              onClick={closeResetModal}
+              className={subtleBtn}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <div className="pointer-events-none fixed right-6 bottom-6 z-50 flex w-full max-w-sm flex-col gap-2">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            role="status"
+            aria-live="polite"
+            className={`pointer-events-auto rounded-xl border px-4 py-3 text-sm font-medium shadow-lg shadow-black/40 ${toastTone[toast.tone]}`}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
