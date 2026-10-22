@@ -13,6 +13,9 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // The reset flow redirects here once the password has been changed.
+  const passwordReset = searchParams.get("success") === "password-reset";
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -55,6 +58,15 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {passwordReset && (
+        <p
+          role="status"
+          className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400"
+        >
+          Your password has been updated. Log in with your new password.
+        </p>
+      )}
+
       <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-300">
         Email
         <input

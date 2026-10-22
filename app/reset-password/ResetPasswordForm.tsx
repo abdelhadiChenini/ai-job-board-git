@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { resetPassword } from "./actions";
 
 const inputClass =
@@ -9,15 +10,28 @@ const inputClass =
 const primaryBtn =
   "mt-2 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-60";
 
+/**
+ * Next.js reports a redirect performed inside a server action as a thrown
+ * error. It is the success path, so it must not be rendered as a failure.
+ */
+function isRedirectError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const digest = (error as { digest?: unknown }).digest;
+  return typeof digest === "string" && digest.startsWith("NEXT_REDIRECT");
+}
+
 export function ResetPasswordForm({ token }: { token: string }) {
+  const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setSuccess(null);
 
     if (!token) {
       setError("This reset link is invalid or expired.");
@@ -38,10 +52,25 @@ export function ResetPasswordForm({ token }: { token: string }) {
 
     try {
       const result = await resetPassword(token, password);
-      if (result && !result.ok) {
+
+      // Only an explicit failure is a failure. The action redirects on
+      // success, so anything else means the password was changed.
+      if (
+        result &&
+        typeof result === "object" &&
+        result.ok === false
+      ) {
         setError(result.error ?? "Something went wrong. Please try again.");
+        return;
       }
-    } catch {
+
+      setSuccess("Password updated. Taking you to the login page…");
+      router.push("/login?success=password-reset");
+      router.refresh();
+    } catch (thrown) {
+      if (isRedirectError(thrown)) {
+        return;
+      }
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -84,6 +113,15 @@ export function ResetPasswordForm({ token }: { token: string }) {
           className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400"
         >
           {error}
+        </p>
+      )}
+
+      {success && (
+        <p
+          role="status"
+          className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400"
+        >
+          {success}
         </p>
       )}
 
