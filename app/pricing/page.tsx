@@ -31,7 +31,7 @@ const PRO_PRICE = "$10";
 
 const freeFeatures = [
   `Browse every opportunity on the board`,
-  `Apply to up to ${FREE_DAILY_APPLICATION_LIMIT} opportunities per day`,
+  `Apply to up to 3 opportunities per week`,
   `New roles unlock ${EARLY_ACCESS_WINDOW_HOURS} hours after posting`,
   "Standard expert profile",
 ] as const;
@@ -47,8 +47,8 @@ const proFeatures = [
 
 const comparison = [
   {
-    label: "Applications per day",
-    free: `${FREE_DAILY_APPLICATION_LIMIT}`,
+    label: "Applications per week",
+    free: "3",
     pro: "Unlimited",
   },
   {
@@ -66,11 +66,11 @@ const comparison = [
 const questions = [
   {
     question: "Is it really free to join as an expert?",
-    answer: `Yes. Creating an expert profile, joining the network and applying to opportunities costs nothing. Free accounts can apply to ${FREE_DAILY_APPLICATION_LIMIT} opportunities per rolling day, and Pro is an optional upgrade for people applying at higher volume.`,
+    answer: `Yes. Creating an expert profile, joining the network and applying to opportunities costs nothing. Free accounts can apply to 3 opportunities per week, and Pro is an optional upgrade for people applying at higher volume.`,
   },
   {
-    question: "What happens when I hit the daily limit?",
-    answer: `Free accounts can apply to ${FREE_DAILY_APPLICATION_LIMIT} opportunities per rolling day. When the cap is reached you can still browse everything, and your applications open again once the window rolls over. Pro removes the cap entirely.`,
+    question: "What happens when I hit the weekly limit?",
+    answer: `Free accounts can apply to 3 opportunities per week. When the cap is reached you can still browse everything, and your applications open again once the week rolls over. Pro removes the cap entirely.`,
   },
   {
     question: "What does early access mean?",

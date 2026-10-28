@@ -135,9 +135,9 @@ export async function markApplied(jobId: string): Promise<MarkAppliedResult> {
 
     return {
       ok: false,
-      error: "You have reached your daily application limit.",
+      error: "You have reached your weekly application limit. Upgrade to Pro for unlimited applications.",
       status: 403,
-      blockedReason: "daily_limit",
+      blockedReason: eligibility.reason === "weekly_limit" ? "weekly_limit" : "daily_limit",
       used: eligibility.used,
       limit: eligibility.limit,
     };

@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
 
-export const FREE_DAILY_APPLICATION_LIMIT = 3;
+export const FREE_DAILY_APPLICATION_LIMIT = 3; // Kept for backward compatibility
+export const FREE_WEEKLY_APPLICATION_LIMIT = 3;
 export const EARLY_ACCESS_WINDOW_HOURS = 48;
 export const EARLY_ACCESS_WINDOW_MS = EARLY_ACCESS_WINDOW_HOURS * 60 * 60 * 1000;
 
@@ -34,7 +36,7 @@ export type ApplyPlanChangeResult =
     }
   | { ok: false; error: string };
 
-export type ApplyBlockReason = "early_access" | "daily_limit";
+export type ApplyBlockReason = "early_access" | "daily_limit" | "weekly_limit";
 
 /**
  * Server-rendered paywall state, shaped for the client. `countdown` is
@@ -43,14 +45,14 @@ export type ApplyBlockReason = "early_access" | "daily_limit";
  */
 export type ApplyBlockInfo =
   | { reason: "early_access"; unlocksAt: string; countdown: string }
-  | { reason: "daily_limit"; used: number; limit: number };
+  | { reason: "daily_limit" | "weekly_limit"; used: number; limit: number };
 
 export type ApplyEligibility =
   | { allowed: true }
   | { allowed: false; reason: "early_access"; unlocksAt: Date }
   | {
       allowed: false;
-      reason: "daily_limit";
+      reason: "daily_limit" | "weekly_limit";
       used: number;
       limit: number;
     };
@@ -126,16 +128,16 @@ export async function canApplyToJob(
   const used = await prisma.appliedOpportunity.count({
     where: {
       userId,
-      createdAt: { gte: new Date(now - DAY_IN_MS) },
+      createdAt: { gte: new Date(now - WEEK_IN_MS) },
     },
   });
 
-  if (used >= FREE_DAILY_APPLICATION_LIMIT) {
+  if (used >= FREE_WEEKLY_APPLICATION_LIMIT) {
     return {
       allowed: false,
-      reason: "daily_limit",
+      reason: "weekly_limit",
       used,
-      limit: FREE_DAILY_APPLICATION_LIMIT,
+      limit: FREE_WEEKLY_APPLICATION_LIMIT,
     };
   }
 
