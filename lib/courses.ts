@@ -1,4 +1,12 @@
-export type CourseSlideType = "title" | "bullets" | "text";
+export type CourseSlideType = "title" | "bullets" | "text" | "video" | "quiz";
+
+export type QuizQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation?: string;
+};
 
 export type CourseSlide = {
   id: string;
@@ -9,6 +17,10 @@ export type CourseSlide = {
   heading?: string;
   bullets?: string[];
   body?: string;
+  videoUrl?: string;
+  showSlidesToggle?: boolean;
+  slidesEmbedUrl?: string;
+  quiz?: QuizQuestion[];
 };
 
 export type CourseModule = {
@@ -26,7 +38,7 @@ export type CourseProgressUpdate = {
   status: CourseProgressStatus;
 };
 
-const SLIDE_TYPES: CourseSlideType[] = ["title", "bullets", "text"];
+const SLIDE_TYPES: CourseSlideType[] = ["title", "bullets", "text", "video", "quiz"];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -76,6 +88,9 @@ function normalizeSlide(
   const heading = asString(raw.heading) ?? (type === "text" ? title : undefined);
   const body = text;
   const bullets = asStringList(raw.bullets);
+  const videoUrl = asString(raw.videoUrl);
+  const slidesEmbedUrl = asString(raw.slidesEmbedUrl);
+  const showSlidesToggle = typeof raw.showSlidesToggle === "boolean" ? raw.showSlidesToggle : undefined;
 
   if (eyebrow) slide.eyebrow = eyebrow;
   if (title) slide.title = title;
@@ -83,10 +98,18 @@ function normalizeSlide(
   if (heading) slide.heading = heading;
   if (bullets) slide.bullets = bullets;
   if (body) slide.body = body;
+  if (videoUrl) slide.videoUrl = videoUrl;
+  if (slidesEmbedUrl) slide.slidesEmbedUrl = slidesEmbedUrl;
+  if (showSlidesToggle !== undefined) slide.showSlidesToggle = showSlidesToggle;
+  if (Array.isArray(raw.quiz)) {
+    slide.quiz = raw.quiz as QuizQuestion[];
+  }
 
   const hasContent =
     Boolean(slide.title || slide.subtitle || slide.heading || slide.body) ||
-    Boolean(slide.bullets?.length);
+    Boolean(slide.bullets?.length) ||
+    Boolean(slide.videoUrl) ||
+    Boolean(slide.quiz?.length);
 
   return hasContent ? slide : null;
 }
