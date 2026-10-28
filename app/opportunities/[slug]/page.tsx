@@ -528,36 +528,30 @@ export default async function OpportunityPage({ params: p }: Params) {
                 initialApplied={applied}
                 applyBlock={applyBlock}
               />
-            ) : anonymousEarlyAccess ? (
-              <>
-                <ProLockedNotice block={anonymousEarlyAccess} />
-                <Link
-                  href={loginHref}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-500"
-                >
-                  Log in or Sign up to apply
-                </Link>
-                <p className="text-center text-xs text-slate-400">
-                  Applying needs an account — your plan decides whether this
-                  role is available to you now.
-                </p>
-              </>
             ) : (
               <>
-                <a
-                  href={job.affiliateUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition-colors hover:bg-blue-500"
-                >
-                  Apply Now
-                </a>
+                <div className="relative overflow-hidden rounded-xl">
+                  <div className="pointer-events-none blur-sm">
+                    <a
+                      href={job.affiliateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white"
+                      aria-hidden="true"
+                    >
+                      Apply Now
+                    </a>
+                  </div>
+                </div>
                 <Link
-                  href={loginHref}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 py-3 font-semibold text-slate-300 transition-colors hover:border-blue-500/50 hover:text-white"
+                  href="/register"
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-4 text-base font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-500 hover:shadow-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 >
-                  Save for Later
+                  Create a Free Expert Account to Apply
                 </Link>
+                <p className="mt-2 text-center text-xs text-slate-400">
+                  Sign up to unlock the application link.
+                </p>
               </>
             )}
             <ShareJobButton />
