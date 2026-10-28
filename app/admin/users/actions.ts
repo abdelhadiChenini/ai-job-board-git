@@ -132,6 +132,12 @@ export type ManualPasswordResetResult = {
  * rules match the self-service flow exactly: only the digest of the token is
  * stored, and only the newest link stays redeemable.
  */
+export async function generateAdminResetLink(
+  target: { userId?: string | null; email?: string | null },
+): Promise<ManualPasswordResetResult> {
+  return sendManualPasswordReset(target);
+}
+
 export async function sendManualPasswordReset(
   target: { userId?: string | null; email?: string | null },
 ): Promise<ManualPasswordResetResult> {

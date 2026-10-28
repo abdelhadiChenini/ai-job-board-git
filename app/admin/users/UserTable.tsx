@@ -8,6 +8,7 @@ import {
   setFeatured,
   setUserPlan,
   sendManualPasswordReset,
+  generateAdminResetLink,
 } from "./actions";
 import { cardClass, inputClass, primaryBtn, subtleBtn } from "../ui";
 import type { Plan } from "@/lib/subscription";
@@ -633,6 +634,41 @@ export function UserTable() {
                       className="mr-3 whitespace-nowrap text-sm font-semibold text-cyan-400 hover:text-cyan-300 disabled:opacity-60"
                     >
                       {resetBusyId === user.id ? "Sending…" : "Send Reset Link"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void (async () => {
+                        setResetBusyId(user.id);
+                        setTableError(null);
+                        setResetLink(null);
+                        setLinkCopied(false);
+                        try {
+                          const result = await generateAdminResetLink({ userId: user.id });
+                          if (!result?.ok) {
+                            const message = result?.error ?? "Could not generate the reset link.";
+                            setTableError(message);
+                            pushToast("error", message);
+                            return;
+                          }
+                          setResetLink({
+                            email: result.email ?? user.email,
+                            url: result.resetUrl ?? "",
+                            expiresAt: result.expiresAt ?? "",
+                          });
+                          pushToast("success", "Reset link generated.");
+                        } catch {
+                          const message = "Network error while generating the reset link.";
+                          setTableError(message);
+                          pushToast("error", message);
+                        } finally {
+                          setResetBusyId(null);
+                        }
+                      })()}
+                      disabled={busy || resetBusyId === user.id}
+                      title={`Generate a password reset link for ${user.email} (Master Admin)`}
+                      className="mr-3 whitespace-nowrap text-sm font-semibold text-emerald-400 hover:text-emerald-300 disabled:opacity-60"
+                    >
+                      {resetBusyId === user.id ? "Generating…" : "Generate Reset Link"}
                     </button>
                     <button
                       type="button"
