@@ -3,6 +3,7 @@ import RegisterForm from "./RegisterForm";
 
 export const metadata: Metadata = {
   title: "Create an Expert Account",
+  alternates: { canonical: "/register" },
 };
 
 export default function RegisterPage() {

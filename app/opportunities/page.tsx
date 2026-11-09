@@ -9,6 +9,7 @@ import type { Prisma } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "AI Opportunities",
+  alternates: { canonical: "/opportunities" },
 };
 
 export const dynamic = "force-dynamic";

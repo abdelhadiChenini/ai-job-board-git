@@ -39,6 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeo();
 
   return {
+    metadataBase: new URL("https://ameelai.com"),
     title: {
       default: seo?.siteTitle || DEFAULT_TITLE,
       template: `%s | ${seo?.siteTitle || DEFAULT_TITLE}`,
